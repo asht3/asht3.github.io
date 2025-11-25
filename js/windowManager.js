@@ -2,8 +2,9 @@ export class WindowManager {
     constructor() {
         this.windows = new Map();
         this.zIndex = 1000;
-        this.windowStates = new Map(); // Track window states
-        this.windowCount = 0; // Track how many windows have been opened
+        this.windowStates = new Map();
+        this.windowCount = 0;
+        this.lastPosition = null;
     }
 
     createWindow(app, x = null, y = null) {
@@ -14,14 +15,14 @@ export class WindowManager {
         const windowId = `window-${Date.now()}`;
         windowElement.id = windowId;
         
-        // Use provided coordinates or calculate cascading position
+        // Use provided coordinates or calculate smart position
         let finalX = x;
         let finalY = y;
         
         if (x === null || y === null) {
-            const cascadePos = this.getCascadePosition();
-            finalX = cascadePos.x;
-            finalY = cascadePos.y;
+            const smartPos = this.getSmartPosition(app);
+            finalX = smartPos.x;
+            finalY = smartPos.y;
         }
         
         // Set window position and size
@@ -41,14 +42,19 @@ export class WindowManager {
         // Add to taskbar
         const taskbarApp = this.addToTaskbar(windowId, app.name);
         
+        // Get the maximize button reference BEFORE initializing
+        const maximizeBtn = windowElement.querySelector('.maximize-btn');
+        
         // Initialize window functionality
-        this.initializeWindow(windowElement, windowId, taskbarApp);
+        this.initializeWindow(windowElement, windowId, taskbarApp, maximizeBtn);
         
         // Store window state
         this.windowStates.set(windowId, {
             element: windowElement,
             taskbarApp: taskbarApp,
             isMinimized: false,
+            isMaximized: false,
+            maximizeButton: maximizeBtn, // Store the actual button element
             originalStyle: {
                 display: windowElement.style.display,
                 left: windowElement.style.left,
@@ -60,37 +66,57 @@ export class WindowManager {
         
         this.windows.set(windowId, windowElement);
         this.windowCount++;
+        this.lastPosition = { x: finalX, y: finalY };
         this.bringToFront(windowElement, taskbarApp);
         
         return windowElement;
     }
 
-    getCascadePosition() {
+    getSmartPosition(app) {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const offset = 30; // Pixel offset for cascading
         
-        // Start from a nice centered position for first window
-        const baseX = (viewportWidth - 600) / 2; // Assuming ~600px default width
-        const baseY = (viewportHeight - 400) / 3; // Slightly higher than center
+        if (this.windowCount === 0) {
+            return {
+                x: (viewportWidth - app.width) / 2,
+                y: (viewportHeight - app.height) / 3
+            };
+        }
         
-        // Cascade subsequent windows
-        const x = baseX + (this.windowCount * offset);
-        const y = baseY + (this.windowCount * offset);
+        if (this.lastPosition) {
+            const offset = 40;
+            let newX = this.lastPosition.x + offset;
+            let newY = this.lastPosition.y + offset;
+            
+            if (newX + app.width > viewportWidth - 20) {
+                newX = Math.max(20, viewportWidth - app.width - 20);
+            }
+            if (newY + app.height > viewportHeight - 60) {
+                newY = Math.max(20, viewportHeight - app.height - 60);
+            }
+            
+            return { x: newX, y: newY };
+        }
         
-        // Make sure windows don't go off screen
+        const baseX = (viewportWidth - app.width) / 2;
+        const baseY = (viewportHeight - app.height) / 3;
+        const offset = 30;
+        
         return {
-            x: Math.min(x, viewportWidth - 400), // Keep at least 400px on screen
-            y: Math.min(y, viewportHeight - 300)  // Keep at least 300px on screen
+            x: Math.min(baseX + (this.windowCount * offset), viewportWidth - app.width - 20),
+            y: Math.min(baseY + (this.windowCount * offset), viewportHeight - app.height - 60)
         };
     }
 
-    initializeWindow(windowElement, windowId, taskbarApp) {
+    initializeWindow(windowElement, windowId, taskbarApp, maximizeBtn) {
         const header = windowElement.querySelector('.window-header');
         const minimizeBtn = windowElement.querySelector('.minimize-btn');
-        const maximizeBtn = windowElement.querySelector('.maximize-btn');
         const closeBtn = windowElement.querySelector('.close-btn');
         const resizeHandle = windowElement.querySelector('.window-resize-handle');
+
+        // Set initial maximize button text
+        maximizeBtn.textContent = '□';
+        maximizeBtn.title = 'Maximize';
 
         // Drag functionality
         this.makeDraggable(header, windowElement);
@@ -100,13 +126,13 @@ export class WindowManager {
 
         // Window controls
         minimizeBtn.addEventListener('click', () => this.minimizeWindow(windowId));
-        maximizeBtn.addEventListener('click', () => this.toggleMaximize(windowElement));
+        maximizeBtn.addEventListener('click', () => this.toggleMaximize(windowId));
         closeBtn.addEventListener('click', () => this.closeWindow(windowId));
 
         // Bring to front on click
         windowElement.addEventListener('mousedown', () => this.bringToFront(windowElement, taskbarApp));
         
-        // Taskbar click event - toggle minimize/restore
+        // Taskbar click event
         taskbarApp.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleWindow(windowId);
@@ -182,12 +208,11 @@ export class WindowManager {
     bringToFront(element, taskbarApp) {
         const windowState = this.getWindowStateByElement(element);
         if (windowState && windowState.isMinimized) {
-            return; // Don't bring minimized windows to front
+            return;
         }
         
         element.style.zIndex = this.zIndex++;
         
-        // Update taskbar active state
         document.querySelectorAll('.taskbar-app').forEach(app => {
             app.classList.remove('active');
         });
@@ -226,30 +251,64 @@ export class WindowManager {
         }
     }
 
-    toggleMaximize(element) {
-        const windowState = this.getWindowStateByElement(element);
+    toggleMaximize(windowId) {
+        const windowState = this.windowStates.get(windowId);
         if (!windowState) return;
 
-        if (element.style.width === '100vw' && element.style.height === 'calc(100vh - 40px)') {
-            // Restore to original size
-            element.style.width = windowState.originalStyle.width || '600px';
-            element.style.height = windowState.originalStyle.height || '400px';
-            element.style.left = windowState.originalStyle.left || '100px';
-            element.style.top = windowState.originalStyle.top || '100px';
+        if (windowState.isMaximized) {
+            this.restoreWindowSize(windowId);
         } else {
-            // Store current style before maximizing
+            this.maximizeWindow(windowId);
+        }
+    }
+
+    maximizeWindow(windowId) {
+        const windowState = this.windowStates.get(windowId);
+        if (!windowState) return;
+
+        const element = windowState.element;
+        
+        // Store current style before maximizing
+        if (!windowState.isMaximized) {
             windowState.originalStyle = {
                 width: element.style.width,
                 height: element.style.height,
                 left: element.style.left,
                 top: element.style.top
             };
-            
-            // Maximize
-            element.style.width = '100vw';
-            element.style.height = 'calc(100vh - 40px)';
-            element.style.left = '0';
-            element.style.top = '0';
+        }
+        
+        // Maximize
+        element.style.width = 'calc(100vw - 4px)';
+        element.style.height = 'calc(100vh - 44px)';
+        element.style.left = '2px';
+        element.style.top = '2px';
+        
+        // Update state and button
+        windowState.isMaximized = true;
+        if (windowState.maximizeButton) {
+            windowState.maximizeButton.textContent = '⧉';
+            windowState.maximizeButton.title = 'Restore';
+        }
+    }
+
+    restoreWindowSize(windowId) {
+        const windowState = this.windowStates.get(windowId);
+        if (!windowState) return;
+
+        const element = windowState.element;
+        
+        // Restore to original size and position
+        element.style.width = windowState.originalStyle.width || '600px';
+        element.style.height = windowState.originalStyle.height || '400px';
+        element.style.left = windowState.originalStyle.left || '100px';
+        element.style.top = windowState.originalStyle.top || '100px';
+        
+        // Update state and button
+        windowState.isMaximized = false;
+        if (windowState.maximizeButton) {
+            windowState.maximizeButton.textContent = '□';
+            windowState.maximizeButton.title = 'Maximize';
         }
     }
 
@@ -261,6 +320,10 @@ export class WindowManager {
             this.windowStates.delete(windowId);
             this.windows.delete(windowId);
             this.windowCount = Math.max(0, this.windowCount - 1);
+            
+            if (this.windowCount === 0) {
+                this.lastPosition = null;
+            }
         }
     }
 
