@@ -51,6 +51,27 @@ body {
     border-radius: 5px;
 }
 
+/* Enhanced icon styles */
+/* .icon-img {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    filter: 
+        drop-shadow(0 0 8px var(--neon-blue))
+        drop-shadow(0 0 16px var(--neon-purple));
+    transition: all 0.3s ease;
+    background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.icon:hover .icon-img {
+    transform: scale(1.2);
+    filter: 
+        drop-shadow(0 0 12px var(--neon-pink))
+        drop-shadow(0 0 24px var(--neon-purple));
+} */
+
 .icon:hover {
     background: rgba(0, 243, 255, 0.1);
     box-shadow: var(--glow-blue);

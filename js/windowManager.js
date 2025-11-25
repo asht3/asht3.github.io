@@ -3,9 +3,10 @@ export class WindowManager {
         this.windows = new Map();
         this.zIndex = 1000;
         this.windowStates = new Map(); // Track window states
+        this.windowCount = 0; // Track how many windows have been opened
     }
 
-    createWindow(app, x = 100, y = 100) {
+    createWindow(app, x = null, y = null) {
         const template = document.getElementById('window-template');
         const clone = template.content.cloneNode(true);
         const windowElement = clone.querySelector('.window');
@@ -13,9 +14,19 @@ export class WindowManager {
         const windowId = `window-${Date.now()}`;
         windowElement.id = windowId;
         
+        // Use provided coordinates or calculate cascading position
+        let finalX = x;
+        let finalY = y;
+        
+        if (x === null || y === null) {
+            const cascadePos = this.getCascadePosition();
+            finalX = cascadePos.x;
+            finalY = cascadePos.y;
+        }
+        
         // Set window position and size
-        windowElement.style.left = `${x}px`;
-        windowElement.style.top = `${y}px`;
+        windowElement.style.left = `${finalX}px`;
+        windowElement.style.top = `${finalY}px`;
         windowElement.style.width = `${app.width}px`;
         windowElement.style.height = `${app.height}px`;
         windowElement.style.zIndex = this.zIndex++;
@@ -48,9 +59,30 @@ export class WindowManager {
         });
         
         this.windows.set(windowId, windowElement);
+        this.windowCount++;
         this.bringToFront(windowElement, taskbarApp);
         
         return windowElement;
+    }
+
+    getCascadePosition() {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const offset = 30; // Pixel offset for cascading
+        
+        // Start from a nice centered position for first window
+        const baseX = (viewportWidth - 600) / 2; // Assuming ~600px default width
+        const baseY = (viewportHeight - 400) / 3; // Slightly higher than center
+        
+        // Cascade subsequent windows
+        const x = baseX + (this.windowCount * offset);
+        const y = baseY + (this.windowCount * offset);
+        
+        // Make sure windows don't go off screen
+        return {
+            x: Math.min(x, viewportWidth - 400), // Keep at least 400px on screen
+            y: Math.min(y, viewportHeight - 300)  // Keep at least 300px on screen
+        };
     }
 
     initializeWindow(windowElement, windowId, taskbarApp) {
@@ -228,6 +260,7 @@ export class WindowManager {
             windowState.taskbarApp.remove();
             this.windowStates.delete(windowId);
             this.windows.delete(windowId);
+            this.windowCount = Math.max(0, this.windowCount - 1);
         }
     }
 

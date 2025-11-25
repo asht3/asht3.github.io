@@ -20,7 +20,7 @@ class CyberpunkDesktop {
         // Initialize desktop icons
         this.initDesktopIcons();
         
-        // Open summary window on load
+        // Open summary window on load - CENTERED
         this.openSummaryWindow();
         
         // Initialize clock
@@ -51,15 +51,19 @@ class CyberpunkDesktop {
         };
 
         if (apps[appName]) {
-            // Position windows slightly offset from each other
-            const x = 100 + (Object.keys(apps).indexOf(appName) * 30);
-            const y = 100 + (Object.keys(apps).indexOf(appName) * 30);
-            this.windowManager.createWindow(apps[appName], x, y);
+            // Let the WindowManager handle positioning with cascading
+            this.windowManager.createWindow(apps[appName]);
         }
     }
 
     openSummaryWindow() {
-        this.windowManager.createWindow(summaryApp, 150, 150);
+        // Center the summary window on initial load by passing specific coordinates
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const x = (viewportWidth - summaryApp.width) / 2;
+        const y = (viewportHeight - summaryApp.height) / 3; // Slightly higher than center
+        
+        this.windowManager.createWindow(summaryApp, x, y);
     }
 
     updateClock() {
