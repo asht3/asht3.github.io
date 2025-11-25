@@ -1,0 +1,288 @@
+:root {
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00ff;
+    --neon-purple: #b967ff;
+    --dark-bg: #0a0a0a;
+    --darker-bg: #050505;
+    --panel-bg: rgba(16, 16, 32, 0.95);
+    --glow-blue: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+    --glow-pink: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background: linear-gradient(45deg, var(--dark-bg), var(--darker-bg));
+    color: var(--neon-blue);
+    overflow: hidden;
+    height: 100vh;
+}
+
+#desktop {
+    height: 100vh;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 243, 255, 0.1) 0%, transparent 50%);
+    position: relative;
+}
+
+/* Desktop Icons */
+.desktop-icons {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.icon:hover {
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: var(--glow-blue);
+}
+
+.icon-img {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 0 5px var(--neon-blue));
+}
+
+.icon span {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    text-align: center;
+    text-shadow: var(--glow-blue);
+}
+
+/* Window Styles */
+.window {
+    position: absolute;
+    background: var(--panel-bg);
+    border: 1px solid var(--neon-blue);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+    min-width: 300px;
+    min-height: 200px;
+    backdrop-filter: blur(10px);
+}
+
+.window-header {
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    color: var(--dark-bg);
+    padding: 8px 12px;
+    border-radius: 8px 8px 0 0;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+}
+
+.window-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.window-controls button {
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: var(--dark-bg);
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.window-controls button:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.window-content {
+    padding: 20px;
+    height: calc(100% - 40px);
+    overflow: auto;
+    color: var(--neon-blue);
+}
+
+.window-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    cursor: nw-resize;
+    background: linear-gradient(135deg, transparent 50%, var(--neon-blue) 50%);
+}
+
+/* Taskbar */
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel-bg);
+    border-top: 1px solid var(--neon-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    box-shadow: 0 -5px 20px rgba(0, 243, 255, 0.2);
+}
+
+.start-button {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+    color: var(--dark-bg);
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.taskbar-apps {
+    display: flex;
+    gap: 5px;
+}
+
+.taskbar-app {
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 500;
+}
+
+.taskbar-app.active {
+    background: var(--neon-blue);
+    color: var(--dark-bg);
+}
+
+.system-tray {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+}
+
+/* App-specific styles */
+.terminal-text {
+    font-family: 'Courier New', monospace;
+    line-height: 1.4;
+}
+
+.typing-animation {
+    overflow: hidden;
+    border-right: 2px solid var(--neon-blue);
+    white-space: nowrap;
+    animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: var(--neon-blue) }
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.project-card {
+    background: rgba(0, 243, 255, 0.05);
+    border: 1px solid var(--neon-blue);
+    padding: 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.project-card:hover {
+    box-shadow: var(--glow-blue);
+    transform: translateY(-2px);
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.skill-item {
+    background: rgba(0, 243, 255, 0.1);
+    padding: 10px;
+    border-radius: 3px;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.skill-item:hover {
+    border-color: var(--neon-blue);
+    box-shadow: var(--glow-blue);
+}
+
+.music-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.music-controls button {
+    background: var(--neon-blue);
+    color: var(--dark-bg);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+}
+
+.music-controls button:hover {
+    box-shadow: var(--glow-blue);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 243, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--neon-blue);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-purple);
+}

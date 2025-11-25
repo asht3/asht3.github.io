@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Dev Portfolio</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="icon" data-app="summary">
+                <div class="icon-img">📄</div>
+                <span>Summary.txt</span>
+            </div>
+            <div class="icon" data-app="projects">
+                <div class="icon-img">💼</div>
+                <span>Projects</span>
+            </div>
+            <div class="icon" data-app="skills">
+                <div class="icon-img">⚡</div>
+                <span>Skills</span>
+            </div>
+            <div class="icon" data-app="music">
+                <div class="icon-img">🎵</div>
+                <span>Music Player</span>
+            </div>
+            <div class="icon" data-app="github">
+                <div class="icon-img">🔗</div>
+                <span>GitHub</span>
+            </div>
+        </div>
+
+        <!-- App Windows Container -->
+        <div id="windows-container"></div>
+
+        <!-- Taskbar -->
+        <div class="taskbar">
+            <div class="start-button">▶ START</div>
+            <div class="taskbar-apps" id="taskbar-apps"></div>
+            <div class="system-tray">
+                <span id="time"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for app windows -->
+    <template id="window-template">
+        <div class="window">
+            <div class="window-header">
+                <span class="window-title"></span>
+                <div class="window-controls">
+                    <button class="minimize-btn">−</button>
+                    <button class="maximize-btn">□</button>
+                    <button class="close-btn">×</button>
+                </div>
+            </div>
+            <div class="window-content"></div>
+            <div class="window-resize-handle"></div>
+        </div>
+    </template>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
