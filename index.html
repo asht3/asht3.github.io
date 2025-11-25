@@ -10,7 +10,7 @@
 <body>
     <div id="desktop">
         <!-- Desktop Icons -->
-        <div class="desktop-icons">
+        <!-- <div class="desktop-icons">
             <div class="icon" data-app="summary">
                 <div class="icon-img">📄</div>
                 <span>Summary.txt</span>
@@ -29,6 +29,156 @@
             </div>
             <div class="icon" data-app="github">
                 <div class="icon-img">🔗</div>
+                <span>GitHub</span>
+            </div>
+        </div> -->
+
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="icon" data-app="summary">
+                <div class="icon-img">
+                    <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                        <defs>
+                            <linearGradient id="neonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f3ff"/>
+                                <stop offset="100%" stop-color="#b967ff"/>
+                            </linearGradient>
+                            <linearGradient id="neonPink" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ff00ff"/>
+                                <stop offset="100%" stop-color="#00f3ff"/>
+                            </linearGradient>
+                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Document shape -->
+                        <rect x="4" y="2" width="16" height="20" rx="1" fill="none" stroke="url(#neonBlue)" stroke-width="1.5" filter="url(#glow)"/>
+                        <!-- Fold corner -->
+                        <polyline points="16,2 20,2 20,6" fill="none" stroke="url(#neonPink)" stroke-width="1.5" filter="url(#glow)"/>
+                        <!-- Text lines -->
+                        <line x1="7" y1="8" x2="15" y2="8" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
+                        <line x1="7" y1="11" x2="17" y2="11" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
+                        <line x1="7" y1="14" x2="13" y2="14" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
+                        <line x1="7" y1="17" x2="16" y2="17" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
+                    </svg>
+                </div>
+                <span>Summary.txt</span>
+            </div>
+
+            <div class="icon" data-app="projects">
+                <div class="icon-img">
+                    <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                        <defs>
+                            <linearGradient id="projectsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f3ff"/>
+                                <stop offset="50%" stop-color="#ff00ff"/>
+                                <stop offset="100%" stop-color="#b967ff"/>
+                            </linearGradient>
+                            <filter id="projectsGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Briefcase shape -->
+                        <rect x="3" y="7" width="18" height="12" rx="1" fill="none" stroke="url(#projectsGradient)" stroke-width="1.5" filter="url(#projectsGlow)"/>
+                        <!-- Handle -->
+                        <rect x="7" y="7" width="10" height="2" fill="none" stroke="url(#projectsGradient)" stroke-width="1.5" filter="url(#projectsGlow)"/>
+                        <!-- Divider -->
+                        <line x1="3" y1="11" x2="21" y2="11" stroke="url(#projectsGradient)" stroke-width="1" filter="url(#projectsGlow)"/>
+                        <!-- Circuit lines -->
+                        <path d="M8 14 L10 14 L10 16 L12 16" stroke="url(#projectsGradient)" stroke-width="1" fill="none" filter="url(#projectsGlow)"/>
+                        <path d="M16 14 L14 14 L14 16 L12 16" stroke="url(#projectsGradient)" stroke-width="1" fill="none" filter="url(#projectsGlow)"/>
+                    </svg>
+                </div>
+                <span>Projects</span>
+            </div>
+
+            <div class="icon" data-app="skills">
+                <div class="icon-img">
+                    <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                        <defs>
+                            <linearGradient id="skillsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ff00ff"/>
+                                <stop offset="100%" stop-color="#00f3ff"/>
+                            </linearGradient>
+                            <filter id="skillsGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Lightning bolt -->
+                        <path d="M13 3 L7 14 L11 14 L9 21 L17 10 L13 10 Z" fill="none" stroke="url(#skillsGradient)" stroke-width="1.5" stroke-linejoin="round" filter="url(#skillsGlow)"/>
+                        <!-- Energy waves -->
+                        <circle cx="12" cy="12" r="3" fill="none" stroke="url(#skillsGradient)" stroke-width="0.5" filter="url(#skillsGlow)"/>
+                        <circle cx="12" cy="12" r="5" fill="none" stroke="url(#skillsGradient)" stroke-width="0.5" filter="url(#skillsGlow)"/>
+                    </svg>
+                </div>
+                <span>Skills</span>
+            </div>
+
+            <div class="icon" data-app="music">
+                <div class="icon-img">
+                    <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                        <defs>
+                            <linearGradient id="musicGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="20%" stop-color="#b967ff"/>
+                                <stop offset="100%" stop-color="#00f3ff"/>
+                            </linearGradient>
+                            <filter id="musicGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Music note -->
+                        <path d="M9 18V5l9-2v13" fill="none" stroke="url(#musicGradient)" stroke-width="1.5" filter="url(#musicGlow)"/>
+                        <!-- Circle for note head -->
+                        <circle cx="9" cy="18" r="2.5" fill="none" stroke="url(#musicGradient)" stroke-width="1.5" filter="url(#musicGlow)"/>
+                        <circle cx="18" cy="16" r="2.5" fill="none" stroke="url(#musicGradient)" stroke-width="1.5" filter="url(#musicGlow)"/>
+                        <!-- Sound waves -->
+                        <path d="M5 12 L7 12 M5 9 L9 9 M5 15 L11 15" stroke="url(#musicGradient)" stroke-width="1" filter="url(#musicGlow)"/>
+                    </svg>
+                </div>
+                <span>Music Player</span>
+            </div>
+
+            <div class="icon" data-app="github">
+                <div class="icon-img">
+                    <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                        <defs>
+                            <linearGradient id="githubGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f3ff"/>
+                                <stop offset="50%" stop-color="#ff00ff"/>
+                                <stop offset="100%" stop-color="#b967ff"/>
+                            </linearGradient>
+                            <filter id="githubGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Link chain -->
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" fill="none" stroke="url(#githubGradient)" stroke-width="1.5" filter="url(#githubGlow)"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" fill="none" stroke="url(#githubGradient)" stroke-width="1.5" filter="url(#githubGlow)"/>
+                        <!-- Connection nodes -->
+                        <circle cx="8" cy="8" r="1" fill="url(#githubGradient)" filter="url(#githubGlow)"/>
+                        <circle cx="16" cy="16" r="1" fill="url(#githubGradient)" filter="url(#githubGlow)"/>
+                    </svg>
+                </div>
                 <span>GitHub</span>
             </div>
         </div>
