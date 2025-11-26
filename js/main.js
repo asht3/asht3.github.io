@@ -1,5 +1,6 @@
 import { WindowManager } from './windowManager.js';
 import { MusicPlayer } from './musicPlayer.js';
+import { BinaryRain } from './binaryRain.js';
 import { profileApp } from './apps/profile.js';
 import { projectsApp } from './apps/projects.js';
 import { skillsApp } from './apps/skills.js';
@@ -10,6 +11,7 @@ class CyberpunkDesktop {
     constructor() {
         this.windowManager = new WindowManager();
         this.musicPlayer = new MusicPlayer();
+        this.binaryRain = new BinaryRain();
         this.init();
     }
 

@@ -15,6 +15,9 @@ export class WindowManager {
         const windowId = `window-${Date.now()}`;
         windowElement.id = windowId;
         
+        // debug
+        windowElement.style.position = 'fixed';
+
         // Use provided coordinates or calculate smart position
         let finalX = x;
         let finalY = y;
@@ -24,12 +27,41 @@ export class WindowManager {
             finalX = smartPos.x;
             finalY = smartPos.y;
         }
+
+        // compute actual taskbar height from DOM to match CSS instead of hardcoding
+        const taskbarEl = document.querySelector('.taskbar');
+        const taskbarHeight = taskbarEl ? taskbarEl.offsetHeight : 40;
+        const margin = 20; // keep a small gap from edges
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
+
+        // clamp finalX/finalY so the window fits within viewport and above the taskbar
+        if (finalX < margin) finalX = margin;
+        if (finalY < margin) finalY = margin;
+        if (finalX + app.width > viewportW - margin) {
+            finalX = Math.max(margin, viewportW - app.width - margin);
+        }
+        const maxAllowedY = Math.max(margin, viewportH - taskbarHeight - app.height - margin);
+        if (finalY > maxAllowedY) finalY = maxAllowedY;
+
+        // if the requested app height is larger than available space, cap it
+        let appliedHeight = app.height;
+        const maxHeight = Math.max(100, viewportH - taskbarHeight - (margin * 2));
+        if (appliedHeight > maxHeight) appliedHeight = maxHeight;
+        // similarly cap width if needed
+        let appliedWidth = app.width;
+        const maxWidth = Math.max(200, viewportW - (margin * 2));
+        if (appliedWidth > maxWidth) appliedWidth = maxWidth;
         
         // Set window position and size
+        // windowElement.style.left = `${finalX}px`;
+        // windowElement.style.top = `${finalY}px`;
+        // windowElement.style.width = `${app.width}px`;
+        // windowElement.style.height = `${app.height}px`;
         windowElement.style.left = `${finalX}px`;
         windowElement.style.top = `${finalY}px`;
-        windowElement.style.width = `${app.width}px`;
-        windowElement.style.height = `${app.height}px`;
+        windowElement.style.width = `${appliedWidth}px`;
+        windowElement.style.height = `${appliedHeight}px`;
         windowElement.style.zIndex = this.zIndex++;
         
         // Set window content
@@ -75,37 +107,64 @@ export class WindowManager {
     getSmartPosition(app) {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
+        const taskbarHeight = 40;
         
         if (this.windowCount === 0) {
             return {
-                x: (viewportWidth - app.width) / 2,
-                y: (viewportHeight - app.height) / 3
+                // x: (viewportWidth - app.width) / 2,
+                // y: (viewportHeight - app.height) / 3
+                x: Math.max(20, (viewportWidth - app.width) / 2),
+                y: Math.max(20, (viewportHeight - app.height - taskbarHeight) / 3)
             };
         }
         
+        // if (this.lastPosition) {
+        //     const offset = 40;
+        //     let newX = this.lastPosition.x + offset;
+        //     let newY = this.lastPosition.y + offset;
+            
+        //     if (newX + app.width > viewportWidth - 20) {
+        //         newX = Math.max(20, viewportWidth - app.width - 20);
+        //     }
+        //     if (newY + app.height > viewportHeight - 60) {
+        //         newY = Math.max(20, viewportHeight - app.height - 60);
+        //     }
+            
+        //     return { x: newX, y: newY };
+        // }
+
         if (this.lastPosition) {
             const offset = 40;
             let newX = this.lastPosition.x + offset;
             let newY = this.lastPosition.y + offset;
             
+            // Make sure the window stays within viewport bounds and above taskbar
             if (newX + app.width > viewportWidth - 20) {
                 newX = Math.max(20, viewportWidth - app.width - 20);
             }
-            if (newY + app.height > viewportHeight - 60) {
-                newY = Math.max(20, viewportHeight - app.height - 60);
+            if (newY + app.height > viewportHeight - taskbarHeight - 20) {
+                newY = Math.max(20, viewportHeight - app.height - taskbarHeight - 20);
             }
             
             return { x: newX, y: newY };
         }
-        
+
         const baseX = (viewportWidth - app.width) / 2;
-        const baseY = (viewportHeight - app.height) / 3;
-        const offset = 30;
+        const baseY = (viewportHeight - app.height - taskbarHeight) / 4; // Higher position
         
         return {
-            x: Math.min(baseX + (this.windowCount * offset), viewportWidth - app.width - 20),
-            y: Math.min(baseY + (this.windowCount * offset), viewportHeight - app.height - 60)
+            x: Math.min(baseX + (this.windowCount * 30), viewportWidth - app.width - 20),
+            y: Math.min(baseY + (this.windowCount * 30), viewportHeight - app.height - taskbarHeight - 20)
         };
+        
+        // const baseX = (viewportWidth - app.width) / 2;
+        // const baseY = (viewportHeight - app.height) / 3;
+        // const offset = 30;
+        
+        // return {
+        //     x: Math.min(baseX + (this.windowCount * offset), viewportWidth - app.width - 20),
+        //     y: Math.min(baseY + (this.windowCount * offset), viewportHeight - app.height - 60)
+        // };
     }
 
     initializeWindow(windowElement, windowId, taskbarApp, maximizeBtn) {
@@ -277,12 +336,22 @@ export class WindowManager {
                 top: element.style.top
             };
         }
-        
+
+        // compute current taskbar height so bottom of window touches it
+        const taskbarEl = document.querySelector('.taskbar');
+        const taskbarHeight = taskbarEl ? Math.round(taskbarEl.getBoundingClientRect().height) : 40;
+
         // Maximize
-        element.style.width = 'calc(100vw - 4px)';
-        element.style.height = 'calc(100vh - 44px)';
-        element.style.left = '2px';
-        element.style.top = '2px';
+        element.style.left = '0px';
+        element.style.top = '0px';
+        element.style.width = `${window.innerWidth}px`;
+        element.style.height = `${Math.max(0, window.innerHeight - taskbarHeight)}px`;
+
+        // Maximize
+        // element.style.width = 'calc(100vw - 4px)';
+        // element.style.height = 'calc(100vh - 44px)';
+        // element.style.left = '2px';
+        // element.style.top = '2px';
         
         // Update state and button
         windowState.isMaximized = true;
