@@ -1,6 +1,6 @@
 import { WindowManager } from './windowManager.js';
 import { MusicPlayer } from './musicPlayer.js';
-import { summaryApp } from './apps/summary.js';
+import { profileApp } from './apps/profile.js';
 import { projectsApp } from './apps/projects.js';
 import { skillsApp } from './apps/skills.js';
 import { musicApp } from './apps/music.js';
@@ -20,8 +20,8 @@ class CyberpunkDesktop {
         // Initialize desktop icons
         this.initDesktopIcons();
         
-        // Open summary window on load - CENTERED
-        this.openSummaryWindow();
+        // Open prfile window on load
+        this.openProfileWindow();
         
         // Initialize clock
         this.updateClock();
@@ -43,7 +43,7 @@ class CyberpunkDesktop {
 
     openApp(appName) {
         const apps = {
-            summary: summaryApp,
+            profile: profileApp,
             projects: projectsApp,
             skills: skillsApp,
             music: musicApp,
@@ -56,14 +56,14 @@ class CyberpunkDesktop {
         }
     }
 
-    openSummaryWindow() {
-        // Center the summary window on initial load by passing specific coordinates
+    openProfileWindow() {
+        // Center the profile window on initial load by passing specific coordinates
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const x = (viewportWidth - summaryApp.width) / 2;
-        const y = (viewportHeight - summaryApp.height) / 3; // Slightly higher than center
+        const x = (viewportWidth - profileApp.width) / 2;
+        const y = (viewportHeight - profileApp.height) / 3; // Slightly higher than center
         
-        this.windowManager.createWindow(summaryApp, x, y);
+        this.windowManager.createWindow(profileApp, x, y);
     }
 
     updateClock() {

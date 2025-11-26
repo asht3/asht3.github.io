@@ -35,19 +35,15 @@
 
         <!-- Desktop Icons -->
         <div class="desktop-icons">
-            <div class="icon" data-app="summary">
+            <div class="icon" data-app="profile">
                 <div class="icon-img">
                     <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
                         <defs>
-                            <linearGradient id="neonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="profileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#00f3ff"/>
                                 <stop offset="100%" stop-color="#b967ff"/>
                             </linearGradient>
-                            <linearGradient id="neonPink" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#ff00ff"/>
-                                <stop offset="100%" stop-color="#00f3ff"/>
-                            </linearGradient>
-                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <filter id="profileGlow" x="-50%" y="-50%" width="200%" height="200%">
                                 <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
                                 <feMerge>
                                     <feMergeNode in="blur"/>
@@ -55,18 +51,17 @@
                                 </feMerge>
                             </filter>
                         </defs>
-                        <!-- Document shape -->
-                        <rect x="4" y="2" width="16" height="20" rx="1" fill="none" stroke="url(#neonBlue)" stroke-width="1.5" filter="url(#glow)"/>
-                        <!-- Fold corner -->
-                        <polyline points="16,2 20,2 20,6" fill="none" stroke="url(#neonPink)" stroke-width="1.5" filter="url(#glow)"/>
-                        <!-- Text lines -->
-                        <line x1="7" y1="8" x2="15" y2="8" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
-                        <line x1="7" y1="11" x2="17" y2="11" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
-                        <line x1="7" y1="14" x2="13" y2="14" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
-                        <line x1="7" y1="17" x2="16" y2="17" stroke="url(#neonBlue)" stroke-width="1" filter="url(#glow)"/>
+                        <!-- Head silhouette -->
+                        <circle cx="12" cy="8" r="4" fill="none" stroke="url(#profileGradient)" stroke-width="1.5" filter="url(#profileGlow)"/>
+                        <!-- Body -->
+                        <path d="M5 24 C5 18 19 18 19 24" fill="none" stroke="url(#profileGradient)" stroke-width="1.5" filter="url(#profileGlow)"/>
+                        <!-- Shoulders -->
+                        <line x1="6" y1="16" x2="18" y2="16" stroke="url(#profileGradient)" stroke-width="1.5" filter="url(#profileGlow)"/>
+                        <!-- ID badge -->
+                        <rect x="14" y="10" width="4" height="3" rx="1" fill="none" stroke="url(#profileGradient)" stroke-width="1" filter="url(#profileGlow)"/>
                     </svg>
                 </div>
-                <span>Summary.txt</span>
+                <span>Profile.dat</span>
             </div>
 
             <div class="icon" data-app="projects">
