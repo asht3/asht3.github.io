@@ -338,20 +338,20 @@ export class WindowManager {
         }
 
         // compute current taskbar height so bottom of window touches it
-        const taskbarEl = document.querySelector('.taskbar');
-        const taskbarHeight = taskbarEl ? Math.round(taskbarEl.getBoundingClientRect().height) : 40;
+        // const taskbarEl = document.querySelector('.taskbar');
+        // const taskbarHeight = taskbarEl ? Math.round(taskbarEl.getBoundingClientRect().height) : 40;
 
         // Maximize
-        element.style.left = '0px';
-        element.style.top = '0px';
-        element.style.width = `${window.innerWidth}px`;
-        element.style.height = `${Math.max(0, window.innerHeight - taskbarHeight)}px`;
+        // element.style.left = '0px';
+        // element.style.top = '0px';
+        // element.style.width = `${window.innerWidth}px`;
+        // element.style.height = `${Math.max(0, window.innerHeight - taskbarHeight)}px`;
 
         // Maximize
-        // element.style.width = 'calc(100vw - 4px)';
-        // element.style.height = 'calc(100vh - 44px)';
-        // element.style.left = '2px';
-        // element.style.top = '2px';
+        element.style.width = 'calc(100vw - 4px)';
+        element.style.height = 'calc(100vh - 44px)';
+        element.style.left = '2px';
+        element.style.top = '2px';
         
         // Update state and button
         windowState.isMaximized = true;

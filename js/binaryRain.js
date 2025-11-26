@@ -64,7 +64,7 @@ export class BinaryRain {
                 
                 // Fade out characters towards the end
                 const charOpacity = 1 - (i / drop.characters.length);
-                this.ctx.fillStyle = `rgba(0, 243, 255, ${drop.opacity * charOpacity * 0.7})`;
+                this.ctx.fillStyle = `rgba(0, 243, 255, ${drop.opacity * charOpacity})`;
                 
                 this.ctx.fillText(char, drop.x, y);
             }
