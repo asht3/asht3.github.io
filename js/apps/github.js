@@ -5,8 +5,19 @@ export const githubApp = {
         <p>Connecting to GitHub network...</p>
         <br>
         <div style="text-align: center; margin: 20px 0;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🔗</div>
-            <button onclick="window.open('https://github.com/yourusername', '_blank')" 
+            <div class="profile-image-container">
+                <div class="profile-image">
+                    <div class="image-placeholder">[PROFILE_IMG]</div>
+                    <div class="scan-line"></div>
+                </div>
+                <div class="online-status">
+                    <span class="status-indicator"></span>
+                    <br><br>
+                    STATUS: ONLINE
+                </div>
+                <br><br>
+            </div>
+            <button onclick="window.open('https://github.com/asht3', '_blank')" 
                     style="background: var(--neon-blue); color: var(--dark-bg); border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; font-family: 'Orbitron';">
                 INITIATE_CONNECTION
             </button>

@@ -345,6 +345,39 @@ body {
     background: rgba(255, 0, 255, 0.1);
 }
 
+/* GitHub Logo Specific Styles */
+/* .github-logo {
+    transition: all 0.3s ease;
+}
+
+.icon:hover .github-logo {
+    transform: scale(1.15);
+    filter: 
+        drop-shadow(0 0 8px var(--neon-blue))
+        drop-shadow(0 0 15px var(--neon-pink));
+}
+
+.github-logo {
+    width: 48px;
+    height: 48px;
+} */
+
+/* Pulse animation for GitHub icon */
+/* @keyframes githubPulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 5px var(--neon-blue));
+    }
+    50% { 
+        filter: 
+            drop-shadow(0 0 10px var(--neon-pink)) 
+            drop-shadow(0 0 15px var(--neon-blue));
+    }
+}
+
+.icon:hover .github-logo {
+    animation: githubPulse 2s infinite;
+} */
+
 /* Window Styles */
 .window {
     position: absolute;
