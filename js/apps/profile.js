@@ -2,6 +2,9 @@ export const profileApp = {
     name: 'Profile.dat',
     content: `
         <div class="profile-container">
+            <div class="typing-animation">
+                <h2>SYSTEM INITIALIZED...</h2>
+            </div>
             <div class="profile-header">
                 <div class="profile-image-container">
                     <div class="profile-image">

@@ -161,6 +161,25 @@
             <div class="start-button">▶ START</div>
             <div class="taskbar-apps" id="taskbar-apps"></div>
             <div class="system-tray">
+                <!-- Add Background Toggle -->
+                <div class="bg-toggle-icon" title="Toggle Background Effect" id="bgToggle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" class="bg-toggle-symbol">
+                        <defs>
+                            <linearGradient id="bgToggleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f3ff"/>
+                                <stop offset="100%" stop-color="#b967ff"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Screen/Display icon -->
+                        <rect x="3" y="3" width="18" height="14" rx="1" fill="none" stroke="url(#bgToggleGradient)" stroke-width="1.5"/>
+                        <line x1="7" y1="20" x2="17" y2="20" stroke="url(#bgToggleGradient)" stroke-width="1.5"/>
+                        <!-- Binary rain indicator lines -->
+                        <circle cx="8" cy="7" r="1" fill="url(#bgToggleGradient)"/>
+                        <circle cx="12" cy="10" r="1" fill="url(#bgToggleGradient)"/>
+                        <circle cx="16" cy="13" r="1" fill="url(#bgToggleGradient)"/>
+                    </svg>
+                    Toggle Rain
+                </div>
                 <div class="wifi-icon" title="Network: Connected">
                     <svg width="16" height="16" viewBox="0 0 24 24" class="wifi-symbol">
                         <defs>

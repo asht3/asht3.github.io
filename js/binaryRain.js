@@ -91,6 +91,10 @@ export class BinaryRain {
     destroy() {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
+            this.animationId = null;
         }
+        // Clear the canvas
+        this.ctx.fillStyle = 'rgba(5, 5, 16, 1)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }

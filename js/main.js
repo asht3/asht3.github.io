@@ -12,6 +12,7 @@ class CyberpunkDesktop {
         this.windowManager = new WindowManager();
         this.musicPlayer = new MusicPlayer();
         this.binaryRain = new BinaryRain();
+        this.backgroundEnabled = true;
         this.init();
     }
 
@@ -28,6 +29,8 @@ class CyberpunkDesktop {
         // Initialize clock
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
+
+        this.initBackgroundToggle();
         
         // Add some cyberpunk effects
         this.addCyberpunkEffects();
@@ -78,6 +81,70 @@ class CyberpunkDesktop {
         });
         document.getElementById('time').textContent = timeString;
     }
+
+    initBackgroundToggle() {
+        const bgToggle = document.getElementById('bgToggle');
+        const binaryRain = document.getElementById('binaryRain');
+        
+        // Create static wallpaper element
+        this.staticWallpaper = document.createElement('div');
+        this.staticWallpaper.className = 'static-wallpaper';
+        this.staticWallpaper.style.display = 'none';
+        document.body.appendChild(this.staticWallpaper);
+        
+        // Load saved preference from localStorage
+        const savedBgState = localStorage.getItem('cyberpunkBgEnabled');
+        if (savedBgState !== null) {
+            this.backgroundEnabled = savedBgState === 'true';
+            this.updateBackgroundState();
+        }
+        
+        bgToggle.addEventListener('click', () => {
+            this.backgroundEnabled = !this.backgroundEnabled;
+            this.updateBackgroundState();
+            // Save preference
+            localStorage.setItem('cyberpunkBgEnabled', this.backgroundEnabled.toString());
+        });
+        
+        // Update tooltip based on current state
+        this.updateToggleTooltip();
+    }
+
+    updateBackgroundState() {
+        const bgToggle = document.getElementById('bgToggle');
+        const binaryRain = document.getElementById('binaryRain');
+        
+        if (this.backgroundEnabled) {
+            // Enable binary rain
+            binaryRain.classList.remove('disabled');
+            this.staticWallpaper.style.display = 'none';
+            bgToggle.classList.remove('disabled');
+            
+            // Restart binary rain animation if it was stopped
+            if (this.binaryRain && !this.binaryRain.animationId) {
+                this.binaryRain.animate();
+            }
+        } else {
+            // Disable binary rain
+            binaryRain.classList.add('disabled');
+            this.staticWallpaper.style.display = 'block';
+            bgToggle.classList.add('disabled');
+            
+            // Stop binary rain animation to save resources
+            if (this.binaryRain && this.binaryRain.animationId) {
+                this.binaryRain.destroy();
+            }
+        }
+        
+        this.updateToggleTooltip();
+    }
+
+    updateToggleTooltip() {
+        const bgToggle = document.getElementById('bgToggle');
+        const state = this.backgroundEnabled ? 'ON' : 'OFF';
+        bgToggle.title = `Background Effect: ${state} (Click to toggle)`;
+    }
+
 
     addCyberpunkEffects() {
         // Add occasional glitch effect
