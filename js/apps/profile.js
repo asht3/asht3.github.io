@@ -5,7 +5,7 @@ export const profileApp = {
             <div class="profile-header">
                 <div class="profile-image-container">
                     <div class="profile-image">
-                        <div class="image-placeholder">[PROFILE_IMG]</div>
+                        <div class="image-placeholder"><img src="assets/astronaut.png"></div>
                         <div class="scan-line"></div>
                     </div>
                     <div class="online-status">

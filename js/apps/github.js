@@ -7,7 +7,7 @@ export const githubApp = {
         <div style="text-align: center; margin: 20px 0;">
             <div class="profile-image-container">
                 <div class="profile-image">
-                    <div class="image-placeholder">[PROFILE_IMG]</div>
+                    <div class="image-placeholder"><img src="assets/astronaut.png"></div>
                     <div class="scan-line"></div>
                 </div>
                 <div class="online-status">

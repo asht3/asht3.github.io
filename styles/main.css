@@ -190,6 +190,12 @@ body {
     text-shadow: var(--glow-blue);
 }
 
+.image-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .scan-line {
     position: absolute;
     top: 0;
