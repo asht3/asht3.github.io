@@ -17,11 +17,11 @@ export const profileApp = {
                 <div class="profile-basic-info">
                     <div class="info-row">
                         <span class="label">NAME:</span>
-                        <span class="value" data-field="name">[YOUR_REAL_NAME]</span>
+                        <span class="value" data-field="name">ASHLEY</span>
                     </div>
                     <div class="info-row">
                         <span class="label">ALIAS:</span>
-                        <span class="value cyber-text" data-field="alias">@[YOUR_GITHUB_USERNAME]</span>
+                        <span class="value cyber-text" data-field="alias">@asht3 ON GITHUB</span>
                     </div>
                     <div class="info-row">
                         <span class="label">ID:</span>
@@ -29,7 +29,7 @@ export const profileApp = {
                     </div>
                     <div class="info-row">
                         <span class="label">CLEARANCE:</span>
-                        <span class="value clearance-level">ENTRY LEVEL 1</span>
+                        <span class="value clearance-level">ENTRY LEVEL</span>
                     </div>
                 </div>
             </div>
