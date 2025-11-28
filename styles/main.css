@@ -927,8 +927,13 @@ body {
     cursor: pointer;
 }
 
+.cyber-select option {
+    background: var(--panel-bg);
+    color: var(--neon-blue);
+}
+
 .cyber-select:focus {
-    outline: none;
+    outline: none !important;
     box-shadow: var(--glow-blue);
 }
 

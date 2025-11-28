@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -Werror -g -Iinclude
 LDFLAGS += -lSDL2
 
 TARGET = chip8
-SRCS = src/chip8.cpp src/main.cpp src/cpu.cpp src/display.cpp src/input.cpp src/memory.cpp src/sound.cpp
+SRCS = src/chip8.cpp src/main.cpp src/cpu.cpp src/display.cpp src/input.cpp src/memory.cpp src/sound.cpp src/exports.cpp
 OBJS = $(patsubst src/%.cpp, obj/%.o, $(SRCS))
 
 $(TARGET): $(OBJS)
@@ -16,25 +16,25 @@ obj/%.o: src/%.cpp
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 # WebAssembly compilation
+# WebAssembly compilation
 EMCC = emcc
-WASM_FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1
-# Remove the main function from exports since it might conflict
-WASM_EXPORTED_FUNCTIONS = _main,_load_rom_wrapper,_emulate_cycle_wrapper,_should_draw_wrapper,_get_display_buffer_wrapper,_get_display_width_wrapper,_get_display_height_wrapper,_key_down_wrapper,_key_up_wrapper,_reset_wrapper
-WASM_EXPORTED_RUNTIME_METHODS = ccall,cwrap
+WASM_FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s EXCEPTION_CATCHING_ALLOWED=all
+
+WASM_EXPORTED_FUNCTIONS = ['_load_rom','_emulate_cycle','_should_draw','_get_display_buffer','_get_display_width','_get_display_height','_key_down','_key_up','_reset']
+WASM_EXPORTED_RUNTIME_METHODS = ['ccall','cwrap']
 
 WASM_TARGET = wasm/chip8.js
-WASM_SRCS = $(SRCS)
+WASM_SRCS = src/chip8.cpp src/cpu.cpp src/display.cpp src/input.cpp src/memory.cpp src/sound.cpp src/exports.cpp  # Remove main.cpp for WebAssembly
 
 $(WASM_TARGET): $(WASM_SRCS)
 	@mkdir -p wasm
 	@echo "Building WebAssembly module..."
 	EMCC_DEBUG=1 $(EMCC) $(WASM_SRCS) -o $(WASM_TARGET) $(WASM_FLAGS) \
-		-s EXPORTED_FUNCTIONS='[$(WASM_EXPORTED_FUNCTIONS)]' \
-		-s EXPORTED_RUNTIME_METHODS='[$(WASM_EXPORTED_RUNTIME_METHODS)]' \
+		-s EXPORTED_FUNCTIONS=$(WASM_EXPORTED_FUNCTIONS) \
+		-s EXPORTED_RUNTIME_METHODS=$(WASM_EXPORTED_RUNTIME_METHODS) \
 		-Iinclude \
-		--preload-file roms@/roms \
 		-s ENVIRONMENT=web \
-		-s SINGLE_FILE=0
+		-s SINGLE_FILE=1
 
 # Build both native and WebAssembly
 all: $(TARGET) $(WASM_TARGET)

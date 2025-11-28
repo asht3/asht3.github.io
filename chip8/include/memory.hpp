@@ -13,6 +13,7 @@ class Memory {
         void reset();
         uint8_t read(uint16_t address) const;
         void write(uint16_t address, uint8_t value);
+        void load_rom(const unsigned char* data, int size, uint16_t start_address);
         void load_rom(const std::string& filename, uint16_t start_address);
         void load_fontset();
 

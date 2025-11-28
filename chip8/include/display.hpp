@@ -29,7 +29,15 @@ class Display {
         void render_to_sdl(int scale);
 
         // For WebAssembly
-        uint8_t* get_pixel_buffer() { return pixels; }
+        // uint8_t* get_pixel_buffer() { return pixels; }
+        uint8_t* get_pixel_buffer() {
+            // Convert bool array to uint8_t array for JavaScript
+            static uint8_t pixel_buffer[WIDTH * HEIGHT];
+            for (int i = 0; i < WIDTH * HEIGHT; i++) {
+                pixel_buffer[i] = pixels[i] ? 1 : 0;
+            }
+            return pixel_buffer;
+        }
         static const int WIDTH = 64;
         static const int HEIGHT = 32;
 };

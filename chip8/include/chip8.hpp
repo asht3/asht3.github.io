@@ -22,4 +22,5 @@ class Chip8 {
         Input& get_input();
         bool is_running();
         CPU& get_cpu();
+        Memory& get_memory();
 };

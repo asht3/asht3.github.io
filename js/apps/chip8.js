@@ -10,10 +10,11 @@ export const chip8App = {
                     <button id="chip8-reset" class="cyber-button">RESET</button>
                     <select id="chip8-rom-select" class="cyber-select">
                         <option value="">Select ROM...</option>
-                        <option value="pong">Pong</option>
-                        <option value="space-invaders">Space Invaders</option>
-                        <option value="tetris">Tetris</option>
-                        <option value="breakout">Breakout</option>
+                        <option value="Pong (1 player)">Pong</option>
+                        <option value="Space Invaders [David Winter]">Space Invaders</option>
+                        <option value="1-chip8-logo">Chip 8 Logo</option>
+                        <option value="br8kout">Breakout</option>
+                        <option value="2-ibm-logo">IBM Logo</option>
                     </select>
                 </div>
             </div>

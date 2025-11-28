@@ -63,7 +63,8 @@ class CyberpunkDesktop {
 
         if (apps[appName]) {
             // Let the WindowManager handle positioning with cascading
-            this.windowManager.createWindow(apps[appName]);
+            // this.windowManager.createWindow(apps[appName]);
+            const windowElement = this.windowManager.createWindow(apps[appName]);
 
             if (appName === 'chip8') {
                 this.initChip8(windowElement);

@@ -1,248 +1,3 @@
-// export class Chip8Manager {
-//     constructor() {
-//         this.module = null;
-//         this.isRunning = false;
-//         this.isPaused = false;
-//         this.canvas = null;
-//         this.ctx = null;
-//         this.init();
-//     }
-
-//     async init() {
-//         // Initialize canvas context
-//         this.canvas = document.getElementById('chip8-canvas');
-//         this.ctx = this.canvas.getContext('2d');
-        
-//         // Set up event listeners
-//         this.setupEventListeners();
-        
-//         // Load WebAssembly module
-//         await this.loadWasmModule();
-//     }
-
-//     setupEventListeners() {
-//         // ROM selection
-//         document.getElementById('chip8-rom-select')?.addEventListener('change', (e) => {
-//             if (e.target.value) {
-//                 this.loadRom(e.target.value);
-//             }
-//         });
-
-//         // Control buttons
-//         document.getElementById('chip8-load')?.addEventListener('click', () => {
-//             this.loadRomDialog();
-//         });
-
-//         document.getElementById('chip8-pause')?.addEventListener('click', () => {
-//             this.togglePause();
-//         });
-
-//         document.getElementById('chip8-reset')?.addEventListener('click', () => {
-//             this.reset();
-//         });
-
-//         // Keyboard input
-//         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-//         document.addEventListener('keyup', (e) => this.handleKeyUp(e));
-//     }
-
-//     async loadWasmModule() {
-//         try {
-//             // Load your compiled WebAssembly module
-//             this.module = await import('../wasm/chip8.js');
-            
-//             // Initialize the module
-//             await this.module.default();
-            
-//             this.updateStatus('WASM MODULE LOADED - READY');
-//             console.log('CHIP-8 WebAssembly module loaded successfully');
-//         } catch (error) {
-//             console.error('Failed to load CHIP-8 WebAssembly module:', error);
-//             this.updateStatus('ERROR: WASM MODULE FAILED TO LOAD');
-//         }
-//     }
-
-//     async loadRom(romName) {
-//         if (!this.module) {
-//             this.updateStatus('ERROR: WASM MODULE NOT LOADED');
-//             return;
-//         }
-
-//         try {
-//             this.updateStatus(`LOADING ROM: ${romName}`);
-            
-//             // Fetch the ROM file
-//             const response = await fetch(`roms/${romName}.ch8`);
-//             const buffer = await response.arrayBuffer();
-            
-//             // Load ROM into WebAssembly memory
-//             const romData = new Uint8Array(buffer);
-//             this.module.load_rom(romData, romData.length);
-            
-//             // Start emulation
-//             this.start();
-            
-//         } catch (error) {
-//             console.error('Failed to load ROM:', error);
-//             this.updateStatus(`ERROR LOADING ROM: ${romName}`);
-//         }
-//     }
-
-//     loadRomDialog() {
-//         // Create file input for custom ROM loading
-//         const input = document.createElement('input');
-//         input.type = 'file';
-//         input.accept = '.ch8,.rom';
-//         input.onchange = (e) => {
-//             const file = e.target.files[0];
-//             if (file) {
-//                 this.loadCustomRom(file);
-//             }
-//         };
-//         input.click();
-//     }
-
-//     async loadCustomRom(file) {
-//         try {
-//             this.updateStatus(`LOADING: ${file.name}`);
-//             const buffer = await file.arrayBuffer();
-//             const romData = new Uint8Array(buffer);
-            
-//             if (this.module) {
-//                 this.module.load_rom(romData, romData.length);
-//                 this.start();
-//             }
-//         } catch (error) {
-//             console.error('Failed to load custom ROM:', error);
-//             this.updateStatus('ERROR LOADING CUSTOM ROM');
-//         }
-//     }
-
-//     start() {
-//         if (!this.isRunning && this.module) {
-//             this.isRunning = true;
-//             this.isPaused = false;
-//             this.updateStatus('RUNNING');
-//             this.emulationLoop();
-//         }
-//     }
-
-//     togglePause() {
-//         this.isPaused = !this.isPaused;
-//         this.updateStatus(this.isPaused ? 'PAUSED' : 'RUNNING');
-//     }
-
-//     reset() {
-//         if (this.module) {
-//             this.module.reset();
-//             this.isPaused = false;
-//             this.updateStatus('RESET - READY');
-//             this.clearDisplay();
-//         }
-//     }
-
-//     emulationLoop() {
-//         if (!this.isRunning || this.isPaused || !this.module) return;
-
-//         // Emulate one cycle
-//         this.module.emulate_cycle();
-
-//         // Update display if needed
-//         if (this.module.should_draw()) {
-//             this.updateDisplay();
-//         }
-
-//         // Continue loop
-//         requestAnimationFrame(() => this.emulationLoop());
-//     }
-
-//     updateDisplay() {
-//         if (!this.module || !this.canvas) return;
-
-//         // Get display buffer from WebAssembly
-//         const displayBuffer = this.module.get_display_buffer();
-//         const width = this.module.get_display_width();
-//         const height = this.module.get_display_height();
-
-//         // Create ImageData from buffer
-//         const imageData = new ImageData(width, height);
-        
-//         // Convert CHIP-8 display to canvas (1-bit to RGBA)
-//         for (let i = 0; i < displayBuffer.length; i++) {
-//             const pixel = displayBuffer[i];
-//             const baseIndex = i * 4;
-            
-//             if (pixel) {
-//                 // Pixel on - neon green (classic CHIP-8)
-//                 imageData.data[baseIndex] = 0;     // R
-//                 imageData.data[baseIndex + 1] = 255; // G
-//                 imageData.data[baseIndex + 2] = 0;   // B
-//                 imageData.data[baseIndex + 3] = 255; // A
-//             } else {
-//                 // Pixel off - black
-//                 imageData.data[baseIndex] = 0;
-//                 imageData.data[baseIndex + 1] = 0;
-//                 imageData.data[baseIndex + 2] = 0;
-//                 imageData.data[baseIndex + 3] = 255;
-//             }
-//         }
-
-//         // Scale and draw to canvas
-//         this.ctx.putImageData(imageData, 0, 0);
-//     }
-
-//     clearDisplay() {
-//         if (this.ctx) {
-//             this.ctx.fillStyle = '#000';
-//             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-//         }
-//     }
-
-//     // handleKeyDown(event) {
-//     //     if (!this.module) return;
-        
-//     //     const keyMap = this.getKeyMap(event.key);
-//     //     if (keyMap !== -1) {
-//     //         this.module.key_down(keyMap);
-//     //         event.preventDefault();
-//     //     }
-//     // }
-
-//     // handleKeyUp(event) {
-//     //     if (!this.module) return;
-        
-//     //     const keyMap = this.getKeyMap(event.key);
-//     //     if (keyMap !== -1) {
-//     //         this.module.key_up(keyMap);
-//     //         event.preventDefault();
-//     //     }
-//     // }
-
-//     // getKeyMap(key) {
-//     //     const keyMapping = {
-//     //         '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
-//     //         'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
-//     //         'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
-//     //         'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF
-//     //     };
-        
-//     //     return keyMapping[key.toLowerCase()] ?? -1;
-//     // }
-
-//     updateStatus(message) {
-//         const statusElement = document.getElementById('chip8-status');
-//         if (statusElement) {
-//             statusElement.textContent = `STATUS: ${message}`;
-//         }
-//     }
-
-//     destroy() {
-//         this.isRunning = false;
-//         this.isPaused = false;
-//         // Clean up WebAssembly resources if needed
-//     }
-// }
-
 export class Chip8Manager {
     constructor() {
         this.module = null;
@@ -250,6 +5,7 @@ export class Chip8Manager {
         this.isPaused = false;
         this.canvas = null;
         this.ctx = null;
+        this.romBasePath = '../chip8/roms/';
         this.init();
     }
 
@@ -258,7 +14,10 @@ export class Chip8Manager {
         this.canvas = document.getElementById('chip8-canvas');
         this.ctx = this.canvas.getContext('2d');
         
-        // Set up event listeners (excluding key handling)
+        // Clear canvas initially
+        this.clearDisplay();
+        
+        // Set up event listeners
         this.setupEventListeners();
         
         // Load WebAssembly module
@@ -286,20 +45,51 @@ export class Chip8Manager {
             this.reset();
         });
 
-        // Let C++ handle keyboard input directly via SDL or your existing input system
-        // No JavaScript key listeners needed if C++ handles input
+        // Keyboard input for CHIP-8
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
     }
+
+    // async loadWasmModule() {
+    //     try {
+    //         // Load your compiled WebAssembly module
+    //         this.module = await import('../chip8/wasm/chip8.js');
+            
+    //         // Initialize the module
+    //         await this.module.default();
+            
+    //         this.updateStatus('WASM MODULE LOADED - READY');
+    //         console.log('CHIP-8 WebAssembly module loaded successfully');
+    //     } catch (error) {
+    //         console.error('Failed to load CHIP-8 WebAssembly module:', error);
+    //         this.updateStatus('ERROR: WASM MODULE FAILED TO LOAD');
+    //     }
+    // }
 
     async loadWasmModule() {
         try {
-            // Load your compiled WebAssembly module
-            this.module = await import('../wasm/chip8.js');
+            this.module = await import('../chip8/wasm/chip8.js');
             
-            // Initialize the module
-            await this.module.default();
+            // Initialize the module and wait for it to be ready
+            const instance = await this.module.default();
+            
+            // The functions are on the instance, not the module
+            this.instance = instance;
+            
+            // Log ALL properties to see what's available
+            console.log('All instance properties:', Object.keys(instance));
+            const relevantFunctions = Object.keys(instance).filter(key => 
+                key.includes('load') || 
+                key.includes('rom') || 
+                key.includes('emulate') || 
+                key.includes('draw') ||
+                key.includes('display') ||
+                key.includes('key') ||
+                key.includes('reset')
+            );
+            console.log('Relevant functions:', relevantFunctions);
             
             this.updateStatus('WASM MODULE LOADED - READY');
-            console.log('CHIP-8 WebAssembly module loaded successfully');
         } catch (error) {
             console.error('Failed to load CHIP-8 WebAssembly module:', error);
             this.updateStatus('ERROR: WASM MODULE FAILED TO LOAD');
@@ -307,33 +97,107 @@ export class Chip8Manager {
     }
 
     async loadRom(romName) {
-        if (!this.module) {
-            this.updateStatus('ERROR: WASM MODULE NOT LOADED');
+        if (!this.instance) {
+            this.updateStatus('ERROR: WASM INSTANCE NOT LOADED');
             return;
         }
 
         try {
             this.updateStatus(`LOADING ROM: ${romName}`);
             
-            // Fetch the ROM file
-            const response = await fetch(`roms/${romName}.ch8`);
-            const buffer = await response.arrayBuffer();
+            const romPath = `${this.romBasePath}${romName}.ch8`;
+            console.log('Loading ROM from:', romPath);
             
-            // Load ROM into WebAssembly memory
+            const response = await fetch(romPath);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const buffer = await response.arrayBuffer();
+            console.log('ROM loaded, size:', buffer.byteLength, 'bytes');
+            
             const romData = new Uint8Array(buffer);
             
-            // Call your C++ function to load the ROM
-            // This function name should match your C++ export
-            this.module.load_rom(romData, romData.length);
+            // Allocate memory in WebAssembly and copy the ROM data
+            const romDataPtr = this.instance._malloc(romData.length);
+            this.instance.HEAPU8.set(romData, romDataPtr);
             
-            // Start emulation
+            console.log('Calling _load_rom with allocated memory');
+            this.instance._load_rom(romDataPtr, romData.length);
+            
+            // Free the memory after use
+            this.instance._free(romDataPtr);
+            
             this.start();
             
         } catch (error) {
             console.error('Failed to load ROM:', error);
-            this.updateStatus(`ERROR LOADING ROM: ${romName}`);
+            this.updateStatus(`ERROR: ${error.message}`);
         }
     }
+
+    // async loadRom(romName) {
+    //     if (!this.module) {
+    //         this.updateStatus('ERROR: WASM MODULE NOT LOADED');
+    //         return;
+    //     }
+
+    //     try {
+    //         this.updateStatus(`LOADING ROM: ${romName}`);
+            
+    //         // Fetch the ROM file from the chip8/roms directory
+    //         const romPath = `${this.romBasePath}${romName}.ch8`;
+    //         console.log('Loading ROM from:', romPath);
+            
+    //         const response = await fetch(romPath);
+            
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    //         }
+            
+    //         const buffer = await response.arrayBuffer();
+            
+    //         // Load ROM into WebAssembly memory
+    //         const romData = new Uint8Array(buffer);
+
+    //         // Debug
+    //         console.log('Available module functions:', Object.keys(this.module).filter(k => typeof this.module[k] === 'function'));
+            
+    //         // Call your C++ function to load the ROM
+    //         // if (this.module._load_rom) {
+    //         //     this.module._load_rom(romData, romData.length);
+    //         // } else if (this.module.load_rom) {
+    //         //     this.module.load_rom(romData, romData.length);
+    //         // } else {
+    //         //     throw new Error('ROM loading function not found in WASM module');
+    //         // }
+
+    //         let romLoaded = false;
+    //         if (this.module._load_rom) {
+    //             console.log('Calling _load_rom');
+    //             this.module._load_rom(romData, romData.length);
+    //             romLoaded = true;
+    //         } 
+    //         if (this.module.load_rom && !romLoaded) {
+    //             console.log('Calling load_rom');
+    //             this.module.load_rom(romData, romData.length);
+    //             romLoaded = true;
+    //         }
+            
+    //         if (!romLoaded) {
+    //             throw new Error('No ROM loading function found. Available functions: ' + 
+    //                 Object.keys(this.module).filter(k => typeof this.module[k] === 'function').join(', '));
+    //         }
+            
+    //         // Start emulation
+    //         this.start();
+            
+    //     } catch (error) {
+    //         console.error('Failed to load ROM:', error);
+    //         this.updateStatus(`ERROR: ${error.message}`);
+    //     }
+    // }
 
     loadRomDialog() {
         // Create file input for custom ROM loading
@@ -356,8 +220,11 @@ export class Chip8Manager {
             const romData = new Uint8Array(buffer);
             
             if (this.module) {
-                // Call your C++ ROM loading function
-                this.module.load_rom(romData, romData.length);
+                if (this.module._load_rom) {
+                    this.module._load_rom(romData, romData.length);
+                } else if (this.module.load_rom) {
+                    this.module.load_rom(romData, romData.length);
+                }
                 this.start();
             }
         } catch (error) {
@@ -382,8 +249,11 @@ export class Chip8Manager {
 
     reset() {
         if (this.module) {
-            // Call your C++ reset function
-            this.module.reset();
+            if (this.module._reset) {
+                this.module._reset();
+            } else if (this.module.reset) {
+                this.module.reset();
+            }
             this.isPaused = false;
             this.updateStatus('RESET - READY');
             this.clearDisplay();
@@ -391,58 +261,215 @@ export class Chip8Manager {
     }
 
     emulationLoop() {
-        if (!this.isRunning || this.isPaused || !this.module) return;
+        if (!this.isRunning || this.isPaused || !this.instance) return;
 
-        // Emulate one cycle - call your C++ function
-        this.module.emulate_cycle();
+        try {
+            console.log('Emulating cycle...');
+            
+            // Emulate one cycle
+            this.instance._emulate_cycle();
 
-        // Update display if needed - your C++ should have a draw flag
-        if (this.module.should_draw()) {
-            this.updateDisplay();
+            // Check if we should draw
+            let shouldDraw = this.instance._should_draw();
+            console.log('Should draw:', shouldDraw);
+
+            if (shouldDraw) {
+                console.log('Updating display...');
+                this.updateDisplay();
+            }
+
+            // Continue loop
+            requestAnimationFrame(() => this.emulationLoop());
+        } catch (error) {
+            console.error('Error in emulation loop:', error);
+            this.isRunning = false;
+            this.updateStatus('EMULATION ERROR');
         }
-
-        // Continue loop
-        requestAnimationFrame(() => this.emulationLoop());
     }
 
     updateDisplay() {
-        if (!this.module || !this.canvas) return;
+        if (!this.instance || !this.canvas) return;
 
-        // Get display buffer from your C++ code
-        const displayBuffer = this.module.get_display_buffer();
-        const width = this.module.get_display_width();
-        const height = this.module.get_display_height();
-
-        // Create ImageData from buffer
-        const imageData = new ImageData(width, height);
-        
-        // Convert CHIP-8 display to canvas (1-bit to RGBA)
-        for (let i = 0; i < displayBuffer.length; i++) {
-            const pixel = displayBuffer[i];
-            const baseIndex = i * 4;
+        try {
+            console.log('Getting display data...');
             
-            if (pixel) {
-                // Pixel on - use your preferred color (neon green for classic look)
-                imageData.data[baseIndex] = 0;     // R
-                imageData.data[baseIndex + 1] = 255; // G
-                imageData.data[baseIndex + 2] = 0;   // B
-                imageData.data[baseIndex + 3] = 255; // A
-            } else {
-                // Pixel off
-                imageData.data[baseIndex] = 0;
-                imageData.data[baseIndex + 1] = 0;
-                imageData.data[baseIndex + 2] = 0;
-                imageData.data[baseIndex + 3] = 255;
-            }
-        }
+            // Get the display buffer pointer and dimensions
+            const displayBufferPtr = this.instance._get_display_buffer();
+            const width = this.instance._get_display_width();
+            const height = this.instance._get_display_height();
+            
+            console.log('Display buffer pointer:', displayBufferPtr);
+            console.log('Dimensions:', width, 'x', height);
 
-        // Draw to canvas
-        this.ctx.putImageData(imageData, 0, 0);
+            if (!displayBufferPtr || !width || !height) {
+                console.log('No display data available');
+                return;
+            }
+
+            // Access the WebAssembly memory to get the actual pixel data
+            const displayBuffer = new Uint8Array(this.instance.HEAPU8.buffer, displayBufferPtr, width * height);
+            
+            console.log('Actual pixel data:', displayBuffer);
+            console.log('First few pixels:', Array.from(displayBuffer.slice(0, 10)));
+
+            // Scale up for better visibility
+            const scaleX = this.canvas.width / width;
+            const scaleY = this.canvas.height / height;
+
+            // Clear canvas
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // Draw pixels
+            this.ctx.fillStyle = '#00FF00';
+            let pixelsDrawn = 0;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = y * width + x;
+                    if (displayBuffer[index] !== 0) { // Check if pixel is non-zero
+                        this.ctx.fillRect(
+                            x * scaleX,
+                            y * scaleY,
+                            Math.ceil(scaleX),
+                            Math.ceil(scaleY)
+                        );
+                        pixelsDrawn++;
+                    }
+                }
+            }
+            
+            console.log('Pixels drawn:', pixelsDrawn);
+
+        } catch (error) {
+            console.error('Error updating display:', error);
+        }
+    }
+
+    // emulationLoop() {
+    //     if (!this.isRunning || this.isPaused || !this.module) return;
+
+    //     try {
+    //         if (this.module._emulate_cycle) {
+    //             this.module._emulate_cycle();
+    //         } else if (this.module.emulate_cycle) {
+    //             this.module.emulate_cycle();
+    //         }
+
+    //         let shouldDraw = false;
+    //         if (this.module._should_draw) {
+    //             shouldDraw = this.module._should_draw();
+    //         } else if (this.module.should_draw) {
+    //             shouldDraw = this.module.should_draw();
+    //         }
+
+    //         if (shouldDraw) {
+    //             this.updateDisplay();
+    //         }
+
+    //         requestAnimationFrame(() => this.emulationLoop());
+    //     } catch (error) {
+    //         console.error('Error in emulation loop:', error);
+    //         this.isRunning = false;
+    //         this.updateStatus('EMULATION ERROR');
+    //     }
+    // }
+
+    // updateDisplay() {
+    //     if (!this.module || !this.canvas) return;
+
+    //     try {
+    //         let displayBuffer, width, height;
+            
+    //         if (this.module._get_display_buffer) {
+    //             displayBuffer = this.module._get_display_buffer();
+    //         } else if (this.module.get_display_buffer) {
+    //             displayBuffer = this.module.get_display_buffer();
+    //         }
+            
+    //         if (this.module._get_display_width) {
+    //             width = this.module._get_display_width();
+    //         } else if (this.module.get_display_width) {
+    //             width = this.module.get_display_width();
+    //         }
+            
+    //         if (this.module._get_display_height) {
+    //             height = this.module._get_display_height();
+    //         } else if (this.module.get_display_height) {
+    //             height = this.module.get_display_height();
+    //         }
+
+    //         if (!displayBuffer || !width || !height) {
+    //             return;
+    //         }
+
+    //         const scaleX = this.canvas.width / width;
+    //         const scaleY = this.canvas.height / height;
+
+    //         this.ctx.fillStyle = '#000000';
+    //         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    //         this.ctx.fillStyle = '#00FF00';
+    //         for (let y = 0; y < height; y++) {
+    //             for (let x = 0; x < width; x++) {
+    //                 const index = y * width + x;
+    //                 if (displayBuffer[index]) {
+    //                     this.ctx.fillRect(
+    //                         x * scaleX,
+    //                         y * scaleY,
+    //                         scaleX,
+    //                         scaleY
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error updating display:', error);
+    //     }
+    // }
+
+    handleKeyDown(event) {
+        if (!this.module) return;
+        
+        const keyMap = this.getKeyMap(event.key);
+        if (keyMap !== -1) {
+            if (this.module._key_down) {
+                this.module._key_down(keyMap);
+            } else if (this.module.key_down) {
+                this.module.key_down(keyMap);
+            }
+            event.preventDefault();
+        }
+    }
+
+    handleKeyUp(event) {
+        if (!this.module) return;
+        
+        const keyMap = this.getKeyMap(event.key);
+        if (keyMap !== -1) {
+            if (this.module._key_up) {
+                this.module._key_up(keyMap);
+            } else if (this.module.key_up) {
+                this.module.key_up(keyMap);
+            }
+            event.preventDefault();
+        }
+    }
+
+    getKeyMap(key) {
+        const keyMapping = {
+            '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
+            'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
+            'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
+            'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF
+        };
+        
+        return keyMapping[key.toLowerCase()] ?? -1;
     }
 
     clearDisplay() {
         if (this.ctx) {
-            this.ctx.fillStyle = '#000';
+            this.ctx.fillStyle = '#000000';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
     }
@@ -457,6 +484,7 @@ export class Chip8Manager {
     destroy() {
         this.isRunning = false;
         this.isPaused = false;
-        // Clean up WebAssembly resources if needed
+        document.removeEventListener('keydown', this.handleKeyDown);
+        document.removeEventListener('keyup', this.handleKeyUp);
     }
 }
