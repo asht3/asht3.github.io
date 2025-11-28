@@ -16,22 +16,6 @@
     box-sizing: border-box;
 }
 
-/* body {
-    font-family: 'Rajdhani', sans-serif;
-    background: linear-gradient(45deg, var(--dark-bg), var(--darker-bg));
-    color: var(--neon-blue);
-    overflow: hidden;
-    height: 100vh;
-}
-
-#desktop {
-    height: 100vh;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 243, 255, 0.1) 0%, transparent 50%);
-    position: relative;
-} */
-
 body {
     font-family: 'Rajdhani', sans-serif;
     color: var(--neon-blue);
@@ -132,12 +116,59 @@ body {
 }
 
 /* Desktop Icons */
-.desktop-icons {
+/* .desktop-icons {
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
+} */
+
+.desktop-icons {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.icon-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* .icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px;
+    border-radius: 5px;
+} */
+
+/* .icon:hover {
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: var(--glow-blue);
+}
+
+.icon-img {
+    font-size: 2rem;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 0 5px var(--neon-blue));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+} */
+
+.icon span {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    text-align: center;
+    text-shadow: var(--glow-blue);
+    word-break: break-word;
+    max-width: 80px;
 }
 
 .icon {
@@ -702,15 +733,6 @@ body {
     padding: 0 5px;
 }
 
-/* .system-tray {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 5px;
-} */
-
 /* Network status tooltip */
 .wifi-icon {
     position: relative;
@@ -782,6 +804,29 @@ body {
     transform: translateY(-2px);
 }
 
+.project-links {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.project-link {
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.project-link:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: var(--glow-blue);
+}
+
 .skills-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -823,6 +868,130 @@ body {
 
 .music-controls button:hover {
     box-shadow: var(--glow-blue);
+}
+
+/* CHIP-8 Emulator Styles */
+.chip8-container {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.9), rgba(5, 5, 10, 0.95));
+}
+
+.chip8-header {
+    padding: 15px 20px;
+    background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(185, 103, 255, 0.1));
+    border-bottom: 1px solid var(--neon-blue);
+}
+
+.chip8-header h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    margin-bottom: 10px;
+}
+
+.chip8-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.cyber-button {
+    background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+    color: var(--dark-bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.cyber-button:hover {
+    box-shadow: var(--glow-blue);
+    transform: translateY(-1px);
+}
+
+.cyber-select {
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    cursor: pointer;
+}
+
+.cyber-select:focus {
+    outline: none;
+    box-shadow: var(--glow-blue);
+}
+
+.chip8-display-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    gap: 15px;
+}
+
+#chip8-canvas {
+    border: 2px solid var(--neon-blue);
+    border-radius: 8px;
+    background: #000;
+    box-shadow: var(--glow-blue);
+    image-rendering: pixelated;
+    max-width: 100%;
+    max-height: 60vh;
+}
+
+.chip8-status {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    padding: 8px 16px;
+    border: 1px solid var(--neon-blue);
+    border-radius: 4px;
+    background: rgba(0, 243, 255, 0.1);
+}
+
+.chip8-info {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 10px 0;
+    font-family: 'Courier New', monospace;
+    color: var(--neon-blue);
+}
+
+.controls-grid div {
+    text-align: center;
+    padding: 5px;
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    border-radius: 3px;
+}
+
+.chip8-instructions {
+    margin-top: 15px;
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.chip8-instructions p {
+    margin: 5px 0;
 }
 
 /* Scrollbar Styling */

@@ -1,0 +1,12 @@
+# Object files & directory
+*.o
+obj/
+
+# Other files
+old_ver/
+SDL/
+# Will add later
+Resources/
+
+# Executables
+chip8

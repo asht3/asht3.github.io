@@ -1,11 +1,13 @@
 import { WindowManager } from './windowManager.js';
 import { MusicPlayer } from './musicPlayer.js';
 import { BinaryRain } from './binaryRain.js';
+import { Chip8Manager } from './chip8Manager.js';
 import { profileApp } from './apps/profile.js';
 import { projectsApp } from './apps/projects.js';
 import { skillsApp } from './apps/skills.js';
 import { musicApp } from './apps/music.js';
 import { githubApp } from './apps/github.js';
+import { chip8App } from './apps/chip8.js';
 
 class CyberpunkDesktop {
     constructor() {
@@ -13,10 +15,13 @@ class CyberpunkDesktop {
         this.musicPlayer = new MusicPlayer();
         this.binaryRain = new BinaryRain();
         this.backgroundEnabled = true;
+        this.chip8Manager = null;
         this.init();
     }
 
     init() {
+        window.desktop = this;
+
         // Make music player globally available for app buttons
         window.musicPlayer = this.musicPlayer;
 
@@ -52,13 +57,26 @@ class CyberpunkDesktop {
             projects: projectsApp,
             skills: skillsApp,
             music: musicApp,
-            github: githubApp
+            github: githubApp,
+            chip8: chip8App
         };
 
         if (apps[appName]) {
             // Let the WindowManager handle positioning with cascading
             this.windowManager.createWindow(apps[appName]);
+
+            if (appName === 'chip8') {
+                this.initChip8(windowElement);
+            }
         }
+    }
+
+    async initChip8(windowElement) {
+        // Wait for the window to be fully rendered
+        setTimeout(async () => {
+            this.chip8Manager = new Chip8Manager();
+            await this.chip8Manager.init();
+        }, 100);
     }
 
     openProfileWindow() {
