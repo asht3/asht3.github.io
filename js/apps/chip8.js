@@ -7,7 +7,6 @@ export const chip8App = {
                 <div class="chip8-controls">
                     <button id="chip8-load" class="cyber-button">LOAD ROM</button>
                     <button id="chip8-pause" class="cyber-button">PAUSE</button>
-                    <button id="chip8-reset" class="cyber-button">RESET</button>
                     <select id="chip8-rom-select" class="cyber-select">
                         <option value="">Select ROM...</option>
                         <option value="Pong (1 player)">Pong</option>

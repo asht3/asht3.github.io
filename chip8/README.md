@@ -18,6 +18,12 @@ make
 ./chip8
 ```
 
+FOR WEBASSEMBLY:
+To compile the code and display hte program with Javascript on a webpage, use this command while in the chip8/ directory
+```
+make wasm
+```
+
 ## ROMs
 The emulator was tested using test ROMs from this [Chip-8 test suite](https://github.com/Timendus/chip8-test-suite).
 

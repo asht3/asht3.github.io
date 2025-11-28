@@ -41,30 +41,16 @@ export class Chip8Manager {
             this.togglePause();
         });
 
-        document.getElementById('chip8-reset')?.addEventListener('click', () => {
-            this.reset();
-        });
-
         // Keyboard input for CHIP-8
         document.addEventListener('keydown', (e) => this.handleKeyDown(e));
         document.addEventListener('keyup', (e) => this.handleKeyUp(e));
-    }
 
-    // async loadWasmModule() {
-    //     try {
-    //         // Load your compiled WebAssembly module
-    //         this.module = await import('../chip8/wasm/chip8.js');
-            
-    //         // Initialize the module
-    //         await this.module.default();
-            
-    //         this.updateStatus('WASM MODULE LOADED - READY');
-    //         console.log('CHIP-8 WebAssembly module loaded successfully');
-    //     } catch (error) {
-    //         console.error('Failed to load CHIP-8 WebAssembly module:', error);
-    //         this.updateStatus('ERROR: WASM MODULE FAILED TO LOAD');
-    //     }
-    // }
+        // Ensure the canvas can receive focus if needed
+        this.canvas.setAttribute('tabindex', '0');
+        this.canvas.addEventListener('click', () => {
+            this.canvas.focus();
+        });
+    }
 
     async loadWasmModule() {
         try {
@@ -84,8 +70,7 @@ export class Chip8Manager {
                 key.includes('emulate') || 
                 key.includes('draw') ||
                 key.includes('display') ||
-                key.includes('key') ||
-                key.includes('reset')
+                key.includes('key')
             );
             console.log('Relevant functions:', relevantFunctions);
             
@@ -137,68 +122,6 @@ export class Chip8Manager {
         }
     }
 
-    // async loadRom(romName) {
-    //     if (!this.module) {
-    //         this.updateStatus('ERROR: WASM MODULE NOT LOADED');
-    //         return;
-    //     }
-
-    //     try {
-    //         this.updateStatus(`LOADING ROM: ${romName}`);
-            
-    //         // Fetch the ROM file from the chip8/roms directory
-    //         const romPath = `${this.romBasePath}${romName}.ch8`;
-    //         console.log('Loading ROM from:', romPath);
-            
-    //         const response = await fetch(romPath);
-            
-    //         if (!response.ok) {
-    //             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    //         }
-            
-    //         const buffer = await response.arrayBuffer();
-            
-    //         // Load ROM into WebAssembly memory
-    //         const romData = new Uint8Array(buffer);
-
-    //         // Debug
-    //         console.log('Available module functions:', Object.keys(this.module).filter(k => typeof this.module[k] === 'function'));
-            
-    //         // Call your C++ function to load the ROM
-    //         // if (this.module._load_rom) {
-    //         //     this.module._load_rom(romData, romData.length);
-    //         // } else if (this.module.load_rom) {
-    //         //     this.module.load_rom(romData, romData.length);
-    //         // } else {
-    //         //     throw new Error('ROM loading function not found in WASM module');
-    //         // }
-
-    //         let romLoaded = false;
-    //         if (this.module._load_rom) {
-    //             console.log('Calling _load_rom');
-    //             this.module._load_rom(romData, romData.length);
-    //             romLoaded = true;
-    //         } 
-    //         if (this.module.load_rom && !romLoaded) {
-    //             console.log('Calling load_rom');
-    //             this.module.load_rom(romData, romData.length);
-    //             romLoaded = true;
-    //         }
-            
-    //         if (!romLoaded) {
-    //             throw new Error('No ROM loading function found. Available functions: ' + 
-    //                 Object.keys(this.module).filter(k => typeof this.module[k] === 'function').join(', '));
-    //         }
-            
-    //         // Start emulation
-    //         this.start();
-            
-    //     } catch (error) {
-    //         console.error('Failed to load ROM:', error);
-    //         this.updateStatus(`ERROR: ${error.message}`);
-    //     }
-    // }
-
     loadRomDialog() {
         // Create file input for custom ROM loading
         const input = document.createElement('input');
@@ -247,39 +170,25 @@ export class Chip8Manager {
         this.updateStatus(this.isPaused ? 'PAUSED' : 'RUNNING');
     }
 
-    reset() {
-        if (this.module) {
-            if (this.module._reset) {
-                this.module._reset();
-            } else if (this.module.reset) {
-                this.module.reset();
-            }
-            this.isPaused = false;
-            this.updateStatus('RESET - READY');
-            this.clearDisplay();
-        }
-    }
-
     emulationLoop() {
         if (!this.isRunning || this.isPaused || !this.instance) return;
 
         try {
-            console.log('Emulating cycle...');
+            // Emulate multiple cycles per frame for faster execution
+            const cyclesPerFrame = 10; // Adjust this number to control speed
             
-            // Emulate one cycle
-            this.instance._emulate_cycle();
+            for (let i = 0; i < cyclesPerFrame; i++) {
+                this.instance._emulate_cycle();
+            }
 
-            // Check if we should draw
             let shouldDraw = this.instance._should_draw();
-            console.log('Should draw:', shouldDraw);
-
+            
             if (shouldDraw) {
-                console.log('Updating display...');
                 this.updateDisplay();
             }
 
-            // Continue loop
-            requestAnimationFrame(() => this.emulationLoop());
+            setTimeout(() => this.emulationLoop(), 16); // ~60Hz for timer updates
+
         } catch (error) {
             console.error('Error in emulation loop:', error);
             this.isRunning = false;
@@ -321,7 +230,9 @@ export class Chip8Manager {
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
             // Draw pixels
-            this.ctx.fillStyle = '#00FF00';
+            this.ctx.fillStyle = '#00d9ffff';
+
+
             let pixelsDrawn = 0;
             
             for (let y = 0; y < height; y++) {
@@ -346,125 +257,56 @@ export class Chip8Manager {
         }
     }
 
-    // emulationLoop() {
-    //     if (!this.isRunning || this.isPaused || !this.module) return;
-
-    //     try {
-    //         if (this.module._emulate_cycle) {
-    //             this.module._emulate_cycle();
-    //         } else if (this.module.emulate_cycle) {
-    //             this.module.emulate_cycle();
-    //         }
-
-    //         let shouldDraw = false;
-    //         if (this.module._should_draw) {
-    //             shouldDraw = this.module._should_draw();
-    //         } else if (this.module.should_draw) {
-    //             shouldDraw = this.module.should_draw();
-    //         }
-
-    //         if (shouldDraw) {
-    //             this.updateDisplay();
-    //         }
-
-    //         requestAnimationFrame(() => this.emulationLoop());
-    //     } catch (error) {
-    //         console.error('Error in emulation loop:', error);
-    //         this.isRunning = false;
-    //         this.updateStatus('EMULATION ERROR');
-    //     }
-    // }
-
-    // updateDisplay() {
-    //     if (!this.module || !this.canvas) return;
-
-    //     try {
-    //         let displayBuffer, width, height;
-            
-    //         if (this.module._get_display_buffer) {
-    //             displayBuffer = this.module._get_display_buffer();
-    //         } else if (this.module.get_display_buffer) {
-    //             displayBuffer = this.module.get_display_buffer();
-    //         }
-            
-    //         if (this.module._get_display_width) {
-    //             width = this.module._get_display_width();
-    //         } else if (this.module.get_display_width) {
-    //             width = this.module.get_display_width();
-    //         }
-            
-    //         if (this.module._get_display_height) {
-    //             height = this.module._get_display_height();
-    //         } else if (this.module.get_display_height) {
-    //             height = this.module.get_display_height();
-    //         }
-
-    //         if (!displayBuffer || !width || !height) {
-    //             return;
-    //         }
-
-    //         const scaleX = this.canvas.width / width;
-    //         const scaleY = this.canvas.height / height;
-
-    //         this.ctx.fillStyle = '#000000';
-    //         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    //         this.ctx.fillStyle = '#00FF00';
-    //         for (let y = 0; y < height; y++) {
-    //             for (let x = 0; x < width; x++) {
-    //                 const index = y * width + x;
-    //                 if (displayBuffer[index]) {
-    //                     this.ctx.fillRect(
-    //                         x * scaleX,
-    //                         y * scaleY,
-    //                         scaleX,
-    //                         scaleY
-    //                     );
-    //                 }
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Error updating display:', error);
-    //     }
-    // }
-
     handleKeyDown(event) {
-        if (!this.module) return;
+        if (!this.instance) return;
         
         const keyMap = this.getKeyMap(event.key);
+        console.log('Key down:', event.key, '-> CHIP-8 key:', keyMap);
+        
         if (keyMap !== -1) {
-            if (this.module._key_down) {
-                this.module._key_down(keyMap);
-            } else if (this.module.key_down) {
-                this.module.key_down(keyMap);
+            if (this.instance._key_down) {
+                this.instance._key_down(keyMap);
             }
             event.preventDefault();
         }
     }
 
     handleKeyUp(event) {
-        if (!this.module) return;
+        if (!this.instance) return;
         
         const keyMap = this.getKeyMap(event.key);
+        console.log('Key up:', event.key, '-> CHIP-8 key:', keyMap);
+        
         if (keyMap !== -1) {
-            if (this.module._key_up) {
-                this.module._key_up(keyMap);
-            } else if (this.module.key_up) {
-                this.module.key_up(keyMap);
+            if (this.instance._key_up) {
+                this.instance._key_up(keyMap);
             }
             event.preventDefault();
         }
     }
 
+    // getKeyMap(key) {
+    //     const keyMapping = {
+    //         '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
+    //         'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
+    //         'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
+    //         'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF
+    //     };
+        
+    //     return keyMapping[key.toLowerCase()] ?? -1;
+    // }
+
     getKeyMap(key) {
-        const keyMapping = {
+        const keyMapping = {            
             '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
             'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
             'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
-            'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF
+            'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF,
         };
         
-        return keyMapping[key.toLowerCase()] ?? -1;
+        const mapped = keyMapping[key.toLowerCase()] ?? -1;
+        console.log(`Key mapping: "${key}" -> 0x${mapped.toString(16)}`);
+        return mapped;
     }
 
     clearDisplay() {
