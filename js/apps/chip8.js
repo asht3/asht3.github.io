@@ -14,6 +14,7 @@ export const chip8App = {
                         <option value="1-chip8-logo">Chip 8 Logo</option>
                         <option value="br8kout">Breakout</option>
                         <option value="2-ibm-logo">IBM Logo</option>
+                        <option value="Tetris [Fran Dachille, 1991]">Tetris</option>
                     </select>
                 </div>
             </div>

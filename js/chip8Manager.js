@@ -5,7 +5,8 @@ export class Chip8Manager {
         this.isPaused = false;
         this.canvas = null;
         this.ctx = null;
-        this.romBasePath = '../chip8/roms/';
+        // this.romBasePath = '../chip8/roms/';
+        this.romBasePath = '/dev-portfolio/chip8/roms/';
         this.init();
     }
 
@@ -121,6 +122,59 @@ export class Chip8Manager {
             this.updateStatus(`ERROR: ${error.message}`);
         }
     }
+
+    // async loadRom(romName) {
+    //     if (!this.instance) {
+    //         this.updateStatus('ERROR: WASM INSTANCE NOT LOADED');
+    //         return;
+    //     }
+
+    //     try {
+    //         this.updateStatus(`LOADING ROM: ${romName}`);
+            
+    //         // Test different naming approaches
+    //         const testNames = [
+    //             romName,
+    //             romName.toLowerCase(),
+    //             romName.replace(/\[.*\]/g, '').trim(), // Remove [brackets]
+    //             romName.replace(/[\[\]]/g, ''), // Remove brackets but keep content
+    //             'tetris' // Hardcoded test
+    //         ];
+            
+    //         for (const testName of testNames) {
+    //             const encodedName = encodeURIComponent(testName);
+    //             const romPath = `${this.romBasePath}${encodedName}.ch8`;
+                
+    //             console.log(`Trying: ${romPath}`);
+    //             console.log(`  Original: "${testName}"`);
+    //             console.log(`  Encoded: "${encodedName}"`);
+                
+    //             const response = await fetch(romPath);
+    //             if (response.ok) {
+    //                 console.log(`SUCCESS with: ${testName}`);
+    //                 // Load the ROM and break
+    //                 const buffer = await response.arrayBuffer();
+    //                 const romData = new Uint8Array(buffer);
+                    
+    //                 const romDataPtr = this.instance._malloc(romData.length);
+    //                 this.instance.HEAPU8.set(romData, romDataPtr);
+    //                 this.instance._load_rom(romDataPtr, romData.length);
+    //                 this.instance._free(romDataPtr);
+                    
+    //                 this.start();
+    //                 return;
+    //             } else {
+    //                 console.log(`FAILED: ${response.status} ${response.statusText}`);
+    //             }
+    //         }
+            
+    //         throw new Error('All naming attempts failed');
+            
+    //     } catch (error) {
+    //         console.error('Failed to load ROM:', error);
+    //         this.updateStatus(`ERROR: ${error.message}`);
+    //     }
+    // }
 
     loadRomDialog() {
         // Create file input for custom ROM loading
