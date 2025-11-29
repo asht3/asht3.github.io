@@ -8,6 +8,7 @@ import { skillsApp } from './apps/skills.js';
 import { musicApp } from './apps/music.js';
 import { githubApp } from './apps/github.js';
 import { chip8App } from './apps/chip8.js';
+import { assetsApp } from './apps/assets.js';
 
 class CyberpunkDesktop {
     constructor() {
@@ -58,7 +59,8 @@ class CyberpunkDesktop {
             skills: skillsApp,
             music: musicApp,
             github: githubApp,
-            chip8: chip8App
+            chip8: chip8App,
+            assets: assetsApp
         };
 
         if (apps[appName]) {

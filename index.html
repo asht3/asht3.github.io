@@ -188,6 +188,36 @@
                     </div>
                     <span>CHIP-8 Emu</span>
                 </div>
+
+                <div class="icon" data-app="assets">
+                    <div class="icon-img">
+                        <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                            <defs>
+                                <linearGradient id="assetsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00f3ff"/>
+                                    <stop offset="50%" stop-color="#ff00ff"/>
+                                    <stop offset="100%" stop-color="#b967ff"/>
+                                </linearGradient>
+                                <filter id="assetsGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <!-- Folder/document stack -->
+                            <rect x="4" y="3" width="16" height="14" rx="1" fill="none" stroke="url(#assetsGradient)" stroke-width="1.5" filter="url(#assetsGlow)"/>
+                            <rect x="6" y="5" width="12" height="12" rx="1" fill="none" stroke="url(#assetsGradient)" stroke-width="1.5" filter="url(#assetsGlow)"/>
+                            <rect x="8" y="7" width="8" height="10" rx="1" fill="none" stroke="url(#assetsGradient)" stroke-width="1.5" filter="url(#assetsGlow)"/>
+                            <!-- Credit symbol (C) -->
+                            <path d="M10 12 C10 10.5 11.5 10 13 10 C14.5 10 16 10.5 16 12 C16 13.5 14.5 14 13 14 C11.5 14 10 13.5 10 12" 
+                                fill="none" stroke="url(#assetsGradient)" stroke-width="1" filter="url(#assetsGlow)"/>
+                            <line x1="13" y1="10" x2="13" y2="14" stroke="url(#assetsGradient)" stroke-width="1" filter="url(#assetsGlow)"/>
+                        </svg>
+                    </div>
+                    <span>Assets & Credits</span>
+                </div>
             </div>
         </div>
 

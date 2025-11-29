@@ -1159,6 +1159,123 @@ body {
     margin: 5px 0;
 }
 
+/* Assets & Credits App Styles */
+.assets-container {
+    padding: 0;
+    height: 100%;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.9), rgba(5, 5, 10, 0.95));
+}
+
+.assets-header {
+    padding: 20px;
+    background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(185, 103, 255, 0.1));
+    border-bottom: 1px solid var(--neon-blue);
+    text-align: center;
+}
+
+.assets-header h2 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    margin-bottom: 10px;
+}
+
+.assets-header p {
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+    margin: 0;
+}
+
+.credits-section {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+}
+
+.credits-section h3 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+    text-shadow: var(--glow-blue);
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.credit-item {
+    background: rgba(0, 243, 255, 0.05);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.credit-item:hover {
+    background: rgba(0, 243, 255, 0.1);
+    box-shadow: var(--glow-blue);
+    transform: translateX(2px);
+}
+
+.credit-item a {
+    color: var(--neon-blue);
+}
+
+.credit-title {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-pink);
+    font-weight: 700;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.credit-description {
+    color: #e0e0e0;
+    font-family: 'Rajdhani', sans-serif;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.credit-source, .credit-license {
+    color: var(--neon-blue);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    margin-bottom: 3px;
+}
+
+.credit-link {
+    display: inline-block;
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.credit-link:hover {
+    background: rgba(0, 243, 255, 0.2);
+    box-shadow: var(--glow-blue);
+}
+
+.assets-footer {
+    padding: 15px 20px;
+    text-align: center;
+}
+
+.legal-notice {
+    color: var(--neon-pink);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    text-shadow: var(--glow-pink);
+    padding: 8px;
+    border: 1px solid var(--neon-pink);
+    border-radius: 3px;
+    background: rgba(255, 0, 255, 0.1);
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 8px;
