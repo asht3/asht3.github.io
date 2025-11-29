@@ -3,22 +3,27 @@ export const skillsApp = {
     content: `
         <h2>SKILLS MATRIX - DOWNLOADING...</h2>
         <div class="skills-grid">
-            <div class="skill-item">JavaScript/ES6+</div>
-            <div class="skill-item">React/Vue.js</div>
-            <div class="skill-item">Node.js</div>
-            <div class="skill-item">Python</div>
-            <div class="skill-item">Three.js/WebGL</div>
-            <div class="skill-item">WebSockets</div>
-            <div class="skill-item">MongoDB</div>
-            <div class="skill-item">Docker</div>
-            <div class="skill-item">AWS</div>
-            <div class="skill-item">UI/UX Design</div>
+            <div class="skill-item">JavaScript</div>
+            <div class="skill-item">Java</div>
+            <div class="skill-item">HTML</div>
+            <div class="skill-item">C++</div>
+            <div class="skill-item">CSS</div>
+            <div class="skill-item">C</div>
+            <div class="skill-item">Ruby</div>
+            <div class="skill-item">ARM Assembly</div>
+            <div class="skill-item">GDB</div>
+            <div class="skill-item">nasm 64</div>
+            <div class="skill-item">JUnit</div>
+            <div class="skill-item">Valgrind</div>
+            <div class="skill-item">Git</div>
+            <div class="skill-item">GitHub</div>
+            <div class="skill-item">Vim</div>
+            <div class="skill-item">Shell</div>
+            <div class="skill-item">WordPress</div>
+            <div class="skill-item">RenPy</div>
+            <div class="skill-item">Object-oriented Programming</div>        
         </div>
         <br>
-        <h3>CERTIFICATIONS:</h3>
-        <p>> AWS Certified Developer</p>
-        <p>> Google Cloud Professional</p>
-        <p>> React Advanced Patterns</p>
     `,
     width: 500,
     height: 400
