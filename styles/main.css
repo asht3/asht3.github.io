@@ -1007,28 +1007,6 @@ body {
     }
 }
 
-/* .music-controls {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-    align-items: center;
-}
-
-.music-controls button {
-    background: var(--neon-blue);
-    color: var(--dark-bg);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-}
-
-.music-controls button:hover {
-    box-shadow: var(--glow-blue);
-} */
-
 /* CHIP-8 Emulator Styles */
 .chip8-container {
     padding: 0;
@@ -1292,4 +1270,264 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--neon-purple);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+        overflow: hidden;
+        touch-action: manipulation;
+    }
+
+    .desktop-icons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 20px 10px;
+    }
+
+    /* Taskbar mobile improvements */
+    .taskbar {
+        /*height: 60px; /* Even taller for better touch */
+        padding: 8px 10px;
+        z-index: 10000; /* Ensure taskbar is always on top */
+    }
+
+    .start-button {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        min-width: 70px;
+    }
+
+    .taskbar-apps {
+        max-width: calc(100vw - 120px); /* More space without WiFi symbol */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .taskbar-app {
+        /* min-width: 80px;
+        padding: 10px 15px;
+        font-size: 0.85rem;
+        scroll-snap-align: start;
+        white-space: nowrap;
+        flex-shrink: 0; */
+        display: none;
+    }
+
+    /* Hide WiFi symbol on mobile */
+    .wifi-icon {
+        display: none;
+    }
+
+    /* System tray adjustments */
+    .system-tray {
+        font-size: 0.85rem;
+        gap: 8px;
+        min-width: 60px; /* Ensure time is visible */
+    }
+
+    .bg-toggle-icon {
+        padding: 8px;
+    }
+
+    .bg-toggle-symbol {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Window mobile behavior */
+    .window {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: calc(100vh - 60px) !important; /* Account for taller taskbar */
+        max-height: none !important;
+        border-radius: 0;
+        border: none;
+        border-bottom: 3px solid var(--neon-blue);
+        z-index: 9999; /* High z-index for mobile */
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .window-header {
+        padding: 15px;
+        border-radius: 0;
+        font-size: 1rem;
+        touch-action: none; /* Prevent scrolling when dragging */
+    }
+
+    .window-controls button {
+        width: 28px;
+        height: 28px;
+        font-size: 1.1rem;
+    }
+
+    .window-content {
+        height: calc(100% - 50px); 
+        padding: 15px;
+        overflow-y: auto;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain !important;
+    }
+
+    .window-header {
+        position: relative;
+        touch-action: pan-x; /* Only allow horizontal touch in header */
+    }
+
+    /* Add a visual indicator for swipe-to-close */
+    /* .window-header::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        background: var(--neon-blue);
+        border-radius: 2px;
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+    }
+
+    .window-header:active::before {
+        opacity: 1;
+    } */
+
+
+    /* Mobile-specific window controls */
+    /* .mobile-window-controls {
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 10px;
+        background: rgba(0, 243, 255, 0.15);
+        border-top: 2px solid var(--neon-blue);
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+    } */
+
+    /* .mobile-control-button {
+        background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+        color: var(--dark-bg);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.9rem;
+        min-width: 100px;
+        touch-action: manipulation;
+    } */
+
+    /* .mobile-control-button:active {
+        transform: scale(0.95);
+        background: var(--neon-pink);
+    } */
+
+    /* Fix button responsiveness */
+    button, .cyber-button, .project-link {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+    }
+
+    button:active, .cyber-button:active, .project-link:active {
+        transform: scale(0.95);
+        transition: transform 0.1s;
+    }
+
+    /* Improve touch targets */
+    button, .icon, .taskbar-app/*, .mobile-control-button*/ {
+        min-height: 44px;
+    }
+
+    /* CHIP-8 emulator mobile adjustments */
+    .chip8-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chip8-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .chip8-controls button, .chip8-controls select {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        min-height: 50px;
+    }
+
+    #chip8-canvas {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 50vh;
+        border: 3px solid var(--neon-blue); /* Thicker border */
+    }
+
+    .chip8-status {
+        font-size: 0.9rem;
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    /* Music app mobile adjustments */
+    .music-controls {
+        flex-direction: column;
+        gap: 12px;
+        margin: 15px 0;
+    }
+
+    .music-controls button {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        min-height: 50px;
+    }
+
+    .music-header h2 {
+        font-size: 1rem;
+    }
+
+    .visualizer-bars {
+        height: 80px;
+        gap: 4px;
+    }
+
+    .visualizer-bar {
+        width: 8px;
+    }
+
+    /* Ensure all interactive elements are clickable */
+    .window-content * {
+        pointer-events: auto !important;
+    }
+
+    /* Fix for any hidden overflow issues */
+    #windows-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+    }
+
+    #windows-container .window {
+        pointer-events: auto;
+    }
 }
