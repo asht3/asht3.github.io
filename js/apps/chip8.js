@@ -28,6 +28,7 @@ export const chip8App = {
             
             <div class="chip8-info">
                 <p style="text-align: center; color: var(--neon-pink); font-weight: bold;">>>WARNING: TOGGLE OFF BINARY RAIN BACKGROUND FOR BEST PERFORMANCE<<</p>
+                <br>
                 <h3>> CONTROLS:</h3>
                 <div class="controls-grid">
                     <div>1 2 3 4</div>
