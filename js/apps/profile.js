@@ -59,6 +59,7 @@ export const profileApp = {
                             <span class="skill-tag">C</span>
                             <span class="skill-tag">ARM Assembly/nasm 64</span>
                             <span class="skill-tag">Ruby</span>
+                            <span class="skill-tag">Makefile</span>
                         </div>
                     </div>
                     <div class="skill-category">
