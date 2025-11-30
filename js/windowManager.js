@@ -295,15 +295,6 @@ export class WindowManager {
             x: Math.min(baseX + (this.windowCount * 30), viewportWidth - app.width - 20),
             y: Math.min(baseY + (this.windowCount * 30), viewportHeight - app.height - taskbarHeight - 20)
         };
-        
-        // const baseX = (viewportWidth - app.width) / 2;
-        // const baseY = (viewportHeight - app.height) / 3;
-        // const offset = 30;
-        
-        // return {
-        //     x: Math.min(baseX + (this.windowCount * offset), viewportWidth - app.width - 20),
-        //     y: Math.min(baseY + (this.windowCount * offset), viewportHeight - app.height - 60)
-        // };
     }
 
     initializeWindow(windowElement, windowId, taskbarApp) {
@@ -550,17 +541,7 @@ export class WindowManager {
                 top: element.style.top
             };
         }
-
-        // compute current taskbar height so bottom of window touches it
-        // const taskbarEl = document.querySelector('.taskbar');
-        // const taskbarHeight = taskbarEl ? Math.round(taskbarEl.getBoundingClientRect().height) : 40;
-
-        // Maximize
-        // element.style.left = '0px';
-        // element.style.top = '0px';
-        // element.style.width = `${window.innerWidth}px`;
-        // element.style.height = `${Math.max(0, window.innerHeight - taskbarHeight)}px`;
-
+        
         // Maximize
         element.style.width = 'calc(100vw - 4px)';
         element.style.height = 'calc(100vh - 44px)';

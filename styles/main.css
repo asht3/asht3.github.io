@@ -116,14 +116,6 @@ body {
 }
 
 /* Desktop Icons */
-/* .desktop-icons {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: flex-start;
-} */
-
 .desktop-icons {
     padding: 20px;
     display: flex;
@@ -136,31 +128,6 @@ body {
     flex-direction: column;
     gap: 20px;
 }
-
-/* .icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 80px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px;
-    border-radius: 5px;
-} */
-
-/* .icon:hover {
-    background: rgba(0, 243, 255, 0.1);
-    box-shadow: var(--glow-blue);
-}
-
-.icon-img {
-    font-size: 2rem;
-    margin-bottom: 5px;
-    filter: drop-shadow(0 0 5px var(--neon-blue));
-    display: flex;
-    justify-content: center;
-    align-items: center;
-} */
 
 .icon span {
     font-family: 'Orbitron', sans-serif;
@@ -480,39 +447,6 @@ body {
     border-radius: 3px;
     background: rgba(255, 0, 255, 0.1);
 }
-
-/* GitHub Logo Specific Styles */
-/* .github-logo {
-    transition: all 0.3s ease;
-}
-
-.icon:hover .github-logo {
-    transform: scale(1.15);
-    filter: 
-        drop-shadow(0 0 8px var(--neon-blue))
-        drop-shadow(0 0 15px var(--neon-pink));
-}
-
-.github-logo {
-    width: 48px;
-    height: 48px;
-} */
-
-/* Pulse animation for GitHub icon */
-/* @keyframes githubPulse {
-    0%, 100% { 
-        filter: drop-shadow(0 0 5px var(--neon-blue));
-    }
-    50% { 
-        filter: 
-            drop-shadow(0 0 10px var(--neon-pink)) 
-            drop-shadow(0 0 15px var(--neon-blue));
-    }
-}
-
-.icon:hover .github-logo {
-    animation: githubPulse 2s infinite;
-} */
 
 /* Window Styles */
 .window {
@@ -1289,7 +1223,6 @@ body {
 
     /* Taskbar mobile improvements */
     .taskbar {
-        /*height: 60px; /* Even taller for better touch */
         padding: 8px 10px;
         z-index: 10000; /* Ensure taskbar is always on top */
     }
@@ -1310,12 +1243,6 @@ body {
     }
 
     .taskbar-app {
-        /* min-width: 80px;
-        padding: 10px 15px;
-        font-size: 0.85rem;
-        scroll-snap-align: start;
-        white-space: nowrap;
-        flex-shrink: 0; */
         display: none;
     }
 
