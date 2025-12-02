@@ -28,7 +28,8 @@ export const projectsApp = {
                 <h3>My Mastermind</h3>
                 <p>An implementation of the Mastermind game where the user has a certain number of attempts to guess the secret code. 
                 The user also has the options to customize the game by setting their own code and altering the number of allowed attempts to guess it. 
-                The link below leads to the repository of the original implementation. The code was ported using WebAssembly so a demo could be hosted on this site, adding a UI and altering the game slightly.</p>
+                The link below leads to the repository of the original implementation. The code was ported using WebAssembly so a demo could be hosted on this site, adding a UI and altering the game slightly.
+                </p>
                 <br>
                 <p><strong>Tech:</strong> C, WebAssembly, Emscripten, JavaScript (demo)</p>
                 <div class="project-links">
