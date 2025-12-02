@@ -40,7 +40,7 @@ export const profileApp = {
             <div class="profile-section">
                 <h3 class="section-title">>> BIO_DATA</h3>
                 <div class="bio-content" data-field="bio">
-                    Entry-level software engineer possessing a solid foundation in a strong foundation in programming and web technologies.
+                    Entry-level software engineer possessing a strong foundation in programming and web technologies.
                     Demonstrates proficiency in languages such as Java, C, and C++, and is skilled in web development using WordPress and CSS.
                     Knowledgeable in modern development practices, including version control and collaboration using Git and GitHub.
                     Equipped with a solid understanding of data structures and algorithm design, enabling effective problem-solving capabilities.
