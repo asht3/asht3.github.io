@@ -1374,12 +1374,10 @@ body {
 
 .status-display::before {
     content: 'SYSTEM_LOG >';
-    position: absolute;
-    top: -12px;
-    left: 20px;
+    position: relative;
     background: var(--dark-bg);
     padding: 0 10px;
-    color: var(--neon-green);
+    color: var(--neon-purple);
     font-family: 'Orbitron', sans-serif;
     font-size: 0.8rem;
     letter-spacing: 1px;
@@ -2083,9 +2081,4 @@ body {
         font-size: 0.8rem;
     }
     
-    /* .status-display {
-        font-size: 0.8rem;
-        min-height: 80px;
-        max-height: 150px;
-    } */
 }
