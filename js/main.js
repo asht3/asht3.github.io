@@ -9,6 +9,8 @@ import { musicApp } from './apps/music.js';
 import { githubApp } from './apps/github.js';
 import { chip8App } from './apps/chip8.js';
 import { assetsApp } from './apps/assets.js';
+import { mastermindApp } from './apps/mastermind.js';
+import { MastermindManager } from './mastermindManager.js';
 
 class CyberpunkDesktop {
     constructor() {
@@ -340,7 +342,8 @@ class CyberpunkDesktop {
             music: musicApp,
             github: githubApp,
             chip8: chip8App,
-            assets: assetsApp
+            assets: assetsApp,
+            mastermind: mastermindApp
         };
 
         if (apps[appName]) {
@@ -362,7 +365,18 @@ class CyberpunkDesktop {
             if (appName === 'music') {
                 this.initMusicVisualizer(windowElement);
             }
+
+            if (appName === 'mastermind') {
+                this.initMastermind(windowElement);
+            }
         }
+    }
+
+    initMastermind(windowElement) {
+        setTimeout(async () => {
+            this.mastermindManager = new MastermindManager();
+            await this.mastermindManager.init();
+        }, 100);
     }
 
     async initChip8(windowElement) {

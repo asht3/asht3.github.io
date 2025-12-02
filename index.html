@@ -218,6 +218,37 @@
                     </div>
                     <span>Assets & Credits</span>
                 </div>
+
+                <div class="icon" data-app="mastermind">
+                    <div class="icon-img">
+                        <svg width="48" height="48" viewBox="0 0 24 24" class="cyber-icon">
+                            <defs>
+                                <linearGradient id="mastermindGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00f3ff"/>
+                                    <stop offset="50%" stop-color="#ff00ff"/>
+                                    <stop offset="100%" stop-color="#00ff9d"/>
+                                </linearGradient>
+                                <filter id="mastermindGlow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                                    <feMerge>
+                                        <feMergeNode in="blur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <!-- Brain/processor icon -->
+                            <path d="M12 3C8 3 5 6 5 10C5 14 8 17 12 17C16 17 19 14 19 10C19 6 16 3 12 3Z" 
+                                fill="none" stroke="url(#mastermindGradient)" stroke-width="1.5" filter="url(#mastermindGlow)"/>
+                            <path d="M8 8L10 10L8 12" fill="none" stroke="url(#mastermindGradient)" stroke-width="1.5" filter="url(#mastermindGlow)"/>
+                            <path d="M16 8L14 10L16 12" fill="none" stroke="url(#mastermindGradient)" stroke-width="1.5" filter="url(#mastermindGlow)"/>
+                            <!-- Code symbols -->
+                            <circle cx="9" cy="14" r="1" fill="url(#mastermindGradient)" filter="url(#mastermindGlow)"/>
+                            <circle cx="12" cy="14" r="1" fill="url(#mastermindGradient)" filter="url(#mastermindGlow)"/>
+                            <circle cx="15" cy="14" r="1" fill="url(#mastermindGradient)" filter="url(#mastermindGlow)"/>
+                        </svg>
+                    </div>
+                    <span>Mastermind.exe</span>
+                </div>
             </div>
         </div>
 

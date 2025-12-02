@@ -9,6 +9,8 @@ Ensure that the `chip8.data` file is outside the chip8 folder but stil in dev-po
 
 More info on the Chip8 can be found in the README within the folder.
 
+If there are issues with the Mastermind program, move to the mastermind directory and run `./build_wasm.sh`.
+
 ## FEATURES
 - Resizable, draggable windows with z-index management
 - Pre-opened profile window on load
