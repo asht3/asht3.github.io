@@ -32,10 +32,6 @@ export const mastermindApp = {
                         <h3>COLORS</h3>
                         <div class="value">8</div>
                     </div>
-                    <div class="info-card">
-                        <h3>SCORE</h3>
-                        <div class="value" id="score">0</div>
-                    </div>
                 </div>
 
                 <div class="color-palette" id="color-palette">

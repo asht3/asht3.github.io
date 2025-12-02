@@ -51,7 +51,7 @@ class CyberpunkDesktop {
         this.initBackgroundToggle();
         
         // Initialize network status
-        this.initNetworkStatus();
+        // this.initNetworkStatus();
         
         // Add some cyberpunk effects
         this.addCyberpunkEffects();
@@ -373,9 +373,67 @@ class CyberpunkDesktop {
     }
 
     initMastermind(windowElement) {
-        setTimeout(async () => {
-            this.mastermindManager = new MastermindManager();
-            await this.mastermindManager.init();
+        console.log('Initializing Mastermind app...');
+        
+        // Clear any existing timeout
+        if (this.mastermindTimeout) {
+            clearTimeout(this.mastermindTimeout);
+        }
+        
+        this.mastermindTimeout = setTimeout(async () => {
+            try {
+                // Wait for DOM to be ready
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Check if MastermindManager already exists globally
+                if (!window.mastermindManager) {
+                    console.log('Creating new MastermindManager instance...');
+                    
+                    // Import the class
+                    const { MastermindManager } = await import('./mastermindManager.js');
+                    
+                    // Create instance and store globally
+                    window.mastermindManager = new MastermindManager();
+                    
+                    // Initialize it
+                    await window.mastermindManager.initialize();
+                    
+                    console.log('MastermindManager created and initialized');
+                } else {
+                    console.log('Reusing existing MastermindManager');
+                    
+                    // Refresh the UI
+                    if (window.mastermindManager.refreshUI) {
+                        window.mastermindManager.refreshUI();
+                    } else {
+                        // Fallback: reinitialize
+                        await window.mastermindManager.initialize();
+                    }
+                }
+                
+                // Store reference in the window element
+                windowElement.mastermindManager = window.mastermindManager;
+                
+            } catch (error) {
+                console.error('Failed to initialize Mastermind:', error);
+                
+                // Show error to user
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    color: #ff5555;
+                    padding: 20px;
+                    text-align: center;
+                    font-family: monospace;
+                `;
+                errorDiv.innerHTML = `
+                    <h3>INITIALIZATION ERROR</h3>
+                    <p>Failed to load Mastermind game.</p>
+                    <p>Please refresh the page.</p>
+                `;
+                
+                const container = windowElement.querySelector('.mastermind-container') || windowElement;
+                container.appendChild(errorDiv);
+            }
         }, 100);
     }
 

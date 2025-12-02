@@ -588,6 +588,12 @@ export class WindowManager {
             if (this.windowCount === 0) {
                 this.lastPosition = null;
             }
+
+            if (windowElement.mastermindManager) {
+                console.log('Cleaning up Mastermind manager for window...');
+                windowElement.mastermindManager.gameActive = false;
+                windowElement.mastermindManager = null;
+            }
         }
     }
 

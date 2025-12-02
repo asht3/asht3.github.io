@@ -1,11 +1,13 @@
 export class MastermindManager {
     static instance = null;
-
+    
     constructor() {
+        // Singleton pattern
         if (MastermindManager.instance) {
             console.log('Returning existing MastermindManager instance');
             return MastermindManager.instance;
         }
+        
         this.module = null;
         this.wasmModule = null;
         this.gamePtr = null;
@@ -15,22 +17,100 @@ export class MastermindManager {
         this.currentAttempt = 0;
         this.secretCode = null;
         this.eventListeners = new Map();
-        this.init();
-
+        
+        // Track initialization state
+        this.initialized = false;
+        this.initializing = false;
+        
+        // Store as singleton
         MastermindManager.instance = this;
+        window.mastermindManager = this; // Also store globally
+        
+        console.log('MastermindManager constructed (not initialized yet)');
     }
 
-    async init() {
-        this.setupUI();        
-        await this.loadWasmModule();
-        this.newGame();
+    async initialize() {
+        if (this.initialized || this.initializing) {
+            console.log('Already initialized or initializing');
+            return;
+        }
+        
+        this.initializing = true;
+        console.log('Starting MastermindManager initialization...');
+        
+        try {
+            // Setup UI
+            this.setupUI();
+            
+            // Load WebAssembly
+            await this.loadWasmModule();
+            
+            // Start new game
+            this.newGame();
+            
+            this.initialized = true;
+            console.log('MastermindManager initialized successfully');
+            
+        } catch (error) {
+            console.error('Failed to initialize MastermindManager:', error);
+            throw error;
+        } finally {
+            this.initializing = false;
+        }
     }
 
     setupUI() {
-        // Create color palette (0-7 colors)
+        console.log('🎨 Setting up Mastermind UI');
+        
+        // Always recreate these elements
         this.createColorPalette();
         this.createCodeSlots();
         this.setupEventListeners();
+        
+        // Ensure other elements exist
+        this.ensureUIElements();
+    }
+    // setupUI() {
+    //     // Create color palette (0-7 colors)
+    //     this.createColorPalette();
+    //     this.createCodeSlots();
+    //     this.setupEventListeners();
+    //     setTimeout(() => {
+    //         if (this.showDebugInfo) {
+    //             this.showDebugInfo();
+    //         }
+    //     }, 1000);
+    // }
+
+    ensureUIElements() {
+        // Check for and create missing essential elements
+        const requiredIds = [
+            'color-palette',
+            'code-slots', 
+            'submit-guess',
+            'clear-guess',
+            'new-game',
+            'game-status',
+            'game-log',
+            'guess-history',
+            'attempts-count'
+        ];
+        
+        requiredIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Missing element: #${id}`);
+                
+                // Try to find parent container
+                const container = document.querySelector('.mastermind-container') || 
+                                document.querySelector('.mastermind-terminal');
+                
+                if (container && id === 'color-palette') {
+                    // Create palette if missing
+                    this.createColorPalette();
+                }
+            }
+        });
     }
 
     createColorPalette() {
@@ -61,14 +141,17 @@ export class MastermindManager {
 
     createCodeSlots() {
         const slots = document.getElementById('code-slots');
-        if (!slots) return;
+        if (!slots) {
+            console.error('No code-slots element found!');
+            return;
+        }
         
         slots.innerHTML = '';
         this.currentGuess = [];
         
         for (let i = 0; i < 4; i++) {
             const slot = document.createElement('div');
-            slot.className = 'code-slot cyber-slot';
+            slot.className = 'code-slot cyber-slot'; // Use both classes
             slot.dataset.index = i;
             slot.dataset.value = '-1';
             slot.innerHTML = `
@@ -76,21 +159,25 @@ export class MastermindManager {
                 <div class="slot-glow"></div>
             `;
             
-            // Use a single event listener
-            this.addSingleEventListener(slot, 'click', () => {
+            // Use a direct event listener
+            slot.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.clearSlot(i);
             });
             
             slots.appendChild(slot);
             this.currentGuess.push(-1);
         }
+        
+        console.log('Created code slots:', this.currentGuess);
     }
 
-    addSingleEventListener(element, event, handler) {
-        // Remove any existing listener first
-        const key = `${event}-${element.dataset.index || 'global'}`;
-        const existingHandler = this.eventListeners.get(key);
+    addSingleEventListener(element, event, handler, keySuffix = '') {
+        // Create a unique key for this listener
+        const key = `${event}-${element.id || element.tagName || 'global'}${keySuffix}`;
         
+        // Remove any existing listener first
+        const existingHandler = this.eventListeners.get(key);
         if (existingHandler) {
             element.removeEventListener(event, existingHandler);
         }
@@ -100,154 +187,30 @@ export class MastermindManager {
         this.eventListeners.set(key, handler);
     }
 
-    setupEventListeners() {
-        // Clear existing listeners
-        this.clearAllEventListeners();
-        
-        // Color palette clicks - use event delegation
-        const palette = document.getElementById('color-palette');
-        if (palette) {
-            this.addSingleEventListener(palette, 'click', (e) => {
-                const colorBtn = e.target.closest('.color-btn');
-                if (colorBtn) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.addToGuess(parseInt(colorBtn.dataset.value));
-                }
-            });
-        }
-
-        // Number key input (0-7)
-        this.addSingleEventListener(document, 'keydown', (e) => {
-            if (!this.gameActive) return;
-            
-            const key = e.key;
-            if (key >= '0' && key <= '7') {
-                e.preventDefault();
-                this.addToGuess(parseInt(key));
-            } else if (key === 'Backspace') {
-                e.preventDefault();
-                this.removeLastGuess();
-            } else if (key === 'Enter') {
-                e.preventDefault();
-                this.submitGuess();
-            }
-        });
-
-        // Control buttons - use direct single listeners
-        const submitBtn = document.getElementById('submit-guess');
-        const clearBtn = document.getElementById('clear-guess');
-        const newGameBtn = document.getElementById('new-game');
-        
-        if (submitBtn) {
-            this.addSingleEventListener(submitBtn, 'click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.submitGuess();
-            });
-        }
-        
-        if (clearBtn) {
-            this.addSingleEventListener(clearBtn, 'click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.clearGuess();
-            });
-        }
-        
-        if (newGameBtn) {
-            this.addSingleEventListener(newGameBtn, 'click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.newGame();
-            });
-        }
-
-        // Game options - use event delegation
-        const optionButtons = document.querySelector('.option-buttons');
-        if (optionButtons) {
-            this.addSingleEventListener(optionButtons, 'click', (e) => {
-                const optionBtn = e.target.closest('.option-button');
-                if (optionBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const mode = optionBtn.dataset.mode;
-                    this.setGameMode(mode);
-                }
-            });
-        }
-
-        // Attempts input
-        const attemptsInput = document.getElementById('attempts-input');
-        if (attemptsInput) {
-            this.addSingleEventListener(attemptsInput, 'change', (e) => {
-                this.maxAttempts = parseInt(e.target.value) || 10;
-                this.updateUI();
-            });
-        }
-
-        // Custom code input
-        const customCodeInput = document.getElementById('custom-code');
-        if (customCodeInput) {
-            this.addSingleEventListener(customCodeInput, 'input', (e) => {
-                const code = e.target.value.replace(/[^0-7]/g, '');
-                e.target.value = code;
-                if (code.length === 4) {
-                    this.secretCode = code.split('').map(Number);
-                }
-            });
-        }
-        
-        // Add touch event prevention for mobile
-        this.addSingleEventListener(document, 'touchstart', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                e.preventDefault();
-            }
-        }, { passive: false });
-    }
-
     // setupEventListeners() {
-    //     // Remove any existing listeners first to prevent duplicates
-    //     this.removeEventListeners();
+    //     // Clear existing listeners
+    //     this.clearAllEventListeners();
         
-    //     // Get palette element once
+    //     // Color palette clicks - use event delegation
     //     const palette = document.getElementById('color-palette');
-    //     if (!palette) return;
-        
-    //     // Use event delegation with proper event handling
-    //     palette.addEventListener('click', (e) => {
-    //         // Only handle clicks directly on color-btn or its children
-    //         const colorBtn = e.target.closest('.color-btn');
-    //         if (colorBtn && this.gameActive) {
-    //             // Prevent multiple triggers
-    //             e.stopPropagation();
-    //             e.preventDefault();
-                
-    //             const value = parseInt(colorBtn.dataset.value);
-    //             if (!isNaN(value)) {
-    //                 this.addToGuess(value);
+    //     if (palette) {
+    //         this.addSingleEventListener(palette, 'click', (e) => {
+    //             const colorBtn = e.target.closest('.color-btn');
+    //             if (colorBtn) {
+    //                 e.stopPropagation();
+    //                 e.preventDefault();
+    //                 this.addToGuess(parseInt(colorBtn.dataset.value));
     //             }
-    //         }
-    //     });
+    //         });
+    //     }
 
-    //     // Number key input (0-7) - throttle input
-    //     let lastKeyTime = 0;
-    //     const keyThrottle = 200; // ms between key presses
-        
-    //     document.addEventListener('keydown', (e) => {
+    //     // Number key input (0-7)
+    //     this.addSingleEventListener(document, 'keydown', (e) => {
     //         if (!this.gameActive) return;
-            
-    //         // Throttle key presses
-    //         const now = Date.now();
-    //         if (now - lastKeyTime < keyThrottle) {
-    //             e.preventDefault();
-    //             return;
-    //         }
-    //         lastKeyTime = now;
             
     //         const key = e.key;
     //         if (key >= '0' && key <= '7') {
-    //             e.preventDefault(); // Prevent default behavior
+    //             e.preventDefault();
     //             this.addToGuess(parseInt(key));
     //         } else if (key === 'Backspace') {
     //             e.preventDefault();
@@ -258,29 +221,53 @@ export class MastermindManager {
     //         }
     //     });
 
-    //     // Control buttons - add debouncing
-    //     this.setupButtonWithDebounce('submit-guess', () => this.submitGuess());
-    //     this.setupButtonWithDebounce('clear-guess', () => this.clearGuess());
-    //     this.setupButtonWithDebounce('new-game', () => this.newGame());
-
-    //     // Game options
-    //     document.querySelectorAll('.option-button').forEach(btn => {
-    //         // Remove existing listeners
-    //         btn.replaceWith(btn.cloneNode(true));
-    //     });
+    //     // Control buttons - use direct single listeners
+    //     const submitBtn = document.getElementById('submit-guess');
+    //     const clearBtn = document.getElementById('clear-guess');
+    //     const newGameBtn = document.getElementById('new-game');
         
-    //     // Re-attach listeners to new button nodes
-    //     document.querySelectorAll('.option-button').forEach(btn => {
-    //         btn.addEventListener('click', (e) => {
-    //             const mode = e.currentTarget.dataset.mode;
-    //             this.setGameMode(mode);
+    //     if (submitBtn) {
+    //         this.addSingleEventListener(submitBtn, 'click', (e) => {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             this.submitGuess();
     //         });
-    //     });
+    //     }
+        
+    //     if (clearBtn) {
+    //         this.addSingleEventListener(clearBtn, 'click', (e) => {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             this.clearGuess();
+    //         });
+    //     }
+        
+    //     if (newGameBtn) {
+    //         this.addSingleEventListener(newGameBtn, 'click', (e) => {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             this.newGame();
+    //         });
+    //     }
+
+    //     // Game options - use event delegation
+    //     const optionButtons = document.querySelector('.option-buttons');
+    //     if (optionButtons) {
+    //         this.addSingleEventListener(optionButtons, 'click', (e) => {
+    //             const optionBtn = e.target.closest('.option-button');
+    //             if (optionBtn) {
+    //                 e.preventDefault();
+    //                 e.stopPropagation();
+    //                 const mode = optionBtn.dataset.mode;
+    //                 this.setGameMode(mode);
+    //             }
+    //         });
+    //     }
 
     //     // Attempts input
     //     const attemptsInput = document.getElementById('attempts-input');
     //     if (attemptsInput) {
-    //         attemptsInput.addEventListener('change', (e) => {
+    //         this.addSingleEventListener(attemptsInput, 'change', (e) => {
     //             this.maxAttempts = parseInt(e.target.value) || 10;
     //             this.updateUI();
     //         });
@@ -289,7 +276,7 @@ export class MastermindManager {
     //     // Custom code input
     //     const customCodeInput = document.getElementById('custom-code');
     //     if (customCodeInput) {
-    //         customCodeInput.addEventListener('input', (e) => {
+    //         this.addSingleEventListener(customCodeInput, 'input', (e) => {
     //             const code = e.target.value.replace(/[^0-7]/g, '');
     //             e.target.value = code;
     //             if (code.length === 4) {
@@ -297,7 +284,209 @@ export class MastermindManager {
     //             }
     //         });
     //     }
+        
+    //     // Add touch event prevention for mobile
+    //     this.addSingleEventListener(document, 'touchstart', (e) => {
+    //         if (e.target.tagName === 'BUTTON') {
+    //             e.preventDefault();
+    //         }
+    //     }, { passive: false });
     // }
+
+    setupEventListeners() {
+        console.log('Setting up event listeners');
+        
+        // REMOVE ALL existing listeners first by replacing elements
+        this.replaceInteractiveElements();
+        
+        const palette = document.getElementById('color-palette');
+        if (palette) {
+            console.log('Setting up palette click handler');
+            
+            // Use a single function reference
+            const handlePaletteClick = (e) => {
+                // Find the actual color button
+                const colorBtn = e.target.closest('.color-btn');
+                if (!colorBtn || !this.gameActive) return;
+                
+                console.log('Color button clicked:', colorBtn.dataset.value);
+                
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                
+                // Add visual feedback to prevent double clicks
+                colorBtn.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    colorBtn.style.pointerEvents = '';
+                }, 300);
+                
+                const value = parseInt(colorBtn.dataset.value);
+                if (!isNaN(value)) {
+                    this.addToGuess(value);
+                }
+            };
+            
+            // Add with capture phase to catch early
+            palette.addEventListener('click', handlePaletteClick, true);
+            this.eventListeners.set('palette-click', handlePaletteClick);
+        }
+        
+        const handleKeyDown = (e) => {
+            // Don't handle if we're in an input field (for custom code)
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            if (!this.gameActive) return;
+            
+            const key = e.key;
+            
+            // Prevent default for all game keys
+            if (key >= '0' && key <= '7' || key === 'Backspace' || key === 'Enter') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+            
+            // Handle with debouncing
+            if (key >= '0' && key <= '7') {
+                // Use requestAnimationFrame to ensure single execution
+                requestAnimationFrame(() => {
+                    this.addToGuess(parseInt(key));
+                });
+            } else if (key === 'Backspace') {
+                requestAnimationFrame(() => {
+                    this.removeLastGuess();
+                });
+            } else if (key === 'Enter') {
+                requestAnimationFrame(() => {
+                    this.submitGuess();
+                });
+            }
+        };
+        
+        document.addEventListener('keydown', handleKeyDown);
+        this.eventListeners.set('keydown', handleKeyDown);
+        
+        this.setupControlButton('submit-guess', () => this.submitGuess());
+        this.setupControlButton('clear-guess', () => this.clearGuess());
+        this.setupControlButton('new-game', () => this.newGame());
+        
+        const optionContainer = document.querySelector('.option-buttons') || document.querySelector('.game-options');
+        if (optionContainer) {
+            const handleOptionClick = (e) => {
+                const optionBtn = e.target.closest('.option-button');
+                if (optionBtn) {
+                    e.stopPropagation();
+                    const mode = optionBtn.dataset.mode;
+                    this.setGameMode(mode);
+                }
+            };
+            optionContainer.addEventListener('click', handleOptionClick);
+            this.eventListeners.set('options-click', handleOptionClick);
+        }
+        
+        const attemptsInput = document.getElementById('attempts-input');
+        if (attemptsInput) {
+            const handleAttemptsChange = (e) => {
+                this.maxAttempts = parseInt(e.target.value) || 10;
+                this.updateUI();
+            };
+            attemptsInput.addEventListener('change', handleAttemptsChange);
+            this.eventListeners.set('attempts-change', handleAttemptsChange);
+        }
+        
+        const customCodeInput = document.getElementById('custom-code');
+        if (customCodeInput) {
+            // Don't replace this element or it loses focus/value
+            const handleCustomCodeInput = (e) => {
+                const code = e.target.value.replace(/[^0-7]/g, '');
+                e.target.value = code;
+                if (code.length === 4) {
+                    this.secretCode = code.split('').map(Number);
+                    console.log('Custom code set:', this.secretCode);
+                }
+            };
+            
+            // Remove any existing listener first
+            customCodeInput.removeEventListener('input', handleCustomCodeInput);
+            customCodeInput.addEventListener('input', handleCustomCodeInput);
+            this.eventListeners.set('custom-code-input', handleCustomCodeInput);
+            
+            // Also handle custom mode activation
+            const handleCustomMode = () => {
+                console.log('Custom mode activated');
+                // Enable the input
+                customCodeInput.disabled = false;
+                customCodeInput.focus();
+            };
+            
+            // Find custom mode button and add handler
+            const customModeBtn = document.querySelector('.option-button[data-mode="custom"]');
+            if (customModeBtn) {
+                customModeBtn.addEventListener('click', handleCustomMode);
+                this.eventListeners.set('custom-mode-click', handleCustomMode);
+            }
+        }
+    }
+
+    replaceInteractiveElements() {
+        console.log('Replacing interactive elements to remove old listeners');
+        
+        // List of elements to replace
+        const elementsToReplace = [
+            'color-palette',
+            'submit-guess',
+            'clear-guess',
+            'new-game',
+            'attempts-input',
+            'custom-code'
+        ];
+        
+        elementsToReplace.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                const newElement = element.cloneNode(true);
+                element.parentNode.replaceChild(newElement, element);
+            }
+        });
+        
+        // Also replace option buttons
+        document.querySelectorAll('.option-button').forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+        });
+        
+        // Also replace code slots
+        this.createCodeSlots();
+    }
+
+    setupControlButton(buttonId, handler) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        
+        // Create a new handler with debouncing
+        let lastClick = 0;
+        const handleClick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Debounce: prevent clicks within 300ms
+            const now = Date.now();
+            if (now - lastClick < 300) return;
+            lastClick = now;
+            
+            // Visual feedback
+            button.style.pointerEvents = 'none';
+            setTimeout(() => {
+                button.style.pointerEvents = '';
+            }, 300);
+            
+            handler();
+        };
+        
+        button.addEventListener('click', handleClick);
+        this.eventListeners.set(`${buttonId}-click`, handleClick);
+    }
 
     clearAllEventListeners() {
         // Clear all tracked event listeners
@@ -347,18 +536,50 @@ export class MastermindManager {
         });
     }
 
+    // addToGuess(value) {
+    //     if (!this.gameActive) return;
+        
+    //     console.log(`Adding value ${value} to guess`);
+        
+    //     const emptySlot = this.currentGuess.indexOf(-1);
+    //     if (emptySlot !== -1) {
+    //         this.currentGuess[emptySlot] = value;
+    //         this.updateCodeSlots();
+            
+    //         // Debounce: prevent multiple rapid clicks
+    //         this.debounceAddToGuess();
+    //     }
+    // }
+
     addToGuess(value) {
-        if (!this.gameActive) return;
+        // Prevent rapid double inputs
+        const now = Date.now();
+        if (now - this.lastInputTime < this.inputCooldown) {
+            console.log('⏸️ Input too fast, skipping');
+            return;
+        }
         
-        console.log(`Adding value ${value} to guess`);
+        // Also prevent same value being added twice in quick succession
+        if (value === this.lastKeyPressed && now - this.lastKeyTime < 500) {
+            console.log('⏸️ Same key pressed too quickly');
+            return;
+        }
         
+        console.log(`➕ Adding value ${value} to guess`);
+        
+        // Track this input
+        this.lastInputTime = now;
+        this.lastKeyPressed = value;
+        this.lastKeyTime = now;
+        
+        // Find first empty slot
         const emptySlot = this.currentGuess.indexOf(-1);
         if (emptySlot !== -1) {
             this.currentGuess[emptySlot] = value;
+            console.log('Updated guess array:', this.currentGuess);
             this.updateCodeSlots();
-            
-            // Debounce: prevent multiple rapid clicks
-            this.debounceAddToGuess();
+        } else {
+            console.log('No empty slots available');
         }
     }
 
@@ -373,49 +594,127 @@ export class MastermindManager {
         }, 100);
     }
 
-    // Update the code slot click handler too
     createCodeSlots() {
         const slots = document.getElementById('code-slots');
-        if (!slots) return;
+        if (!slots) {
+            console.error('No code-slots element found!');
+            return;
+        }
         
         slots.innerHTML = '';
         this.currentGuess = [];
         
         for (let i = 0; i < 4; i++) {
             const slot = document.createElement('div');
-            slot.className = 'code-slot';
+            slot.className = 'code-slot cyber-slot';
             slot.dataset.index = i;
             slot.dataset.value = '-1';
-            slot.innerHTML = '?';
             
-            // Add debouncing to slot clicks
-            let lastClick = 0;
+            const content = document.createElement('div');
+            content.className = 'slot-content';
+            
+            // Create glow element
+            const glow = document.createElement('div');
+            glow.className = 'slot-glow';
+            
+            slot.appendChild(content);
+            slot.appendChild(glow);
+            
+            // Use a direct event listener
             slot.addEventListener('click', (e) => {
                 e.stopPropagation();
-                
-                const now = Date.now();
-                if (now - lastClick < 300) {
-                    return;
-                }
-                lastClick = now;
-                
                 this.clearSlot(i);
             });
             
             slots.appendChild(slot);
             this.currentGuess.push(-1);
         }
+        
+        this.updateCodeSlots();
+        console.log('Created code slots:', this.currentGuess);
     }
+
+    testWasmLogic() {
+        if (!this.wasmAPI || !this.gamePtr) {
+            console.log('WASM not available for testing');
+            return;
+        }
+        
+        console.group('🧪 Testing WASM Logic');
+        
+        // Test 1: Create a fresh game with known code
+        const testCode = "0123";
+        this.wasmAPI.newCustomGame(this.gamePtr, testCode);
+        
+        // Test 2: Check different guesses
+        const testCases = [
+            { guess: [0, 1, 2, 3], expected: "4,0" },
+            { guess: [0, 1, 2, 4], expected: "3,0" },
+            { guess: [4, 5, 6, 7], expected: "0,0" },
+            { guess: [1, 0, 2, 3], expected: "2,2" }
+        ];
+        
+        testCases.forEach((test, i) => {
+            console.log(`Test ${i + 1}: Guess ${test.guess} against ${testCode}`);
+            const result = this.wasmAPI.checkGuess(this.gamePtr, test.guess);
+            console.log(`  Result: ${result}, Expected: ${test.expected}`);
+            console.log(`  Match: ${result === test.expected ? '✅' : '❌'}`);
+        });
+        
+        console.groupEnd();
+    }
+
+    // Debug
+    // async testCCommunication() {
+    //     console.group('🔬 Testing C Communication');
+        
+    //     if (!this.wasmAPI || !this.gamePtr) {
+    //         console.error('WASM not loaded');
+    //         console.groupEnd();
+    //         return;
+    //     }
+        
+    //     // Add debug function if it exists
+    //     if (this.wasmModule._mastermind_debug_state) {
+    //         const debugFunc = this.wasmModule.cwrap('mastermind_debug_state', 'string', ['number']);
+    //         const debugInfo = debugFunc(this.gamePtr);
+    //         console.log('C Debug State:', debugInfo);
+    //     }
+        
+    //     // Test 1: Set a known code
+    //     console.log('\nTest 1: Setting code "5012"');
+    //     this.wasmAPI.newCustomGame(this.gamePtr, "5012");
+        
+    //     // Get code back
+    //     const codeFromC = this.wasmAPI.getSecretCode(this.gamePtr);
+    //     console.log('Code from C:', codeFromC);
+    //     console.log('Expected: 5012');
+    //     console.log('Match:', codeFromC === '5012' ? '✅' : '❌');
+        
+    //     // Test 2: Check guess "5012" (should be 4 correct)
+    //     console.log('\nTest 2: Guessing "5012" (should be 4 correct)');
+    //     const guess1 = [5, 0, 1, 2];
+    //     const result1 = this.wasmAPI.checkGuess(this.gamePtr, guess1);
+    //     console.log('Result:', result1);
+    //     console.log('Expected: 4,0');
+    //     console.log('Match:', result1 === '4,0' ? '✅' : '❌');
+        
+    //     // Test 3: Check guess "0123" (should be 0 correct, ? misplaced)
+    //     console.log('\nTest 3: Guessing "0123"');
+    //     const guess2 = [0, 1, 2, 3];
+    //     const result2 = this.wasmAPI.checkGuess(this.gamePtr, guess2);
+    //     console.log('Result:', result2);
+        
+    //     console.groupEnd();
+    // }
 
    async loadWasmModule() {
         try {
             console.log('Attempting to load WebAssembly module...');
             
-            // First, check if the WASM file exists
             const wasmUrl = './public/wasm/mastermind_wasm.js';
-            console.log('Looking for WASM at:', wasmUrl);
             
-            // Try to fetch the file to see if it exists
+            // Try to fetch the file
             try {
                 const response = await fetch(wasmUrl);
                 if (!response.ok) {
@@ -427,46 +726,43 @@ export class MastermindManager {
                 throw fetchError;
             }
             
-            // Load WebAssembly module with better error handling
+            // Load WebAssembly module
             this.wasmModule = await this.loadWasm(wasmUrl);
             
             if (!this.wasmModule) {
                 throw new Error('WASM module loaded but is null');
             }
             
-            console.log('WebAssembly module loaded successfully:', this.wasmModule);
+            console.log('WebAssembly module loaded successfully');
             
-            // Wrap C functions for easy calling
+            // Wrap C functions
             this.wasmAPI = {
                 create: this.wasmModule.cwrap('mastermind_create', 'number', []),
                 destroy: this.wasmModule.cwrap('mastermind_destroy', null, ['number']),
                 newRandomGame: this.wasmModule.cwrap('mastermind_new_random_game', null, ['number']),
                 newCustomGame: this.wasmModule.cwrap('mastermind_new_custom_game', null, ['number', 'string']),
-                checkGuess: this.wasmModule.cwrap('mastermind_check_guess', 'string', ['number', 'array']),
+                checkGuess: (gamePtr, guessArray) => {
+                    const guessStr = guessArray.join('');
+                    return this.wasmModule.ccall('mastermind_check_guess', 
+                        'string', ['number', 'string'], [gamePtr, guessStr]);
+                },
                 getSecretCode: this.wasmModule.cwrap('mastermind_get_secret_code', 'string', ['number']),
                 getAttempts: this.wasmModule.cwrap('mastermind_get_attempts', 'number', ['number']),
-                isGameWon: this.wasmModule.cwrap('mastermind_is_game_won', 'number', ['number']),
-                isGameOver: this.wasmModule.cwrap('mastermind_is_game_over', 'number', ['number', 'number'])
+                isGameOver: this.wasmModule.cwrap('mastermind_is_game_over', 'number', ['number', 'number']),
+                // Optional: keep debug for manual testing but don't auto-run
+                debugState: this.wasmModule._mastermind_debug_state ? 
+                    this.wasmModule.cwrap('mastermind_debug_state', 'string', ['number']) : null
             };
-            
-            console.log('WASM API created:', this.wasmAPI);
             
             // Create game instance
             this.gamePtr = this.wasmAPI.create();
-            console.log('Game instance created, pointer:', this.gamePtr);
             
-            this.updateStatus('WASM_MODULE_LOADED');
-            console.log('Mastermind WebAssembly fully loaded and ready!');
+            console.log('✅ WASM API created');
             
+            this.updateStatus('WASM_MODULE_LOADED');            
         } catch (error) {
-            console.error('Failed to load WebAssembly module. Details:', {
-                error: error.message,
-                stack: error.stack,
-                url: error.filename || 'unknown'
-            });
+            console.error('Failed to load WebAssembly module:', error);
             this.updateStatus('ERROR: WASM_MODULE_FAILED');
-            
-            // Fallback to JavaScript implementation
             this.setupFallbackGame();
         }
     }
@@ -526,42 +822,116 @@ export class MastermindManager {
         const mode = document.querySelector('.option-button.active')?.dataset.mode || 'random';
         this.maxAttempts = parseInt(document.getElementById('attempts-input')?.value) || 10;
         this.currentAttempt = 0;
-        this.gameActive = true;
         
-        if (this.gamePtr && this.wasmAPI) {
-            if (mode === 'custom') {
-                const customCode = document.getElementById('custom-code')?.value;
-                if (customCode && customCode.length === 4) {
+        console.log(`Starting new game in ${mode} mode`);
+        
+        if (mode === 'custom') {
+            const customInput = document.getElementById('custom-code');
+            const customCode = customInput?.value || '';
+            
+            if (customCode && customCode.length === 4) {
+                console.log(`Using custom code: ${customCode}`);
+                
+                if (this.gamePtr && this.wasmAPI) {
                     this.wasmAPI.newCustomGame(this.gamePtr, customCode);
-                    this.updateStatus('CUSTOM_CODE_ACTIVE');
+                    this.secretCode = this.wasmAPI.getSecretCode(this.gamePtr).split('').map(Number);
                 } else {
-                    // Fallback to random
-                    this.wasmAPI.newRandomGame(this.gamePtr);
-                    this.updateStatus('RANDOM_CODE_GENERATED');
+                    this.secretCode = customCode.split('').map(Number);
                 }
+                
+                this.gameActive = true;
+                this.updateStatus('CUSTOM_CODE_ACTIVE');
+                
+                // Clear and show confirmation message
+                this.clearGameLog();
+                this.addToLog(`> CUSTOM CODE CONFIRMED`);
+                this.addToLog(`> GAME STARTED`);
+                this.addToLog(`> ATTEMPTS: ${this.maxAttempts}`);
+                this.addToLog(`> BREAK THE CODE!`);
+                
             } else {
+                // No valid code yet - show instructions
+                this.gameActive = false;
+                this.updateStatus('AWAITING_CUSTOM_CODE');
+                
+                this.clearGameLog();
+                this.addToLog('> CUSTOM MODE SELECTED');
+                this.addToLog('> ENTER 4-DIGIT CODE (0-7)');
+                this.addToLog('> PRESS ENTER TO CONFIRM');
+                
+                if (customInput) {
+                    customInput.focus();
+                    customInput.select();
+                    
+                    // Set up Enter key handler
+                    if (this.customCodeEnterHandler) {
+                        customInput.removeEventListener('keydown', this.customCodeEnterHandler);
+                    }
+                    
+                    this.customCodeEnterHandler = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            
+                            if (customInput.value.length === 4) {
+                                // Remove handler to prevent multiple binds
+                                customInput.removeEventListener('keydown', this.customCodeEnterHandler);
+                                this.customCodeEnterHandler = null;
+                                
+                                // Start the game
+                                setTimeout(() => {
+                                    this.newGame();
+                                }, 50);
+                            } else {
+                                this.addToLog('> ERROR: CODE MUST BE 4 DIGITS');
+                                this.addToLog('> TRY AGAIN');
+                            }
+                        }
+                    };
+                    
+                    customInput.addEventListener('keydown', this.customCodeEnterHandler);
+                }
+                
+                return;
+            }
+        } else {
+            // Random mode
+            if (this.gamePtr && this.wasmAPI) {
                 this.wasmAPI.newRandomGame(this.gamePtr);
-                this.updateStatus('RANDOM_CODE_GENERATED');
+                this.secretCode = this.wasmAPI.getSecretCode(this.gamePtr).split('').map(Number);
+            } else {
+                this.secretCode = this.generateRandomCode();
             }
             
-            // Get secret code for display
-            this.secretCode = this.wasmAPI.getSecretCode(this.gamePtr).split('').map(Number);
-        } else {
-            // Fallback to JavaScript
-            this.secretCode = this.generateRandomCode();
+            this.gameActive = true;
             this.updateStatus('RANDOM_CODE_GENERATED');
+            
+            this.clearGameLog();
+            this.addToLog(`> RANDOM CODE GENERATED`);
+            this.addToLog(`> GAME STARTED`);
+            this.addToLog(`> ATTEMPTS: ${this.maxAttempts}`);
+            this.addToLog(`> BREAK THE CODE!`);
         }
         
         // Reset UI
-        this.createCodeSlots();
-        document.getElementById('guess-history').innerHTML = '';
-        document.getElementById('attempts-count').textContent = this.maxAttempts;
-        document.getElementById('score').textContent = '0';
-        
-        // Add to game log
-        this.addToLog(`> NEW_GAME_STARTED`);
-        this.addToLog(`> ATTEMPTS: ${this.maxAttempts}`);
-        this.addToLog(`> MODE: ${mode.toUpperCase()}`);
+        if (this.gameActive) {
+            this.createCodeSlots();
+            
+            const historyElement = document.getElementById('guess-history');
+            if (historyElement) historyElement.innerHTML = '';
+            
+            const attemptsCount = document.getElementById('attempts-count');
+            if (attemptsCount) attemptsCount.textContent = this.maxAttempts;
+        }
+    }
+
+    clearGameLog() {
+        const log = document.getElementById('game-log');
+        if (log) {
+            log.innerHTML = `
+                <div class="log-entry system">> MASTERMIND.EXE v2.0</div>
+                <div class="log-entry system">> CODE BREAKING PROTOCOL</div>
+            `;
+        }
     }
 
     generateRandomCode() {
@@ -608,73 +978,287 @@ export class MastermindManager {
         this.updateCodeSlots();
     }
 
+    // updateCodeSlots() {
+    //     const slots = document.querySelectorAll('.code-slot');
+    //     slots.forEach((slot, index) => {
+    //         const value = this.currentGuess[index];
+    //         const slotContent = slot.querySelector('.slot-content');
+    //         const slotGlow = slot.querySelector('.slot-glow');
+            
+    //         if (value !== -1) {
+    //             slotContent.textContent = value;
+    //             slot.dataset.value = value;
+    //             slot.classList.add('filled', 'active');
+                
+    //             // Set color based on value
+    //             const colors = [
+    //                 '#00f3ff', '#ff00ff', '#00ff9d', '#b967ff',
+    //                 '#ffff00', '#ff5500', '#00aaff', '#ff0066'
+    //             ];
+    //             const color = colors[value];
+                
+    //             slot.style.setProperty('--slot-color', color);
+    //             slotGlow.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+    //             slotGlow.style.opacity = '0.6';
+                
+    //         } else {
+    //             slotContent.textContent = '?';
+    //             slot.dataset.value = '-1';
+    //             slot.classList.remove('filled', 'active');
+    //             slot.style.setProperty('--slot-color', 'transparent');
+    //             slotGlow.style.opacity = '0';
+    //         }
+    //     });
+    // }
+
     updateCodeSlots() {
         const slots = document.querySelectorAll('.code-slot');
+        console.log(`Updating ${slots.length} code slots`);
+        
         slots.forEach((slot, index) => {
             const value = this.currentGuess[index];
-            const slotContent = slot.querySelector('.slot-content');
-            const slotGlow = slot.querySelector('.slot-glow');
+            const contentElement = slot.querySelector('.slot-content');
             
-            if (value !== -1) {
-                slotContent.textContent = value;
+            if (!contentElement) {
+                console.error(`No content element in slot ${index}`);
+                return;
+            }
+            
+            if (value !== -1 && value !== undefined) {
+                // Update the slot
                 slot.dataset.value = value;
                 slot.classList.add('filled', 'active');
                 
-                // Set color based on value
+                contentElement.textContent = value;
+                
+                // Set the color
                 const colors = [
                     '#00f3ff', '#ff00ff', '#00ff9d', '#b967ff',
                     '#ffff00', '#ff5500', '#00aaff', '#ff0066'
                 ];
-                const color = colors[value];
+                const color = colors[value] || '#ffffff';
                 
+                // Set CSS custom property
                 slot.style.setProperty('--slot-color', color);
-                slotGlow.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
-                slotGlow.style.opacity = '0.6';
+                
+                // Set background
+                slot.style.background = color;
+                
+                // Set text color for contrast
+                const textColor = this.getTextColorForBackground(color);
+                contentElement.style.color = textColor;
                 
             } else {
-                slotContent.textContent = '?';
+                // Clear the slot - show "?"
                 slot.dataset.value = '-1';
                 slot.classList.remove('filled', 'active');
+                
+                contentElement.textContent = '?';
+                contentElement.style.color = ''; // Reset text color
+                
+                // Reset styles
+                slot.style.background = 'rgba(0, 243, 255, 0.1)';
                 slot.style.setProperty('--slot-color', 'transparent');
-                slotGlow.style.opacity = '0';
+                
+                // Ensure question mark is visible
+                contentElement.style.opacity = '1';
             }
         });
     }
 
+    showDebugInfo() {
+        if (!window.location.hostname.includes('localhost') && 
+            !window.location.hostname.includes('127.0.0.1')) {
+            return; // Don't show debug in production
+        }
+        let debugPanel = document.getElementById('mastermind-debug');
+        if (!debugPanel) {
+            debugPanel = document.createElement('div');
+            debugPanel.id = 'mastermind-debug';
+            debugPanel.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.95);
+                color: #0f0;
+                padding: 15px;
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                border: 2px solid #0f0;
+                border-radius: 5px;
+                z-index: 9999;
+                max-width: 350px;
+                max-height: 500px;
+                overflow: auto;
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+                backdrop-filter: blur(5px);
+            `;
+            
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '×';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                background: transparent;
+                color: #f00;
+                border: none;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 0 5px;
+            `;
+            closeBtn.onclick = () => debugPanel.remove();
+            debugPanel.appendChild(closeBtn);
+            
+            document.body.appendChild(debugPanel);
+        }
+        
+        // Update content
+        const info = `
+            <h4 style="margin:0 0 10px 0;color:#0ff;border-bottom:1px solid #0ff;padding-bottom:5px;">
+                🔍 Mastermind Debug
+            </h4>
+            <div><strong>Game State:</strong> ${this.gameActive ? 'ACTIVE' : 'INACTIVE'}</div>
+            <div><strong>Current Guess:</strong> ${JSON.stringify(this.currentGuess)}</div>
+            <div><strong>Secret Code:</strong> ${JSON.stringify(this.secretCode)}</div>
+            <div><strong>Attempt:</strong> ${this.currentAttempt}/${this.maxAttempts}</div>
+            <div><strong>WASM Loaded:</strong> ${!!this.wasmModule ? '✅' : '❌'}</div>
+            <div><strong>Game Mode:</strong> ${document.querySelector('.option-button.active')?.dataset.mode || 'random'}</div>
+            <hr style="border:none;border-top:1px solid #333;margin:10px 0;">
+            <div style="color:#ff0;"><strong>Last Action:</strong></div>
+            <div id="debug-log" style="font-size:11px;margin-top:5px;"></div>
+        `;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.innerHTML = info;
+        
+        // Replace old content (but keep close button)
+        const oldContent = debugPanel.querySelector('div:not(button)');
+        if (oldContent) oldContent.remove();
+        
+        // Insert after close button
+        debugPanel.insertBefore(contentDiv, debugPanel.children[1]);
+    }
+
+    getTextColorForBackground(backgroundColor) {
+        // Convert hex to RGB
+        const hex = backgroundColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calculate luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return black or white based on luminance
+        return luminance > 0.5 ? '#000000' : '#ffffff';
+    }
+
+    // async submitGuess() {
+    //     if (!this.gameActive) return;
+        
+    //     // Check if guess is complete - KEEP your existing validation
+    //     if (this.currentGuess.includes(-1)) {
+    //         this.addToLog('> ERROR: INCOMPLETE_GUESS');
+    //         return;
+    //     }
+        
+    //     this.currentAttempt++;
+        
+    //     let feedback;
+    //     if (this.gamePtr && this.wasmAPI) {
+    //         // Use WebAssembly for game logic
+    //         const feedbackStr = this.wasmAPI.checkGuess(this.gamePtr, this.currentGuess);
+    //         const [correct, misplaced] = feedbackStr.split(',').map(Number);
+    //         feedback = { correct, misplaced };
+            
+    //         this.currentAttempt = this.wasmAPI.getAttempts(this.gamePtr);
+    //     } else {
+    //         // Fallback to JavaScript
+    //         feedback = this.calculateFeedback(this.currentGuess, this.secretCode);
+    //     }
+        
+    //     this.addToHistory(this.currentGuess, feedback);
+        
+    //     this.addToLog(`> ATTEMPT ${this.currentAttempt}: ${this.currentGuess.join('')}`);
+    //     this.addToLog(`> FEEDBACK: ${feedback.correct} correct, ${feedback.misplaced} misplaced`);
+        
+    //     if (feedback.correct === 4) {
+    //         this.gameWin();
+    //         return;
+    //     }
+        
+    //     if (this.currentAttempt >= this.maxAttempts) {
+    //         this.gameLose();
+    //         return;
+    //     }
+        
+    //     // Reset for next guess
+    //     this.clearGuess();
+        
+    //     // Update attempts counter
+    //     document.getElementById('attempts-count').textContent = this.maxAttempts - this.currentAttempt;
+    // }
+
     async submitGuess() {
         if (!this.gameActive) return;
         
-        // Check if guess is complete - KEEP your existing validation
+        // Check if guess is complete
         if (this.currentGuess.includes(-1)) {
             this.addToLog('> ERROR: INCOMPLETE_GUESS');
             return;
         }
         
-        this.currentAttempt++;
+        console.log('=== SUBMITTING GUESS ===');
+        console.log('Guess:', this.currentGuess);
+        console.log('Current attempt BEFORE:', this.currentAttempt);
+        
+        // DON'T increment here yet - let WASM or feedback logic handle it
         
         let feedback;
         if (this.gamePtr && this.wasmAPI) {
-            // Use WebAssembly for game logic
-            const feedbackStr = this.wasmAPI.checkGuess(this.gamePtr, this.currentGuess);
-            const [correct, misplaced] = feedbackStr.split(',').map(Number);
-            feedback = { correct, misplaced };
+            console.log('Using WebAssembly for feedback');
             
-            this.currentAttempt = this.wasmAPI.getAttempts(this.gamePtr);
+            try {
+                const guessStr = this.currentGuess.join('');
+                const feedbackStr = this.wasmAPI.checkGuess(this.gamePtr, this.currentGuess);
+                console.log('WASM feedback:', feedbackStr);
+                
+                const parts = feedbackStr.split(',');
+                const correct = parseInt(parts[0]);
+                const misplaced = parseInt(parts[1]);
+                
+                feedback = { correct, misplaced };
+                
+                // Get current attempts from WASM
+                this.currentAttempt = this.wasmAPI.getAttempts(this.gamePtr);
+                console.log('Attempts from WASM:', this.currentAttempt);
+                
+            } catch (wasmError) {
+                console.error('WASM failed:', wasmError);
+                feedback = this.calculateFeedback(this.currentGuess, this.secretCode);
+                this.currentAttempt++; // Only increment here for JS fallback
+            }
         } else {
-            // Fallback to JavaScript
+            console.log('Using JavaScript for feedback');
             feedback = this.calculateFeedback(this.currentGuess, this.secretCode);
+            this.currentAttempt++; // Increment for JS fallback
         }
         
-        this.addToHistory(this.currentGuess, feedback);
+        console.log('Current attempt AFTER:', this.currentAttempt);
         
+        this.addToHistory(this.currentGuess, feedback);
         this.addToLog(`> ATTEMPT ${this.currentAttempt}: ${this.currentGuess.join('')}`);
         this.addToLog(`> FEEDBACK: ${feedback.correct} correct, ${feedback.misplaced} misplaced`);
         
+        // Check win condition FIRST
         if (feedback.correct === 4) {
             this.gameWin();
-            return;
+            return; // Don't continue if won
         }
         
+        // Then check lose condition
         if (this.currentAttempt >= this.maxAttempts) {
             this.gameLose();
             return;
@@ -684,33 +1268,74 @@ export class MastermindManager {
         this.clearGuess();
         
         // Update attempts counter
-        document.getElementById('attempts-count').textContent = this.maxAttempts - this.currentAttempt;
+        const attemptsCount = document.getElementById('attempts-count');
+        if (attemptsCount) {
+            attemptsCount.textContent = this.maxAttempts - this.currentAttempt;
+        }
     }
 
     calculateFeedback(guess, secret) {
+        if (!guess || !secret || guess.length !== 4 || secret.length !== 4) {
+            console.error('Invalid input to calculateFeedback:', { guess, secret });
+            return { correct: 0, misplaced: 0 };
+        }
+        
         let correct = 0;
         let misplaced = 0;
         
-        const guessCount = [0, 0, 0, 0, 0, 0, 0, 0];
-        const secretCount = [0, 0, 0, 0, 0, 0, 0, 0];
+        // Create copies to mark used positions
+        const guessCopy = [...guess];
+        const secretCopy = [...secret];
         
-        // Count correct positions
+        // First pass: count correct positions
         for (let i = 0; i < 4; i++) {
-            if (guess[i] === secret[i]) {
+            if (guessCopy[i] === secretCopy[i]) {
                 correct++;
-            } else {
-                guessCount[guess[i]]++;
-                secretCount[secret[i]]++;
+                guessCopy[i] = -1; // Mark as used
+                secretCopy[i] = -2; // Mark as used
             }
         }
         
-        // Count misplaced
-        for (let i = 0; i < 8; i++) {
-            misplaced += Math.min(guessCount[i], secretCount[i]);
+        // Second pass: count misplaced
+        for (let i = 0; i < 4; i++) {
+            if (guessCopy[i] !== -1) { // Not already counted as correct
+                const matchIndex = secretCopy.indexOf(guessCopy[i]);
+                if (matchIndex !== -1 && secretCopy[matchIndex] !== -2) { // Found and not used
+                    misplaced++;
+                    secretCopy[matchIndex] = -2; // Mark as used
+                }
+            }
         }
+        
+        console.log(`Feedback calculation: guess=${guess}, secret=${secret}, result={correct:${correct}, misplaced:${misplaced}}`);
         
         return { correct, misplaced };
     }
+
+    // calculateFeedback(guess, secret) {
+    //     let correct = 0;
+    //     let misplaced = 0;
+        
+    //     const guessCount = [0, 0, 0, 0, 0, 0, 0, 0];
+    //     const secretCount = [0, 0, 0, 0, 0, 0, 0, 0];
+        
+    //     // Count correct positions
+    //     for (let i = 0; i < 4; i++) {
+    //         if (guess[i] === secret[i]) {
+    //             correct++;
+    //         } else {
+    //             guessCount[guess[i]]++;
+    //             secretCount[secret[i]]++;
+    //         }
+    //     }
+        
+    //     // Count misplaced
+    //     for (let i = 0; i < 8; i++) {
+    //         misplaced += Math.min(guessCount[i], secretCount[i]);
+    //     }
+        
+    //     return { correct, misplaced };
+    // }
 
     addToHistory(guess, feedback) {
         const history = document.getElementById('guess-history');
@@ -760,52 +1385,40 @@ export class MastermindManager {
 
     gameWin() {
         this.gameActive = false;
+        this.updateStatus('VICTORY_PROTOCOL_ACTIVATED');
         
-        // Check if won via WebAssembly
-        const isWon = this.gamePtr && this.wasmAPI 
-            ? this.wasmAPI.isGameWon(this.gamePtr)
-            : true;
+        this.clearGameLog();
         
-        if (isWon) {
-            this.updateStatus('VICTORY_PROTOCOL_ACTIVATED');
-            this.addToLog('> CONGRATULATIONS! CODE_CRACKED');
-            this.addToLog(`> SCORE: ${this.calculateScore()}`);
-            
-            // Update score
-            const score = this.calculateScore();
-            document.getElementById('score').textContent = score;
-            
-            // Visual celebration
-            document.querySelector('.mastermind-terminal').classList.add('victory');
-        } else {
-            this.gameLose();
-        }
+        this.addToLog('■■■■■■■■■■■■ SUCCESS: CODE CRACKED ■■■■■■■■■■■■');
+        this.addToLog('');
+        this.addToLog(`> SECRET CODE: ${this.secretCode.join('')}`);
+        this.addToLog(`> ATTEMPTS: ${this.currentAttempt}/${this.maxAttempts}`);
+        this.addToLog('');
+        this.addToLog('■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■');
+        
+        document.querySelector('.mastermind-terminal').classList.add('victory');
     }
 
     gameLose() {
         this.gameActive = false;
-        this.updateStatus('GAME_OVER');
-        this.addToLog('> FAILURE: MAXIMUM_ATTEMPTS_REACHED');
+        this.updateStatus('SYSTEM_FAILURE');
         
-        // Get secret code from WebAssembly if available
-        const secretCode = this.gamePtr && this.wasmAPI
-            ? this.wasmAPI.getSecretCode(this.gamePtr)
-            : this.secretCode.join('');
-            
-        this.addToLog(`> SECRET_CODE: ${secretCode}`);
+        this.clearGameLog();
         
-        // Visual indication
+        this.addToLog('▓▓▓▓▓▓▓▓▓▓▓▓▓ ERROR: SYSTEM FAILURE ▓▓▓▓▓▓▓▓▓▓▓▓');
+        this.addToLog('');
+        this.addToLog(`> FINAL CODE: ${this.secretCode.join('')}`);
+        this.addToLog(`> ATTEMPTS: ${this.currentAttempt}`);
+        this.addToLog('');
+        this.addToLog('▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓');
+        
+        this.revealSecretCode();
         document.querySelector('.mastermind-terminal').classList.add('game-over');
     }
 
-    calculateScore() {
-        const baseScore = 1000;
-        const attemptPenalty = (this.currentAttempt - 1) * 50;
-        const timeBonus = 0; // Could add timer later
-        return Math.max(0, baseScore - attemptPenalty + timeBonus);
-    }
-
     setGameMode(mode) {
+        console.log(`Setting game mode to: ${mode}`);
+        
         // Update active button
         document.querySelectorAll('.option-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
@@ -817,7 +1430,17 @@ export class MastermindManager {
             customGroup.style.display = mode === 'custom' ? 'block' : 'none';
         }
         
-        // Reset game if changing mode
+        // If switching to custom mode, focus the input
+        if (mode === 'custom') {
+            const customInput = document.getElementById('custom-code');
+            if (customInput) {
+                setTimeout(() => {
+                    customInput.focus();
+                    customInput.select();
+                }, 100);
+            }
+        }
+        
         this.newGame();
     }
 
@@ -838,6 +1461,64 @@ export class MastermindManager {
 
     updateUI() {
         document.getElementById('attempts-count').textContent = this.maxAttempts;
+    }
+
+    refreshUI() {
+        console.log('Refreshing Mastermind UI');
+        
+        // Force recreate all UI elements
+        this.setupUI();
+        
+        // Reset game state before starting new game
+        this.currentGuess = [];
+        this.currentAttempt = 0;
+        this.gameActive = false;
+
+        this.clearGameLog();
+        
+        // Clear guess history
+        const historyElement = document.getElementById('guess-history');
+        if (historyElement) {
+            historyElement.innerHTML = '';
+        }
+        
+        // Reset attempts display
+        const attemptsCount = document.getElementById('attempts-count');
+        if (attemptsCount) {
+            attemptsCount.textContent = this.maxAttempts;
+        }
+        
+        this.newGame();
+        console.log('UI refreshed and new game started');
+    }
+
+    revealSecretCode() {
+        console.log('Revealing secret code:', this.secretCode);
+        
+        // Update the secret code display
+        const codeDisplay = document.querySelector('.secret-code-display') || 
+                            document.getElementById('secret-code-display');
+        
+        if (codeDisplay) {
+            codeDisplay.innerHTML = '';
+            
+            this.secretCode.forEach((digit, i) => {
+                const peg = document.createElement('div');
+                peg.className = `code-peg digit-${digit}`;
+                peg.textContent = digit;
+                
+                const colors = [
+                    '#00f3ff', '#ff00ff', '#00ff9d', '#b967ff',
+                    '#ffff00', '#ff5500', '#00aaff', '#ff0066'
+                ];
+                peg.style.background = colors[digit] || '#ffffff';
+                peg.style.color = this.getTextColorForBackground(colors[digit]);
+                
+                codeDisplay.appendChild(peg);
+            });
+        }
+        
+        this.addToLog(`> SECRET CODE: ${this.secretCode.join('')}`);
     }
 
     static reset() {
