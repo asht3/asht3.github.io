@@ -19,7 +19,7 @@ make
 ```
 
 FOR WEBASSEMBLY:
-To compile the code and display hte program with Javascript on a webpage, use this command while in the chip8/ directory
+To compile the code and display the program with Javascript on a webpage, use this command while in the chip8/ directory
 ```
 make wasm
 ```
