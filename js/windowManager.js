@@ -91,19 +91,11 @@ export class WindowManager {
     addMobileControls(windowElement, windowId) {
         const mobileControls = document.createElement('div');
         mobileControls.className = 'mobile-window-controls';
-        // mobileControls.innerHTML = `
-        //     <button class="mobile-control-button" data-action="minimize">MINIMIZE</button>
-        //     <button class="mobile-control-button" data-action="maximize">FULLSCREEN</button>
-        //     <button class="mobile-control-button" data-action="close">CLOSE</button>
-        // `;
         
         windowElement.querySelector('.window-content').appendChild(mobileControls);
         
         // Add event listeners for mobile controls
         this.setupMobileControlButtons(mobileControls, windowId);
-        
-        // Add swipe to close gesture - ONLY from header and with proper separation
-        // this.addSwipeToClose(windowElement, windowId);
     }
 
     setupMobileControlButtons(mobileControls, windowId) {
@@ -159,90 +151,6 @@ export class WindowManager {
         });
     }
 
-    // addSwipeToClose(windowElement, windowId) {
-    //     const header = windowElement.querySelector('.window-header');
-    //     if (!header) return;
-
-    //     let startY = 0;
-    //     let currentY = 0;
-    //     let isSwiping = false;
-    //     let swipeElement = null;
-        
-    //     header.addEventListener('touchstart', (e) => {
-    //         // Check if the touch is on a button - if so, don't start swipe
-    //         if (e.target.closest('button')) {
-    //             return;
-    //         }
-            
-    //         // Only start swipe from the top 30px of the header
-    //         const rect = header.getBoundingClientRect();
-    //         if (e.touches[0].clientY - rect.top > 30) {
-    //             return;
-    //         }
-            
-    //         startY = e.touches[0].clientY;
-    //         currentY = startY;
-    //         isSwiping = true;
-    //         swipeElement = e.target;
-            
-    //     }, { passive: true }); // Keep passive true to avoid blocking buttons
-        
-    //     header.addEventListener('touchmove', (e) => {
-    //         if (!isSwiping) return;
-            
-    //         currentY = e.touches[0].clientY;
-    //         const diff = currentY - startY;
-            
-    //         // Only trigger if swiping down significantly and not on a button
-    //         if (diff > 10 && !e.target.closest('button')) {
-    //             windowElement.style.transform = `translateY(${diff}px)`;
-    //             windowElement.style.opacity = `${1 - (diff / 300)}`;
-    //         }
-    //     }, { passive: true }); // Keep passive true
-        
-    //     header.addEventListener('touchend', (e) => {
-    //         if (!isSwiping) return;
-            
-    //         // Check if the touch ended on a button - if so, cancel swipe
-    //         if (e.target.closest('button')) {
-    //             this.resetWindowPosition(windowElement);
-    //             isSwiping = false;
-    //             return;
-    //         }
-            
-    //         const diff = currentY - startY;
-            
-    //         // Only close if swiped down more than 80px and not on a button
-    //         if (diff > 80) {
-    //             this.closeWindow(windowId);
-    //         } else {
-    //             this.resetWindowPosition(windowElement);
-    //         }
-            
-    //         isSwiping = false;
-    //         swipeElement = null;
-    //     }, { passive: true });
-        
-    //     // Reset if touch is cancelled
-    //     header.addEventListener('touchcancel', () => {
-    //         if (isSwiping) {
-    //             this.resetWindowPosition(windowElement);
-    //             isSwiping = false;
-    //             swipeElement = null;
-    //         }
-    //     }, { passive: true });
-    // }
-
-    // resetWindowPosition(windowElement) {
-    //     windowElement.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-    //     windowElement.style.transform = 'translateY(0)';
-    //     windowElement.style.opacity = '1';
-        
-    //     setTimeout(() => {
-    //         windowElement.style.transition = '';
-    //     }, 300);
-    // }
-
     getSmartPosition(app) {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
@@ -250,27 +158,10 @@ export class WindowManager {
         
         if (this.windowCount === 0) {
             return {
-                // x: (viewportWidth - app.width) / 2,
-                // y: (viewportHeight - app.height) / 3
                 x: Math.max(20, (viewportWidth - app.width) / 2),
                 y: Math.max(20, (viewportHeight - app.height - taskbarHeight) / 3)
             };
         }
-        
-        // if (this.lastPosition) {
-        //     const offset = 40;
-        //     let newX = this.lastPosition.x + offset;
-        //     let newY = this.lastPosition.y + offset;
-            
-        //     if (newX + app.width > viewportWidth - 20) {
-        //         newX = Math.max(20, viewportWidth - app.width - 20);
-        //     }
-        //     if (newY + app.height > viewportHeight - 60) {
-        //         newY = Math.max(20, viewportHeight - app.height - 60);
-        //     }
-            
-        //     return { x: newX, y: newY };
-        // }
 
         if (this.lastPosition) {
             const offset = 40;

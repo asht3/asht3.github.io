@@ -70,17 +70,6 @@ export class MastermindManager {
         // Ensure other elements exist
         this.ensureUIElements();
     }
-    // setupUI() {
-    //     // Create color palette (0-7 colors)
-    //     this.createColorPalette();
-    //     this.createCodeSlots();
-    //     this.setupEventListeners();
-    //     setTimeout(() => {
-    //         if (this.showDebugInfo) {
-    //             this.showDebugInfo();
-    //         }
-    //     }, 1000);
-    // }
 
     ensureUIElements() {
         // Check for and create missing essential elements
@@ -186,112 +175,6 @@ export class MastermindManager {
         element.addEventListener(event, handler);
         this.eventListeners.set(key, handler);
     }
-
-    // setupEventListeners() {
-    //     // Clear existing listeners
-    //     this.clearAllEventListeners();
-        
-    //     // Color palette clicks - use event delegation
-    //     const palette = document.getElementById('color-palette');
-    //     if (palette) {
-    //         this.addSingleEventListener(palette, 'click', (e) => {
-    //             const colorBtn = e.target.closest('.color-btn');
-    //             if (colorBtn) {
-    //                 e.stopPropagation();
-    //                 e.preventDefault();
-    //                 this.addToGuess(parseInt(colorBtn.dataset.value));
-    //             }
-    //         });
-    //     }
-
-    //     // Number key input (0-7)
-    //     this.addSingleEventListener(document, 'keydown', (e) => {
-    //         if (!this.gameActive) return;
-            
-    //         const key = e.key;
-    //         if (key >= '0' && key <= '7') {
-    //             e.preventDefault();
-    //             this.addToGuess(parseInt(key));
-    //         } else if (key === 'Backspace') {
-    //             e.preventDefault();
-    //             this.removeLastGuess();
-    //         } else if (key === 'Enter') {
-    //             e.preventDefault();
-    //             this.submitGuess();
-    //         }
-    //     });
-
-    //     // Control buttons - use direct single listeners
-    //     const submitBtn = document.getElementById('submit-guess');
-    //     const clearBtn = document.getElementById('clear-guess');
-    //     const newGameBtn = document.getElementById('new-game');
-        
-    //     if (submitBtn) {
-    //         this.addSingleEventListener(submitBtn, 'click', (e) => {
-    //             e.preventDefault();
-    //             e.stopPropagation();
-    //             this.submitGuess();
-    //         });
-    //     }
-        
-    //     if (clearBtn) {
-    //         this.addSingleEventListener(clearBtn, 'click', (e) => {
-    //             e.preventDefault();
-    //             e.stopPropagation();
-    //             this.clearGuess();
-    //         });
-    //     }
-        
-    //     if (newGameBtn) {
-    //         this.addSingleEventListener(newGameBtn, 'click', (e) => {
-    //             e.preventDefault();
-    //             e.stopPropagation();
-    //             this.newGame();
-    //         });
-    //     }
-
-    //     // Game options - use event delegation
-    //     const optionButtons = document.querySelector('.option-buttons');
-    //     if (optionButtons) {
-    //         this.addSingleEventListener(optionButtons, 'click', (e) => {
-    //             const optionBtn = e.target.closest('.option-button');
-    //             if (optionBtn) {
-    //                 e.preventDefault();
-    //                 e.stopPropagation();
-    //                 const mode = optionBtn.dataset.mode;
-    //                 this.setGameMode(mode);
-    //             }
-    //         });
-    //     }
-
-    //     // Attempts input
-    //     const attemptsInput = document.getElementById('attempts-input');
-    //     if (attemptsInput) {
-    //         this.addSingleEventListener(attemptsInput, 'change', (e) => {
-    //             this.maxAttempts = parseInt(e.target.value) || 10;
-    //             this.updateUI();
-    //         });
-    //     }
-
-    //     // Custom code input
-    //     const customCodeInput = document.getElementById('custom-code');
-    //     if (customCodeInput) {
-    //         this.addSingleEventListener(customCodeInput, 'input', (e) => {
-    //             const code = e.target.value.replace(/[^0-7]/g, '');
-    //             e.target.value = code;
-    //             if (code.length === 4) {
-    //                 this.secretCode = code.split('').map(Number);
-    //             }
-    //         });
-    //     }
-        
-    //     // Add touch event prevention for mobile
-    //     this.addSingleEventListener(document, 'touchstart', (e) => {
-    //         if (e.target.tagName === 'BUTTON') {
-    //             e.preventDefault();
-    //         }
-    //     }, { passive: false });
-    // }
 
     setupEventListeners() {
         console.log('Setting up event listeners');
@@ -536,21 +419,6 @@ export class MastermindManager {
         });
     }
 
-    // addToGuess(value) {
-    //     if (!this.gameActive) return;
-        
-    //     console.log(`Adding value ${value} to guess`);
-        
-    //     const emptySlot = this.currentGuess.indexOf(-1);
-    //     if (emptySlot !== -1) {
-    //         this.currentGuess[emptySlot] = value;
-    //         this.updateCodeSlots();
-            
-    //         // Debounce: prevent multiple rapid clicks
-    //         this.debounceAddToGuess();
-    //     }
-    // }
-
     addToGuess(value) {
         // Prevent rapid double inputs
         const now = Date.now();
@@ -663,50 +531,6 @@ export class MastermindManager {
         
         console.groupEnd();
     }
-
-    // Debug
-    // async testCCommunication() {
-    //     console.group('🔬 Testing C Communication');
-        
-    //     if (!this.wasmAPI || !this.gamePtr) {
-    //         console.error('WASM not loaded');
-    //         console.groupEnd();
-    //         return;
-    //     }
-        
-    //     // Add debug function if it exists
-    //     if (this.wasmModule._mastermind_debug_state) {
-    //         const debugFunc = this.wasmModule.cwrap('mastermind_debug_state', 'string', ['number']);
-    //         const debugInfo = debugFunc(this.gamePtr);
-    //         console.log('C Debug State:', debugInfo);
-    //     }
-        
-    //     // Test 1: Set a known code
-    //     console.log('\nTest 1: Setting code "5012"');
-    //     this.wasmAPI.newCustomGame(this.gamePtr, "5012");
-        
-    //     // Get code back
-    //     const codeFromC = this.wasmAPI.getSecretCode(this.gamePtr);
-    //     console.log('Code from C:', codeFromC);
-    //     console.log('Expected: 5012');
-    //     console.log('Match:', codeFromC === '5012' ? '✅' : '❌');
-        
-    //     // Test 2: Check guess "5012" (should be 4 correct)
-    //     console.log('\nTest 2: Guessing "5012" (should be 4 correct)');
-    //     const guess1 = [5, 0, 1, 2];
-    //     const result1 = this.wasmAPI.checkGuess(this.gamePtr, guess1);
-    //     console.log('Result:', result1);
-    //     console.log('Expected: 4,0');
-    //     console.log('Match:', result1 === '4,0' ? '✅' : '❌');
-        
-    //     // Test 3: Check guess "0123" (should be 0 correct, ? misplaced)
-    //     console.log('\nTest 3: Guessing "0123"');
-    //     const guess2 = [0, 1, 2, 3];
-    //     const result2 = this.wasmAPI.checkGuess(this.gamePtr, guess2);
-    //     console.log('Result:', result2);
-        
-    //     console.groupEnd();
-    // }
 
    async loadWasmModule() {
         try {
@@ -978,39 +802,6 @@ export class MastermindManager {
         this.updateCodeSlots();
     }
 
-    // updateCodeSlots() {
-    //     const slots = document.querySelectorAll('.code-slot');
-    //     slots.forEach((slot, index) => {
-    //         const value = this.currentGuess[index];
-    //         const slotContent = slot.querySelector('.slot-content');
-    //         const slotGlow = slot.querySelector('.slot-glow');
-            
-    //         if (value !== -1) {
-    //             slotContent.textContent = value;
-    //             slot.dataset.value = value;
-    //             slot.classList.add('filled', 'active');
-                
-    //             // Set color based on value
-    //             const colors = [
-    //                 '#00f3ff', '#ff00ff', '#00ff9d', '#b967ff',
-    //                 '#ffff00', '#ff5500', '#00aaff', '#ff0066'
-    //             ];
-    //             const color = colors[value];
-                
-    //             slot.style.setProperty('--slot-color', color);
-    //             slotGlow.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
-    //             slotGlow.style.opacity = '0.6';
-                
-    //         } else {
-    //             slotContent.textContent = '?';
-    //             slot.dataset.value = '-1';
-    //             slot.classList.remove('filled', 'active');
-    //             slot.style.setProperty('--slot-color', 'transparent');
-    //             slotGlow.style.opacity = '0';
-    //         }
-    //     });
-    // }
-
     updateCodeSlots() {
         const slots = document.querySelectorAll('.code-slot');
         console.log(`Updating ${slots.length} code slots`);
@@ -1155,52 +946,6 @@ export class MastermindManager {
         return luminance > 0.5 ? '#000000' : '#ffffff';
     }
 
-    // async submitGuess() {
-    //     if (!this.gameActive) return;
-        
-    //     // Check if guess is complete - KEEP your existing validation
-    //     if (this.currentGuess.includes(-1)) {
-    //         this.addToLog('> ERROR: INCOMPLETE_GUESS');
-    //         return;
-    //     }
-        
-    //     this.currentAttempt++;
-        
-    //     let feedback;
-    //     if (this.gamePtr && this.wasmAPI) {
-    //         // Use WebAssembly for game logic
-    //         const feedbackStr = this.wasmAPI.checkGuess(this.gamePtr, this.currentGuess);
-    //         const [correct, misplaced] = feedbackStr.split(',').map(Number);
-    //         feedback = { correct, misplaced };
-            
-    //         this.currentAttempt = this.wasmAPI.getAttempts(this.gamePtr);
-    //     } else {
-    //         // Fallback to JavaScript
-    //         feedback = this.calculateFeedback(this.currentGuess, this.secretCode);
-    //     }
-        
-    //     this.addToHistory(this.currentGuess, feedback);
-        
-    //     this.addToLog(`> ATTEMPT ${this.currentAttempt}: ${this.currentGuess.join('')}`);
-    //     this.addToLog(`> FEEDBACK: ${feedback.correct} correct, ${feedback.misplaced} misplaced`);
-        
-    //     if (feedback.correct === 4) {
-    //         this.gameWin();
-    //         return;
-    //     }
-        
-    //     if (this.currentAttempt >= this.maxAttempts) {
-    //         this.gameLose();
-    //         return;
-    //     }
-        
-    //     // Reset for next guess
-    //     this.clearGuess();
-        
-    //     // Update attempts counter
-    //     document.getElementById('attempts-count').textContent = this.maxAttempts - this.currentAttempt;
-    // }
-
     async submitGuess() {
         if (!this.gameActive) return;
         
@@ -1311,31 +1056,6 @@ export class MastermindManager {
         
         return { correct, misplaced };
     }
-
-    // calculateFeedback(guess, secret) {
-    //     let correct = 0;
-    //     let misplaced = 0;
-        
-    //     const guessCount = [0, 0, 0, 0, 0, 0, 0, 0];
-    //     const secretCount = [0, 0, 0, 0, 0, 0, 0, 0];
-        
-    //     // Count correct positions
-    //     for (let i = 0; i < 4; i++) {
-    //         if (guess[i] === secret[i]) {
-    //             correct++;
-    //         } else {
-    //             guessCount[guess[i]]++;
-    //             secretCount[secret[i]]++;
-    //         }
-    //     }
-        
-    //     // Count misplaced
-    //     for (let i = 0; i < 8; i++) {
-    //         misplaced += Math.min(guessCount[i], secretCount[i]);
-    //     }
-        
-    //     return { correct, misplaced };
-    // }
 
     addToHistory(guess, feedback) {
         const history = document.getElementById('guess-history');

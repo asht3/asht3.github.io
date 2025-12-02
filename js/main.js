@@ -50,9 +50,6 @@ class CyberpunkDesktop {
         // Initialize background toggle
         this.initBackgroundToggle();
         
-        // Initialize network status
-        // this.initNetworkStatus();
-        
         // Add some cyberpunk effects
         this.addCyberpunkEffects();
         
