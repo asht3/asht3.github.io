@@ -25,6 +25,18 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card">
+                <h3>My Mastermind</h3>
+                <p>An implementation of the Mastermind game where the user has a certain number of attempts to guess the secret code. 
+                The user also has the options to customize the game by setting their own code and altering the number of allowed attempts to guess it. 
+                The link below leads to the repository of the original implementation. The code was ported using WebAssembly so a demo could be hosted on this site, adding a UI and altering the game slightly.</p>
+                <br>
+                <p><strong>Tech:</strong> C, WebAssembly, Emscripten, JavaScript (demo)</p>
+                <div class="project-links">
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/mastermind', '_blank')">View GitHub Repository</button>
+                    <button class="project-link cyber-button" onclick="window.desktop.openApp('mastermind')">LAUNCH DEMO</button>
+                </div>
+            </div>
+            <div class="project-card">
                 <h3>My SQLite</h3>
                 <p>A lightweight SQLite database implementation with a command-line interface. Contains basic functionalities for select, from, join, where, order, insert, values, update, set, and delete.</p>
                 <br>
