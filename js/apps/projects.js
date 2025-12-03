@@ -58,6 +58,6 @@ export const projectsApp = {
             </div>
         </div>
     `,
-    width: 700,
+    width: 800,
     height: 500
 };
