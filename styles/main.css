@@ -165,13 +165,6 @@ body {
     align-items: center;
 }
 
-.icon span {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
-    text-align: center;
-    text-shadow: var(--glow-blue);
-}
-
 /* Enhanced Cyberpunk Icon Styles */
 .cyber-icon {
     transition: all 0.3s ease;
