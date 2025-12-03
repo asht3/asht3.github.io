@@ -1792,7 +1792,8 @@ body {
 .hint-display {
     color: var(--neon-pink);
     font-family: 'Courier New', monospace;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: bold;
     text-align: center;
 }
 
