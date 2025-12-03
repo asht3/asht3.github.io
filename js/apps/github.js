@@ -27,5 +27,5 @@ export const githubApp = {
         <p>> STATUS: READY</p>
     `,
     width: 400,
-    height: 350
+    height: 450
 };
