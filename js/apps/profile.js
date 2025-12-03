@@ -24,7 +24,7 @@ export const profileApp = {
                     </div>
                     <div class="info-row">
                         <span class="label">ALIAS:</span>
-                        <span class="value cyber-text" data-field="alias">@asht3 ON GITHUB</span>
+                        <span class="value cyber-text" data-field="alias"><a href="https://github.com/asht3">@asht3</a> ON GITHUB</span>
                     </div>
                     <div class="info-row">
                         <span class="label">ID:</span>
