@@ -3,7 +3,7 @@ export const profileApp = {
     content: `
         <div class="profile-container">
             <div class="typing-animation">
-                <h2>SYSTEM INITIALIZED...</h2>
+                <h2>EXTRACTING DATA FROM <a href="http://www.linkedin.com/in/ashley-t-5763592b3">LINKEDIN</a>...</h2>
             </div>
             <div class="profile-header">
                 <div class="profile-image-container">

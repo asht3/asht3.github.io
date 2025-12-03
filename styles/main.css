@@ -706,6 +706,16 @@ body {
     border-right: 2px solid var(--neon-blue);
     white-space: nowrap;
     animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+    letter-spacing: 3px;
+}
+
+.typing-animation a {
+    text-decoration: none;
+    color: var(--neon-pink);
+}
+
+.typing-animation a:hover {
+    color: var(--neon-purple);
 }
 
 @keyframes typing {
