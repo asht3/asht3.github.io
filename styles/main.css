@@ -3,7 +3,7 @@
     --bright-blue: #312eff;
     --neon-pink: #ff00ff;
     --neon-purple: #b967ff;
-    --neon-green: rgb(0, 255, 26);
+    --neon-green: #39FF14;
     --dark-bg: #0a0a0a;
     --darker-bg: #050505;
     --panel-bg: rgba(16, 16, 32, 0.95);
@@ -1435,9 +1435,9 @@ body {
 
 .terminal-status {
     font-family: 'Orbitron', sans-serif;
-    color: var(--neon-blue);
+    color: var(--neon-green);
     font-size: 0.8rem;
-    text-shadow: 0 0 5px var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-green);
 }
 
 .status-display {
@@ -1452,7 +1452,7 @@ body {
     max-height: 250px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
-    color: var(--neon-blue);
+    color: var(--neon-green);
     line-height: 1.6;
     font-size: 1rem;
     position: relative;
@@ -1475,7 +1475,7 @@ body {
 .status-display::after {
     content: '▌';
     animation: cursorBlink 1s infinite;
-    color: var(--neon-blue);
+    color: var(--neon-green);
     font-weight: bold;
 }
 
