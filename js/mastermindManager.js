@@ -643,6 +643,11 @@ export class MastermindManager {
     }
 
     newGame() {
+        const terminal = document.querySelector('.mastermind-terminal');
+        if (terminal) {
+            terminal.classList.remove('victory', 'game-over');
+        }
+    
         const mode = document.querySelector('.option-button.active')?.dataset.mode || 'random';
         this.maxAttempts = parseInt(document.getElementById('attempts-input')?.value) || 10;
         this.currentAttempt = 0;
