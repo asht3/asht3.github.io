@@ -3,6 +3,7 @@
     --bright-blue: #312eff;
     --neon-pink: #ff00ff;
     --neon-purple: #b967ff;
+    --neon-green: rgb(0, 255, 26);
     --dark-bg: #0a0a0a;
     --darker-bg: #050505;
     --panel-bg: rgba(16, 16, 32, 0.95);
@@ -1343,11 +1344,11 @@ body {
 }
 
 .mastermind-header p {
-    color: var(--neon-green);
+    color: var(--neon-blue);
     font-family: 'Orbitron', sans-serif;
     text-shadow: 
-        0 0 10px var(--neon-green),
-        0 0 20px var(--neon-green);
+        0 0 10px var(--neon-blue),
+        0 0 20px var(--neon-blue);
     margin: 0;
     font-size: 1rem;
     letter-spacing: 2px;
@@ -1379,7 +1380,7 @@ body {
         transparent, 
         var(--neon-blue), 
         var(--neon-pink), 
-        var(--neon-green),
+        /* var(--neon-green), */
         transparent);
     animation: terminalScan 4s linear infinite;
     filter: blur(1px);
@@ -1434,16 +1435,16 @@ body {
 
 .terminal-status {
     font-family: 'Orbitron', sans-serif;
-    color: var(--neon-green);
+    color: var(--neon-blue);
     font-size: 0.8rem;
-    text-shadow: 0 0 5px var(--neon-green);
+    text-shadow: 0 0 5px var(--neon-blue);
 }
 
 .status-display {
     background: 
         linear-gradient(135deg, rgba(22, 22, 46, 0.8) 0%, rgba(10, 10, 26, 0.9) 100%),
         url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" opacity="0.1"><path d="M0,0 L20,0 L20,20 L0,20 Z" fill="none" stroke="%2300ff9d" stroke-width="0.5"/></svg>');
-    border: 2px solid var(--neon-green);
+    border: 2px solid var(--neon-blue);
     border-radius: 10px;
     margin: 20px;
     padding: 20px;
@@ -1451,7 +1452,7 @@ body {
     max-height: 250px;
     overflow-y: auto;
     font-family: 'Courier New', monospace;
-    color: var(--neon-green);
+    color: var(--neon-blue);
     line-height: 1.6;
     font-size: 1rem;
     position: relative;
@@ -1474,7 +1475,7 @@ body {
 .status-display::after {
     content: '▌';
     animation: cursorBlink 1s infinite;
-    color: var(--neon-green);
+    color: var(--neon-blue);
     font-weight: bold;
 }
 
@@ -1499,14 +1500,14 @@ body {
 
 .info-card {
     background: rgba(0, 243, 255, 0.1);
-    border: 1px solid var(--neon-green);
+    border: 1px solid var(--neon-blue);
     border-radius: 5px;
     padding: 10px;
     text-align: center;
 }
 
 .info-card h3 {
-    color: var(--neon-green);
+    color: var(--neon-blue);
     font-family: 'Orbitron', sans-serif;
     font-size: 0.7rem;
     margin: 0 0 5px 0;
@@ -1797,7 +1798,8 @@ body {
 }
 
 .feedback-dot.misplaced {
-    background: #ffff00;
+    background: transparent;
+    border: 2px solid #ffff00;
     box-shadow: 0 0 8px #ffff00;
 }
 

@@ -84,8 +84,8 @@ export const mastermindApp = {
                 <ul>
                     <li>Crack the 4-digit secret code using numbers 0-7</li>
                     <li>After each guess, receive feedback:</li>
-                    <li>■ Correct position & number</li>
-                    <li>□ Correct number, wrong position</li>
+                    <li>● Correct position & number</li>
+                    <li>○ Correct number, wrong position</li>
                     <li>You have limited attempts to solve</li>
                 </ul>
             </div>
