@@ -1024,43 +1024,6 @@ export class MastermindManager {
         }
     }
 
-    // calculateFeedback(guess, secret) {
-    //     if (!guess || !secret || guess.length !== 4 || secret.length !== 4) {
-    //         console.error('Invalid input to calculateFeedback:', { guess, secret });
-    //         return { correct: 0, misplaced: 0 };
-    //     }
-        
-    //     let correct = 0;
-    //     let misplaced = 0;
-        
-    //     // Create copies to mark used positions
-    //     const guessCopy = [...guess];
-    //     const secretCopy = [...secret];
-        
-    //     // First pass: count correct positions
-    //     for (let i = 0; i < 4; i++) {
-    //         if (guessCopy[i] === secretCopy[i]) {
-    //             correct++;
-    //             guessCopy[i] = -1; // Mark as used
-    //             secretCopy[i] = -2; // Mark as used
-    //         }
-    //     }
-        
-    //     // Second pass: count misplaced
-    //     for (let i = 0; i < 4; i++) {
-    //         if (guessCopy[i] !== -1) { // Not already counted as correct
-    //             const matchIndex = secretCopy.indexOf(guessCopy[i]);
-    //             if (matchIndex !== -1 && secretCopy[matchIndex] !== -2) { // Found and not used
-    //                 misplaced++;
-    //                 secretCopy[matchIndex] = -2; // Mark as used
-    //             }
-    //         }
-    //     }
-        
-    //     console.log(`Feedback calculation: guess=${guess}, secret=${secret}, result={correct:${correct}, misplaced:${misplaced}}`);
-        
-    //     return { correct, misplaced };
-    // }
     calculateFeedback(guess, secret) {
         if (!guess || !secret || guess.length !== 4 || secret.length !== 4) {
             console.error('Invalid input to calculateFeedback:', { guess, secret });
@@ -1070,38 +1033,75 @@ export class MastermindManager {
         let correct = 0;
         let misplaced = 0;
         
-        // Create tracking arrays
-        const secretChecked = new Array(4).fill(false);
-        const guessChecked = new Array(4).fill(false);
+        // Create copies to mark used positions
+        const guessCopy = [...guess];
+        const secretCopy = [...secret];
         
-        // Count exact matches (correct position)
+        // First pass: count correct positions
         for (let i = 0; i < 4; i++) {
-            if (guess[i] === secret[i]) {
+            if (guessCopy[i] === secretCopy[i]) {
                 correct++;
-                secretChecked[i] = true;  // Mark this position as used
-                guessChecked[i] = true;   // Mark this position as used
+                guessCopy[i] = -1; // Mark as used
+                secretCopy[i] = -2; // Mark as used
             }
         }
         
-        // Count misplaced (correct number, wrong position)
+        // Second pass: count misplaced
         for (let i = 0; i < 4; i++) {
-            if (!guessChecked[i]) {  // Skip if already counted as correct
-                for (let j = 0; j < 4; j++) {
-                    // Check if this secret position hasn't been used AND matches the guess
-                    if (!secretChecked[j] && guess[i] === secret[j]) {
-                        misplaced++;
-                        secretChecked[j] = true;  // Mark this secret position as used
-                        guessChecked[i] = true;   // Mark this guess position as used
-                        break;  // Found a match, move to next guess
-                    }
+            if (guessCopy[i] !== -1) { // Not already counted as correct
+                const matchIndex = secretCopy.indexOf(guessCopy[i]);
+                if (matchIndex !== -1 && secretCopy[matchIndex] !== -2) { // Found and not used
+                    misplaced++;
+                    secretCopy[matchIndex] = -2; // Mark as used
                 }
             }
         }
         
-        console.log(`Feedback: Secret=${secret}, Guess=${guess}, Result: ${correct} correct, ${misplaced} misplaced`);
+        console.log(`Feedback calculation: guess=${guess}, secret=${secret}, result={correct:${correct}, misplaced:${misplaced}}`);
         
         return { correct, misplaced };
     }
+    // calculateFeedback(guess, secret) {
+    //     if (!guess || !secret || guess.length !== 4 || secret.length !== 4) {
+    //         console.error('Invalid input to calculateFeedback:', { guess, secret });
+    //         return { correct: 0, misplaced: 0 };
+    //     }
+        
+    //     let correct = 0;
+    //     let misplaced = 0;
+        
+    //     // Create tracking arrays
+    //     const secretChecked = new Array(4).fill(false);
+    //     const guessChecked = new Array(4).fill(false);
+        
+    //     // Count exact matches (correct position)
+    //     for (let i = 0; i < 4; i++) {
+    //         if (guess[i] === secret[i]) {
+    //             correct++;
+    //             secretChecked[i] = true;  // Mark this position as used
+    //             guessChecked[i] = true;   // Mark this position as used
+    //         }
+    //     }
+        
+    //     // Count misplaced (correct number, wrong position)
+    //     for (let i = 0; i < 4; i++) {
+    //         if (!guessChecked[i]) {  // Skip if already counted as correct
+    //             for (let j = 0; j < 4; j++) {
+    //                 // Check if this secret position hasn't been used AND matches the guess
+    //                 if (!secretChecked[j] && guess[i] === secret[j]) {
+    //                     misplaced++;
+    //                     secretChecked[j] = true;  // Mark this secret position as used
+    //                     guessChecked[i] = true;   // Mark this guess position as used
+    //                     break;  // Found a match, move to next guess
+    //                 }
+    //             }
+    //         }
+    //     }
+        
+    //     console.log(`Feedback: Secret=${secret}, Guess=${guess}, Result: ${correct} correct, ${misplaced} misplaced`);
+        
+    //     return { correct, misplaced };
+    // }
 
     // addToHistory(guess, feedback) {
     //     const history = document.getElementById('guess-history');
@@ -1211,11 +1211,12 @@ export class MastermindManager {
         
         this.addToLog('■■■■■■■■■■■■ SUCCESS: CODE CRACKED ■■■■■■■■■■■■');
         this.addToLog('');
-        this.addToLog(`> SECRET CODE: ${this.secretCode.join('')}`);
+        this.addToLog(`> SECRET CODE: ${this.currentGuess.join('')}`);
         this.addToLog(`> ATTEMPTS: ${this.currentAttempt}/${this.maxAttempts}`);
         this.addToLog('');
         this.addToLog('■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■');
         
+        this.revealSecretCode();
         document.querySelector('.mastermind-terminal').classList.add('victory');
     }
 
@@ -1227,7 +1228,7 @@ export class MastermindManager {
         
         this.addToLog('▓▓▓▓▓▓▓▓▓▓▓▓▓ ERROR: SYSTEM FAILURE ▓▓▓▓▓▓▓▓▓▓▓▓');
         this.addToLog('');
-        this.addToLog(`> FINAL CODE: ${this.secretCode.join('')}`);
+        this.addToLog(`> FINAL CODE: ${this.currentGuess.join('')}`);
         this.addToLog(`> ATTEMPTS: ${this.currentAttempt}`);
         this.addToLog('');
         this.addToLog('▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓');

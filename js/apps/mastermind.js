@@ -86,7 +86,7 @@ export const mastermindApp = {
                     <li>After each guess, receive feedback:</li>
                     <li>● Correct position & number</li>
                     <li>○ Correct number, wrong position</li>
-                    <li>You have limited attempts to solve</li>
+                    <li>You have limited attempts to solve it. The position of the markers above do not indicate which numbers are wrong or right, they're just hints.</li>
                 </ul>
             </div>
         </div>
