@@ -470,6 +470,12 @@ export class WindowManager {
     closeWindow(windowId) {
         const windowState = this.windowStates.get(windowId);
         if (windowState) {
+            if (windowState.element && windowState.element.mastermindManager) {
+                console.log('Cleaning up Mastermind manager for window...');
+                windowState.element.mastermindManager.gameActive = false;
+                windowState.element.mastermindManager = null;
+            }
+            
             windowState.element.remove();
             windowState.taskbarApp.remove();
             this.windowStates.delete(windowId);
@@ -478,12 +484,6 @@ export class WindowManager {
             
             if (this.windowCount === 0) {
                 this.lastPosition = null;
-            }
-
-            if (windowElement.mastermindManager) {
-                console.log('Cleaning up Mastermind manager for window...');
-                windowElement.mastermindManager.gameActive = false;
-                windowElement.mastermindManager = null;
             }
         }
     }
