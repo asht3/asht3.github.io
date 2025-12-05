@@ -5,8 +5,7 @@ export class Chip8Manager {
         this.isPaused = false;
         this.canvas = null;
         this.ctx = null;
-        // this.romBasePath = '../chip8/roms/';
-        this.romBasePath = '/dev-portfolio/chip8/roms/';
+        this.romBasePath = './chip8/roms/';
         this.init();
     }
 
