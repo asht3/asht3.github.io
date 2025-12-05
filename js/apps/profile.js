@@ -20,7 +20,7 @@ export const profileApp = {
                 <div class="profile-basic-info">
                     <div class="info-row">
                         <span class="label">NAME:</span>
-                        <span class="value" data-field="name">ASHLEY</span>
+                        <span class="value" data-field="name">ASHLEY T</span>
                     </div>
                     <div class="info-row">
                         <span class="label">ALIAS:</span>
