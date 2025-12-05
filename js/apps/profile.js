@@ -124,7 +124,7 @@ export const profileApp = {
                 <div class="education-item">
                         <div class="edu-header">
                             <span class="edu-degree">Software Engineering</span>
-                            <span class="edu-date">2024-2025</span>
+                            <span class="edu-date">2024-Present</span>
                         </div>
                         <div class="edu-school">Qwasar Silicon Valley College of Engineering</div>
                         <div class="edu-focus">Specialization: Software Engineering</div>
