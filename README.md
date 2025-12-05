@@ -1,16 +1,5 @@
 # Portfolio
 
-## FOR REVIEWERS
-Open index.html in VS Code and click on the "Show Preview" button on the top right hand corner top view the site. Make sure Microsoft's Live Preview extension is installed for VS Code.
-
-If there are issues with the Chip-8 program on the site: To run the Chip-8 Emulator, install WebAssembly and Emscripten to your device. Then navigate to the Chip-8 folder and run `make wasm`
-
-Ensure that the `chip8.data` file is outside the chip8 folder but stil in dev-portfolio. The chip8 folder should have a wasm folder taht was created after compiling the code. This should contain a chip8.js file.
-
-More info on the Chip8 can be found in the README within the folder.
-
-If there are issues with the Mastermind program, move to the mastermind directory and run `./build_wasm.sh`.
-
 ## FEATURES
 - Resizable, draggable windows with z-index management
 - Pre-opened profile window on load
@@ -51,3 +40,6 @@ QWERTY Key     | CHIP 8 Key |
 Q W E R     | 4 5 6 D    |  
 A S D F     | 7 8 9 E    |
 Z X C V     | A 0 B F    |
+
+#### Mastermind Game
+Type or click the numbers on the screen. More instructions are at the bottom of the window. To set custom game modes, make sure to press 'ENTER' after typing in the secret code or number of attempts.
