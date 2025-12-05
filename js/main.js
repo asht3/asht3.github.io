@@ -357,11 +357,6 @@ class CyberpunkDesktop {
             if (appName === 'chip8') {
                 this.initChip8(windowElement);
             }
-            
-            // Initialize music visualizer when music app opens
-            if (appName === 'music') {
-                this.initMusicVisualizer(windowElement);
-            }
 
             if (appName === 'mastermind') {
                 this.initMastermind(windowElement);
