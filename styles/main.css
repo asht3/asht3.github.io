@@ -1532,6 +1532,7 @@ body {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     border: 1px solid rgba(0, 243, 255, 0.3);
+    justify-items: center;
 }
 
 @media (min-width: 480px) {
@@ -1547,6 +1548,8 @@ body {
     cursor: pointer;
     position: relative;
     transition: all 0.3s ease;
+    width: 60px;
+    height: 60px;
 }
 
 .color-btn:hover {
@@ -2043,7 +2046,7 @@ body {
     }
 
     /* Improve touch targets */
-    button, .icon, .taskbar-app/*, .mobile-control-button*/ {
+    button, .icon, .taskbar-app {
         min-height: 44px;
     }
 
@@ -2164,6 +2167,10 @@ body {
     
     .game-info {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .terminal-header {
+        display: block;
     }
     
     .history-digit {
