@@ -69,6 +69,8 @@ export const profileApp = {
                             <span class="skill-tag">GitHub</span>
                             <span class="skill-tag">Vim</span>
                             <span class="skill-tag">Shell</span>
+                            <span class="skill-tag">WebAssembly</span>
+                            <span class="skill-tag">Emscripten</span>
                         </div>
                     </div>
                     <div class="skill-category">
@@ -127,7 +129,7 @@ export const profileApp = {
                             <span class="edu-date">2024-Present</span>
                         </div>
                         <div class="edu-school">Qwasar Silicon Valley College of Engineering</div>
-                        <div class="edu-focus">Specialization: Software Engineering</div>
+                        <!--<div class="edu-focus">Specialization: Software Engineering</div>-->
                     </div>
                     <div class="education-item">
                         <div class="edu-header">
@@ -135,7 +137,6 @@ export const profileApp = {
                             <span class="edu-date">2019-2023</span>
                         </div>
                         <div class="edu-school">University of California, San Diego</div>
-                        <div class="edu-focus">Specialization: Programming</div>
                     </div>
                 </div>
             </div>
