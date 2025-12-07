@@ -27,7 +27,7 @@ export const chip8App = {
             </div>
             
             <div class="chip8-info">
-                <p style="text-align: center; color: var(--neon-pink); font-weight: bold;">>>WARNING: TOGGLE OFF BINARY RAIN BACKGROUND FOR BEST PERFORMANCE<<</p>
+                <p class="chip8-tip">>>TIP: TOGGLE OFF BINARY RAIN BACKGROUND FOR BEST PERFORMANCE<<</p>
                 <br>
                 <h3>> CONTROLS:</h3>
                 <div class="controls-grid">
@@ -38,8 +38,7 @@ export const chip8App = {
                 </div>
                 <div class="chip8-instructions">
                     <p>▶ Use keyboard for CHIP-8 input</p>
-                    <p>▶ Load ROM from dropdown or file</p>
-                    <p>▶ ESC to exit fullscreen</p>
+                    <p>▶ Load ROM from dropdown</p>
                 </div>
             </div>
         </div>

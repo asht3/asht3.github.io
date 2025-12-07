@@ -1050,6 +1050,13 @@ body {
     color: var(--neon-blue);
     text-shadow: var(--glow-blue);
     margin-bottom: 10px;
+    text-align: center;
+}
+
+.chip8-tip {
+    text-align: center;
+    color: var(--neon-pink);
+    font-weight: bold;
 }
 
 .chip8-controls {
