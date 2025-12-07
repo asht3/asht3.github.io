@@ -2057,6 +2057,11 @@ body {
         min-height: 44px;
     }
 
+    .typing-animation {
+        width: auto;
+        letter-spacing: 1px;
+    }
+
     /* CHIP-8 emulator mobile adjustments */
     .chip8-container {
         height: 100%;
