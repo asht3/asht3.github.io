@@ -8,7 +8,7 @@ export class MusicPlayer {
         this.bufferLength = null;
         this.animationId = null;
         this.visualizerBars = [];
-        this.init();
+        // this.init();
     }
 
     init() {
@@ -131,49 +131,135 @@ export class MusicPlayer {
         this.init();
         this.isPlaying = true;
         
-        document.getElementById('current-track').textContent = 'SYNTHWAVE_BEAT.ogg';
+        document.getElementById('current-track').textContent = 'DRIVING_BASSLINE.ogg';
         document.getElementById('audio-status').textContent = 'ACTIVE';
-        document.getElementById('immersion-level').textContent = '92%';
+        document.getElementById('immersion-level').textContent = '94%';
         
         this.initVisualizer();
         
-        // Create synthwave sound with multiple oscillators for richer visualization
-        const oscillator1 = this.audioContext.createOscillator();
-        const oscillator2 = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        const filter = this.audioContext.createBiquadFilter();
+        // Create multiple sound layers
+        const bassOsc = this.audioContext.createOscillator();
+        const leadOsc = this.audioContext.createOscillator();
+        const padOsc1 = this.audioContext.createOscillator();
+        const padOsc2 = this.audioContext.createOscillator();
         
-        // Setup analyser
+        const bassGain = this.audioContext.createGain();
+        const leadGain = this.audioContext.createGain();
+        const padGain = this.audioContext.createGain();
+        
+        // Setup analyser (connect main output)
         this.analyser = this.audioContext.createAnalyser();
-        this.analyser.fftSize = 64;
+        this.analyser.fftSize = 128;
         this.bufferLength = this.analyser.frequencyBinCount;
         this.dataArray = new Uint8Array(this.bufferLength);
         
-        // Main oscillator
-        oscillator1.type = 'sawtooth';
-        oscillator1.frequency.setValueAtTime(110, this.audioContext.currentTime);
+        // === BASS LINE === (Simple driving sequence)
+        bassOsc.type = 'sawtooth';
+        const bassNotes = [55, 65.41, 73.42, 65.41]; // A, C, D, C (in Hz)
+        let bassIndex = 0;
         
-        // Second oscillator for harmonics
-        oscillator2.type = 'triangle';
-        oscillator2.frequency.setValueAtTime(55, this.audioContext.currentTime);
+        const playBass = () => {
+            if (!this.isPlaying) return;
+            
+            const freq = bassNotes[bassIndex];
+            bassOsc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+            
+            // Pluck envelope for bass
+            bassGain.gain.cancelScheduledValues(this.audioContext.currentTime);
+            bassGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+            bassGain.gain.linearRampToValueAtTime(0.2, this.audioContext.currentTime + 0.02);
+            bassGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
+            
+            bassIndex = (bassIndex + 1) % bassNotes.length;
+            
+            setTimeout(() => playBass(), 250); // Quarter notes at 120 BPM
+        };
         
-        // Filter for synth sound
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        // === LEAD MELODY === (Simple arpeggio)
+        leadOsc.type = 'square';
+        const leadNotes = [220, 261.63, 329.63, 392, 329.63, 261.63]; // A, C, E, G, E, C
+        let leadIndex = 0;
         
-        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+        const playLead = () => {
+            if (!this.isPlaying) return;
+            
+            const freq = leadNotes[leadIndex];
+            leadOsc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+            
+            // Softer envelope for lead
+            leadGain.gain.cancelScheduledValues(this.audioContext.currentTime);
+            leadGain.gain.setValueAtTime(0, this.audioContext.currentTime);
+            leadGain.gain.linearRampToValueAtTime(0.1, this.audioContext.currentTime + 0.05);
+            leadGain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+            
+            leadIndex = (leadIndex + 1) % leadNotes.length;
+            
+            setTimeout(() => playLead(), 500); // Half notes
+        };
         
-        // Connect nodes: oscillators → filter → analyser → gain → destination
-        oscillator1.connect(filter);
-        oscillator2.connect(filter);
-        filter.connect(this.analyser);
-        this.analyser.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
+        // === PAD CHORD === (Sustained background)
+        padOsc1.type = 'sine';
+        padOsc2.type = 'sine';
         
-        oscillator1.start();
-        oscillator2.start();
+        // A minor chord (A-C-E)
+        padOsc1.frequency.setValueAtTime(220, this.audioContext.currentTime); // A
+        padOsc2.frequency.setValueAtTime(329.63, this.audioContext.currentTime); // E
         
-        this.currentOscillator = { oscillator1, oscillator2, gainNode, filter };
+        padGain.gain.setValueAtTime(0, this.audioContext.currentTime); // Quiet pad
+        
+        // === FILTERS AND EFFECTS ===
+        const bassFilter = this.audioContext.createBiquadFilter();
+        bassFilter.type = 'lowpass';
+        bassFilter.frequency.setValueAtTime(200, this.audioContext.currentTime);
+        
+        const leadFilter = this.audioContext.createBiquadFilter();
+        leadFilter.type = 'lowpass';
+        leadFilter.frequency.setValueAtTime(800, this.audioContext.currentTime);
+        
+        // Add delay effect to lead
+        const delay = this.audioContext.createDelay();
+        delay.delayTime.setValueAtTime(0.3, this.audioContext.currentTime);
+        const feedback = this.audioContext.createGain();
+        feedback.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+        
+        // === CONNECTIONS ===
+        // Bass chain
+        bassOsc.connect(bassFilter);
+        bassFilter.connect(bassGain);
+        bassGain.connect(this.analyser);
+        
+        // Lead chain with delay
+        leadOsc.connect(leadFilter);
+        leadFilter.connect(leadGain);
+        leadGain.connect(delay);
+        delay.connect(feedback);
+        feedback.connect(delay); // Feedback loop
+        feedback.connect(this.analyser);
+        leadGain.connect(this.analyser);
+        
+        // Pad chain
+        padOsc1.connect(padGain);
+        padOsc2.connect(padGain);
+        padGain.connect(this.analyser);
+        
+        // Final output
+        this.analyser.connect(this.audioContext.destination);
+        
+        // Start oscillators
+        bassOsc.start();
+        leadOsc.start();
+        padOsc1.start();
+        padOsc2.start();
+        
+        // Start sequences
+        setTimeout(() => playBass(), 50);
+        setTimeout(() => playLead(), 100);
+        
+        this.currentOscillator = {
+            bassOsc, leadOsc, padOsc1, padOsc2,
+            bassGain, leadGain, padGain,
+            bassFilter, leadFilter, delay, feedback
+        };
         this.startVisualizer();
     }
 
@@ -229,7 +315,7 @@ export class MusicPlayer {
         this.currentOscillator = { oscillator, lfo, gainNode, filter };
         this.startVisualizer();
     }
-
+    
     stop() {
         if (this.currentOscillator) {
             // Stop all oscillators
