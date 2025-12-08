@@ -5,6 +5,7 @@ export const projectsApp = {
         <p>Accessing encrypted project files...</p>
         <div class="project-grid">
             <div class="project-card" data-project="chip8">
+                <img src="./assets/project-imgs/chip8.png">
                 <h3>CHIP-8 Emulator</h3>
                 <p><strong>Tech:</strong> C++, WebAssembly, SDL2, Emscripten</p>
                 <div class="description-container">
@@ -27,6 +28,7 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card" data-project="mastermind">
+                <img src="./assets/project-imgs/mastermind.png">
                 <h3>Mastermind</h3>
                 <p><strong>Tech:</strong> C, WebAssembly, Emscripten, JS (demo)</p>
                 <div class="description-container">
@@ -49,6 +51,7 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card">
+                <img src="./assets/project-imgs/zsh.png">
                 <h3>My Zsh</h3>
                 <p><strong>Tech:</strong> C</p>
                 <p>Implementation of a UNIX shell that supports multiple system calls and shell built-ins. Utilizes custom utility functions.</p>
@@ -57,6 +60,7 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card">
+                <img src="./assets/project-imgs/my-sqlite.png">
                 <h3>My SQLite</h3>
                 <p><strong>Tech:</strong> Ruby</p>
                 <p>A lightweight SQLite database implementation with a command-line interface. Contains basic functionalities for select, from, join, where, order, insert, values, update, set, and delete.</p>
@@ -65,6 +69,7 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card">
+                <img src="./assets/project-imgs/curl.png">
                 <h3>My Curl</h3>
                 <p><strong>Tech:</strong> C</p>
                 <p>A command similar to the UNIX curl that fetches and displays HTML content from web servers using only basic socket operations and HTTP protocol handling.</p>

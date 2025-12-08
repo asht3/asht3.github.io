@@ -746,6 +746,13 @@ body {
     transform: translateY(-2px);
 }
 
+.project-card img {
+    height: 180px;
+    width: auto;
+    border: 1px solid var(--neon-blue);
+    border-radius: 10px;
+}
+
 .description-container {
     position: relative;
     line-height: 1.4;
