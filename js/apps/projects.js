@@ -69,6 +69,16 @@ export const projectsApp = {
                 </div>
             </div>
             <div class="project-card">
+                <img src="./assets/project-imgs/tar.png">
+                <h3>My Tar</h3>
+                <p><strong>Tech:</strong> C</p>
+                <p>An implementation of the tar command-line utility in C, supporting basic functionalities such as creating, listing, updating, and extracting files from a tar archive. 
+                Manages file archives while maintaining file integrity.</p>
+                <div class="project-links">
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/my-tar', '_blank')">View GitHub Repository</button>
+                </div>
+            </div>
+            <div class="project-card">
                 <img src="./assets/project-imgs/curl.png">
                 <h3>My Curl</h3>
                 <p><strong>Tech:</strong> C</p>
