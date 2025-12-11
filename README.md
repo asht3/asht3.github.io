@@ -103,6 +103,6 @@ Game rules can be found at the bottom of the window.
 Chip-8 roms were found on the following sites:
 - Breakout: [Chip-8 Archive](https://johnearnest.github.io/chip8Archive/?sort=platform)
 - Test roms (IBM and Chip-8 logos): [Chip-8 test suite](https://github.com/Timendus/chip8-test-suite)
-- Other games were founf in [this repo](https://github.com/kripod/chip8-roms)
+- Other games were found in [this repo](https://github.com/kripod/chip8-roms)
 
 The [astronaut character](https://floatingkites.itch.io/cute-astronaut) was created by [Fly](https://itch.io/profile/floatingkites) on Itch.io.
