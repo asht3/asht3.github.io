@@ -4,6 +4,32 @@ export const projectsApp = {
         <h2>PROJECT DATABASE</h2>
         <p>Accessing encrypted project files...</p>
         <div class="project-grid">
+            <div class="project-card" data-project="portfolio">
+                <img src="./assets/project-imgs/portfolio.png">
+                <h3>Interactive Portfolio: About This Site</h3>
+                <p><strong>Tech:</strong> Javascript, HTML, CSS</p>
+                <div class="description-container">
+                    <p class="project-description collapsed">
+                        This portfolio is a Cyberpunk-themed, custom-built interactive experience. It's built to simulate a desktop environment, complete
+                        with a real-time clock widget and animated background to enhance the immersive, thematic user experience.
+                        Explore the window controls, toggle the background, and launch the app icons to see my work in action. Play demos of my previous projects
+                        in-browser by clicking on the app icons or launching them from this projects menu.
+                    <br><br>
+                        This site was built using Javascript, HTML, and CSS. The Chip-8 Emulator and Mastermind were built in C++/C then incorporated
+                        onto the site using WebAssembly and Emscripten.
+                    </p>
+                    <div class="view-more-container">
+                        <a href="javascript:void(0)" class="view-toggle">View More</a>
+                    </div>
+                    <div class="view-less-container" style="display: none;">
+                        <a href="javascript:void(0)" class="view-toggle-less">View Less</a>
+                    </div>
+                </div>
+                <div class="project-links">
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/chip8', '_blank')">View GitHub Repository</button>
+                    <button class="project-link cyber-button" onclick="window.desktop.openApp('chip8')">LAUNCH EMULATOR</button>
+                </div>
+            </div>
             <div class="project-card" data-project="chip8">
                 <img src="./assets/project-imgs/chip8.png">
                 <h3>CHIP-8 Emulator</h3>
