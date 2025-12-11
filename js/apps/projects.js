@@ -26,8 +26,7 @@ export const projectsApp = {
                     </div>
                 </div>
                 <div class="project-links">
-                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/chip8', '_blank')">View GitHub Repository</button>
-                    <button class="project-link cyber-button" onclick="window.desktop.openApp('chip8')">LAUNCH EMULATOR</button>
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/asht3.github.io', '_blank')">View GitHub Repository</button>
                 </div>
             </div>
             <div class="project-card" data-project="chip8">
