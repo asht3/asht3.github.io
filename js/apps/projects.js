@@ -10,10 +10,10 @@ export const projectsApp = {
                 <p><strong>Tech:</strong> Javascript, HTML, CSS</p>
                 <div class="description-container">
                     <p class="project-description collapsed">
-                        This portfolio is a Cyberpunk-themed, custom-built interactive experience. It's built to simulate a desktop environment, complete
-                        with a real-time clock widget and animated background to enhance the immersive, thematic user experience.
-                        Explore the window controls, toggle the background, and launch the app icons to see my work in action. Play demos of my previous projects
-                        in-browser by clicking on the app icons or launching them from this projects menu.
+                        This portfolio is a Cyberpunk-themed, custom-built interactive experience. It's built to simulate a desktop environment, 
+                        complete with a real-time clock widget and animated background to enhance the immersive, thematic user experience.
+                        Explore the window controls, toggle the background, and launch the app icons to see my work in action. Play demos of my 
+                        previous projects in-browser by clicking on the app icons or launching them from this projects menu.
                     <br><br>
                         This site was built using Javascript, HTML, and CSS. The Chip-8 Emulator and Mastermind were built in C++/C then incorporated
                         onto the site using WebAssembly and Emscripten.
@@ -27,6 +27,27 @@ export const projectsApp = {
                 </div>
                 <div class="project-links">
                     <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/asht3.github.io', '_blank')">View GitHub Repository</button>
+                </div>
+            </div>
+            <div class="project-card" data-project="negative-film-restorer">
+                <img src="./assets/project-imgs/neg-film-restorer.png">
+                <h3>Negative Film Restorer</h3>
+                <p><strong>Tech:</strong> Node.js, Express, Sharp.js, Docker</p>
+                <div class="description-container">
+                    <p class="project-description collapsed">
+                        A REST API that converts photo film negatives to digital images using Node.js, Express, and color 
+                        matrices, featuring real-time processing, and before/after comparisons. Corrects orange mask 
+                        compensation and white balance. Containerized with Docker and secured with rate-limiting.
+                    </p>
+                    <div class="view-more-container">
+                        <a href="javascript:void(0)" class="view-toggle">View More</a>
+                    </div>
+                    <div class="view-less-container" style="display: none;">
+                        <a href="javascript:void(0)" class="view-toggle-less">View Less</a>
+                    </div>
+                </div>
+                <div class="project-links">
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/negative-film-restorer', '_blank')">View GitHub Repository</button>
                 </div>
             </div>
             <div class="project-card" data-project="chip8">
