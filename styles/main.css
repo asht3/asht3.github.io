@@ -854,6 +854,7 @@ body {
 .project-link:hover {
     background: rgba(0, 243, 255, 0.2);
     box-shadow: var(--glow-blue);
+    color: var(--glow-blue);
 }
 
 .skills-grid {

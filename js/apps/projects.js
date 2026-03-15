@@ -29,6 +29,26 @@ export const projectsApp = {
                     <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/asht3.github.io', '_blank')">View GitHub Repository</button>
                 </div>
             </div>
+            <div class="project-card" data-project="abstract-vm">
+                <img src="./assets/project-imgs/abstract-vm.png">
+                <h3>Abstract Virtual Machine</h3>
+                <p><strong>Tech:</strong> C++</p>
+                <div class="description-container">
+                    <p class="project-description collapsed">
+                        A machine with a queue-based architecture that is able to compute artihmetic instructions from standard input and files.
+                        The language used to operate the machine has its own value types and is composed of a series of instructions with one instruction per line.
+                    </p>
+                    <div class="view-more-container">
+                        <a href="javascript:void(0)" class="view-toggle">View More</a>
+                    </div>
+                    <div class="view-less-container" style="display: none;">
+                        <a href="javascript:void(0)" class="view-toggle-less">View Less</a>
+                    </div>
+                </div>
+                <div class="project-links">
+                    <button class="project-link cyber-button" onclick="window.open('https://github.com/asht3/abstract-vm', '_blank')">View GitHub Repository</button>
+                </div>
+            </div>
             <div class="project-card" data-project="negative-film-restorer">
                 <img src="./assets/project-imgs/neg-film-restorer.png">
                 <h3>Negative Film Restorer</h3>
