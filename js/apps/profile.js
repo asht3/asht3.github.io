@@ -97,6 +97,17 @@ export const profileApp = {
                 <div class="experience-list">
                     <div class="experience-item">
                         <div class="exp-header">
+                            <span class="exp-title">Software Development Consultant</span>
+                            <span class="exp-date">Feb 2026-Present</span>
+                        </div>
+                        <div class="exp-company">Qwasar Silicon Valley College of Engineering</div>
+                        <div class="exp-description">
+                            Developed assessments in TypeScript for Qwasar College of Engineering’s platform, used to screen prospective applicants 
+                            across 16+ campuses globally. Collaborated with program managers to gather requirements and deliver solutions aligned with screening needs.
+                        </div>
+                    </div>
+                    <div class="experience-item">
+                        <div class="exp-header">
                             <span class="exp-title">Teaching Assistant</span>
                             <span class="exp-date">2024-Present</span>
                         </div>
