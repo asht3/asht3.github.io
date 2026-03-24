@@ -118,7 +118,7 @@ export const projectsApp = {
             </div>
             <div class="project-card">
                 <img src="./assets/project-imgs/zsh.png">
-                <h3>My Zsh</h3>
+                <h3>Unix Shell</h3>
                 <p><strong>Tech:</strong> C</p>
                 <p>Implementation of a UNIX shell that supports multiple system calls and shell built-ins. Utilizes custom utility functions.</p>
                 <div class="project-links">
@@ -127,7 +127,7 @@ export const projectsApp = {
             </div>
             <div class="project-card">
                 <img src="./assets/project-imgs/my-sqlite.png">
-                <h3>My SQLite</h3>
+                <h3>SQLite Clone</h3>
                 <p><strong>Tech:</strong> Ruby</p>
                 <div class="description-container">
                     <p class="project-description collapsed">
@@ -147,7 +147,7 @@ export const projectsApp = {
             </div>
             <div class="project-card">
                 <img src="./assets/project-imgs/tar.png">
-                <h3>My Tar</h3>
+                <h3>Lightweight Tar</h3>
                 <p><strong>Tech:</strong> C</p>
                 <div class="description-container">
                     <p class="project-description collapsed">
@@ -167,7 +167,7 @@ export const projectsApp = {
             </div>
             <div class="project-card">
                 <img src="./assets/project-imgs/curl.png">
-                <h3>My Curl</h3>
+                <h3>Lightweight Curl</h3>
                 <p><strong>Tech:</strong> C</p>
                 <p>A command similar to the UNIX curl that fetches and displays HTML content from web servers using only basic socket operations and HTTP protocol handling.</p>
                 <div class="project-links">
