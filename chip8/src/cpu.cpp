@@ -1,8 +1,7 @@
 #include "../include/cpu.hpp"
 #include <algorithm>
 #include <stdexcept>
-// #include <iostream> // For debugging output
-// #include <thread> // debug
+#include <iostream> // debug
 
 CPU::CPU() {
     reset();
@@ -36,7 +35,18 @@ uint16_t CPU::pop_stack() {
 
 // Fetch, decode, and execute opcode
 void CPU::execute_cycle(Memory& memory, Display& display, Input& keys) {
-    uint16_t opcode = fetch_opcode(memory);
+    // static std::string last_mnemonic = "";
+    
+    int16_t opcode = fetch_opcode(memory);
+    // std::string current_mnemonic = Debugger::get_mnemonic_simple(opcode);
+    
+    // // Print every few instructions
+    // static int print_counter = 0;
+    // if (++print_counter >= 1) {  // Print every instruction (change to 10 for less frequent)
+    //     Debugger::print_debug(PC, opcode, I, V, last_mnemonic, current_mnemonic);
+    //     print_counter = 0;
+    // }
+
     PC += 2; // Move to next instruction
 
     switch (opcode & 0xF000) {
@@ -97,7 +107,6 @@ void CPU::execute_cycle(Memory& memory, Display& display, Input& keys) {
         default: throw std::runtime_error("Unknown opcode: " + std::to_string(opcode));
     }
 }
-
 
 uint16_t CPU::fetch_opcode(Memory& memory) {
     return (memory.read(PC) << 8) | memory.read(PC + 1);
@@ -212,46 +221,43 @@ void CPU::OP_8xy5(uint16_t opcode) {
     uint8_t Vy = (opcode & 0x00F0) >> 4;
     uint8_t original_Vx = V[Vx];
     uint8_t original_Vy = V[Vy];
-    
-    // V[0xF] = (original_Vx > original_Vy) ? 1 : 0;
-    V[0xF] = (original_Vx >= original_Vy) ? 1 : 0;
+        
     V[Vx] = original_Vx - original_Vy;
-
-    // V[0xF] = (V[Vx] > V[Vy]) ? 1 : 0;
-    // V[Vx] -= V[Vy];
+    V[0xF] = (original_Vx >= original_Vy) ? 1 : 0;
 }
 
 void CPU::OP_8xy6(uint16_t opcode) {
     uint8_t Vx = (opcode & 0x0F00) >> 8;
-    // uint8_t Vy = (opcode & 0x00F0) >> 4;
+    uint8_t Vy = (opcode & 0x00F0) >> 4;
 
-    // Original
-    V[0xF] = V[Vx] & 0x1; // Store LSB of Vx in VF
-    V[Vx] >>= 1; // Shift right by 1 (divide by 2)
-    
-    // Modern
-    // V[0xF] = V[Vy] & 0x1;
-    // V[Vx] = V[Vy] >> 1;
+    uint8_t temp = V[Vy] & 0x1;
+    V[Vx] = V[Vy] >> 1; // Shift Vy into Vx
+    V[0xF] = temp;
+    // V[0xF] = V[Vx] & 0x1;
+    // V[Vx] >>= 1; 
 }
 
 void CPU::OP_8xy7(uint16_t opcode) {
     uint8_t Vx = (opcode & 0x0F00) >> 8;
     uint8_t Vy = (opcode & 0x00F0) >> 4;
-    V[Vx] = V[Vy] - V[Vx];
-    V[0xF] = (V[Vy] > V[Vx]) ? 1 : 0;
+
+    uint8_t original_Vx = V[Vx];
+    uint8_t original_Vy = V[Vy];
+    
+    V[Vx] = original_Vy - original_Vx;
+    V[0xF] = (original_Vy >= original_Vx) ? 1 : 0;
 }
 
 void CPU::OP_8xyE(uint16_t opcode) {
     uint8_t Vx = (opcode & 0x0F00) >> 8;
-    // uint8_t Vy = (opcode & 0x00F0) >> 4;
+    uint8_t Vy = (opcode & 0x00F0) >> 4;
 
-    // Original
-    V[0xF] = (V[Vx] & 0x80) >> 7; // Store MSB of Vx in VF
-    V[Vx] <<= 1; // Shift left by 1 (multiply by 2)
+    uint8_t temp = (V[Vy] & 0x80) >> 7;
+    V[Vx] = V[Vy] << 1; // Shift Vy into Vx
+    V[0xF] = temp; // Store MSB of Vx in VF
 
-    // Modern
-    // V[0xF] = (V[Vy] & 0x80) >> 7;
-    // V[Vx] = V[Vy] << 1;
+    // V[0xF] = (V[Vx] & 0x80) >> 7;
+    // V[Vx] <<= 1;
 }
 
 void CPU::OP_9xy0(uint16_t opcode) {
@@ -278,32 +284,34 @@ void CPU::OP_Cxkk(uint16_t opcode) {
 }
 
 void CPU::OP_Dxyn(Memory& memory, Display& display, uint16_t opcode) {
+    // Checks for a drawing "token"
+    if (!display.consume_vblank()) {
+        PC -= 2; // Back up PC to retry next frame
+        return;
+    }
+    
     uint8_t Vx = (opcode & 0x0F00) >> 8;
     uint8_t Vy = (opcode & 0x00F0) >> 4;
     uint8_t height = opcode & 0x000F;
+    // std::cout << "Dxyn: Drawing at x=" << (int)Vx << ", y=" << (int)Vy 
+    //           << ", height=" << (int)height << ", I=" << I << std::endl;
     
-    uint8_t x = V[Vx] % 64;
-    uint8_t y = V[Vy] % 32;
+    uint8_t x = V[Vx];
+    uint8_t y = V[Vy];
     
-    V[0xF] = 0;  // Reset collision flag
-
-    for (int row = 0; row < height; row++) {
-        uint8_t sprite_byte = memory.read(I + row);
-        
-        for (int col = 0; col < 8; col++) {
-            if ((sprite_byte & (0x80 >> col)) != 0) {
-                uint8_t pixel_x = (x + col) % 64;
-                uint8_t pixel_y = (y + row) % 32;
-                // Check if pixel is currently set
-                if (display.get_pixel(pixel_x, pixel_y)) {
-                    V[0xF] = 1;  // Collision detected
-                }
-                
-                display.flip_pixel(pixel_x, pixel_y);
-            }
-        }
+    // Build sprite data from memory
+    uint8_t sprite[16]; // Max height is 15
+    for (int i = 0; i < height; i++) {
+        sprite[i] = memory.read(I + i);
     }
-    display.set_draw_flag();
+    
+    bool collision = display.draw_sprite(x, y, sprite, height);
+
+    // std::cout << "Collision: " << (collision ? "YES" : "NO") << std::endl;
+    
+    V[0xF] = collision ? 1 : 0;
+
+    // std::cout << "VF = " << (int)V[0xF] << std::endl;
 }
 
 void CPU::OP_Ex9E(uint16_t opcode, Input& keys) {
@@ -328,11 +336,25 @@ void CPU::OP_Fx07(uint16_t opcode) {
 
 void CPU::OP_Fx0A(uint16_t opcode, Input& keys) {
     uint8_t Vx = (opcode & 0x0F00) >> 8;
-    keys.reset();
-    waiting_for_key = true;
-    key_register = Vx;
-    PC -= 2; // Stay on this instruction until a key is pressed
-    // If no key is pressed, do not advance the PC
+    
+    // Check if ANY key is currently pressed
+    int pressed_key = -1;
+    for (int i = 0; i < 16; i++) {
+        if (keys.is_pressed(i)) {
+            pressed_key = i;
+            break;
+        }
+    }
+    
+    if (pressed_key != -1) {
+        V[Vx] = pressed_key;
+        waiting_for_key = false;
+        // Proceed to next instruction
+    } else {
+        // No key pressed, stay on instruction
+        waiting_for_key = true;
+        PC -= 2;
+    }
 }
 
 void CPU::OP_Fx15(uint16_t opcode) {
@@ -353,7 +375,9 @@ void CPU::OP_Fx1E(uint16_t opcode) {
 void CPU::OP_Fx29(uint16_t opcode) {
     uint8_t Vx = (opcode & 0x0F00) >> 8;
     uint8_t character = V[Vx] & 0x0F; // Only 0-F are valid characters
-    I = character * 5; // Each character is 5 bytes
+    I = 0x50 + (character * 5); // Each character is 5 bytes
+    // std::cout << "Fx29: Loading font for character " << (int)character 
+    //           << " at I=" << I << std::endl;
 }
 
 void CPU::OP_Fx33(uint16_t opcode, Memory& memory) {
@@ -369,6 +393,8 @@ void CPU::OP_Fx55(uint16_t opcode, Memory& memory) {
         memory.write(I + i, V[i]);
     }
     I += Vx + 1;
+    // std::cout << "Fx55: Storing V0-V" << (int)Vx 
+    //           << " to I=" << I << std::endl;
 }
 
 void CPU::OP_Fx65(uint16_t opcode, Memory& memory) {
@@ -405,12 +431,4 @@ void CPU::set_V(uint8_t index, uint8_t value) {
 
 bool CPU::is_waiting_for_key() const { 
     return waiting_for_key;
-}
-
-void CPU::handle_key_press(uint8_t key) {
-    if (waiting_for_key) {
-        V[key_register] = key;
-        waiting_for_key = false;
-        PC += 2;  // Advance to next instruction
-    }
 }

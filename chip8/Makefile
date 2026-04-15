@@ -16,11 +16,9 @@ obj/%.o: src/%.cpp
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 # WebAssembly compilation
-# WebAssembly compilation
 EMCC = emcc
-WASM_FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s EXCEPTION_CATCHING_ALLOWED=all
-
-WASM_EXPORTED_FUNCTIONS = ['_load_rom','_emulate_cycle','_should_draw','_get_display_buffer','_get_display_width','_get_display_height','_key_down','_key_up','_reset']
+WASM_FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_SDL=2 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -s EXCEPTION_CATCHING_ALLOWED=all -s SINGLE_FILE=1 -s EXPORT_ALL=1
+WASM_EXPORTED_FUNCTIONS = ['_malloc','_free','_load_rom','_emulate_cycle','_should_draw','_get_display_buffer','_get_display_width','_get_display_height','_key_down','_key_up','_reset']
 WASM_EXPORTED_RUNTIME_METHODS = ['ccall','cwrap']
 
 WASM_TARGET = wasm/chip8.js

@@ -1,17 +1,63 @@
+// This code implements the `-sMODULARIZE` settings by taking the generated
+// JS program code (INNER_JS_CODE) and wrapping it in a factory function.
 
-var Module = (() => {
-  var _scriptDir = import.meta.url;
-  
-  return (
-function(Module) {
-  Module = Module || {};
+// When targeting node and ES6 we use `await import ..` in the generated code
+// so the outer function needs to be marked as async.
+async function Module(moduleArg = {}) {
+  var moduleRtn;
 
+// include: shell.js
+// include: minimum_runtime_check.js
+(function() {
+  // "30.0.0" -> 300000
+  function humanReadableVersionToPacked(str) {
+    str = str.split('-')[0]; // Remove any trailing part from e.g. "12.53.3-alpha"
+    var vers = str.split('.').slice(0, 3);
+    while(vers.length < 3) vers.push('00');
+    vers = vers.map((n, i, arr) => n.padStart(2, '0'));
+    return vers.join('');
+  }
+  // 300000 -> "30.0.0"
+  var packedVersionToHumanReadable = n => [n / 10000 | 0, (n / 100 | 0) % 100, n % 100].join('.');
 
+  var TARGET_NOT_SUPPORTED = 2147483647;
 
+  // Note: We use a typeof check here instead of optional chaining using
+  // globalThis because older browsers might not have globalThis defined.
+  var currentNodeVersion = typeof process !== 'undefined' && process.versions?.node ? humanReadableVersionToPacked(process.versions.node) : TARGET_NOT_SUPPORTED;
+  if (currentNodeVersion < TARGET_NOT_SUPPORTED) {
+    throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
+  }
+  if (currentNodeVersion < 2147483647) {
+    throw new Error(`This emscripten-generated code requires node v${ packedVersionToHumanReadable(2147483647) } (detected v${packedVersionToHumanReadable(currentNodeVersion)})`);
+  }
+
+  var userAgent = typeof navigator !== 'undefined' && navigator.userAgent;
+  if (!userAgent) {
+    return;
+  }
+
+  var currentSafariVersion = userAgent.includes("Safari/") && !userAgent.includes("Chrome/") && userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/) ? humanReadableVersionToPacked(userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentSafariVersion < 150000) {
+    throw new Error(`This emscripten-generated code requires Safari v${ packedVersionToHumanReadable(150000) } (detected v${currentSafariVersion})`);
+  }
+
+  var currentFirefoxVersion = userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentFirefoxVersion < 79) {
+    throw new Error(`This emscripten-generated code requires Firefox v79 (detected v${currentFirefoxVersion})`);
+  }
+
+  var currentChromeVersion = userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentChromeVersion < 85) {
+    throw new Error(`This emscripten-generated code requires Chrome v85 (detected v${currentChromeVersion})`);
+  }
+})();
+
+// end include: minimum_runtime_check.js
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
 // 1. Not defined. We create it here
-// 2. A function parameter, function(Module) { ..generated code.. }
+// 2. A function parameter, function(moduleArg) => Promise<Module>
 // 3. pre-run appended it, var Module = {}; ..generated code..
 // 4. External script tag defines var Module.
 // We need to check if Module already exists (e.g. case 3 above).
@@ -21,93 +67,22 @@ function(Module) {
 // after the generated code, you will need to define   var Module = {};
 // before the code. Then that object will be used in the code, and you
 // can continue to use Module afterwards as well.
-var Module = typeof Module != 'undefined' ? Module : {};
+var Module = moduleArg;
 
-// See https://caniuse.com/mdn-javascript_builtins_object_assign
+// Determine the runtime environment we are in. You can customize this by
+// setting the ENVIRONMENT setting at compile time (see settings.js).
 
-// Set up the promise that indicates the Module is initialized
-var readyPromiseResolve, readyPromiseReject;
-Module['ready'] = new Promise(function(resolve, reject) {
-  readyPromiseResolve = resolve;
-  readyPromiseReject = reject;
-});
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_load_rom')) {
-        Object.defineProperty(Module['ready'], '_load_rom', { configurable: true, get: function() { abort('You are getting _load_rom on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_load_rom', { configurable: true, set: function() { abort('You are setting _load_rom on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_emulate_cycle')) {
-        Object.defineProperty(Module['ready'], '_emulate_cycle', { configurable: true, get: function() { abort('You are getting _emulate_cycle on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_emulate_cycle', { configurable: true, set: function() { abort('You are setting _emulate_cycle on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_should_draw')) {
-        Object.defineProperty(Module['ready'], '_should_draw', { configurable: true, get: function() { abort('You are getting _should_draw on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_should_draw', { configurable: true, set: function() { abort('You are setting _should_draw on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_get_display_buffer')) {
-        Object.defineProperty(Module['ready'], '_get_display_buffer', { configurable: true, get: function() { abort('You are getting _get_display_buffer on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_get_display_buffer', { configurable: true, set: function() { abort('You are setting _get_display_buffer on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_get_display_width')) {
-        Object.defineProperty(Module['ready'], '_get_display_width', { configurable: true, get: function() { abort('You are getting _get_display_width on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_get_display_width', { configurable: true, set: function() { abort('You are setting _get_display_width on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_get_display_height')) {
-        Object.defineProperty(Module['ready'], '_get_display_height', { configurable: true, get: function() { abort('You are getting _get_display_height on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_get_display_height', { configurable: true, set: function() { abort('You are setting _get_display_height on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_key_down')) {
-        Object.defineProperty(Module['ready'], '_key_down', { configurable: true, get: function() { abort('You are getting _key_down on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_key_down', { configurable: true, set: function() { abort('You are setting _key_down on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_key_up')) {
-        Object.defineProperty(Module['ready'], '_key_up', { configurable: true, get: function() { abort('You are getting _key_up on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_key_up', { configurable: true, set: function() { abort('You are setting _key_up on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_reset')) {
-        Object.defineProperty(Module['ready'], '_reset', { configurable: true, get: function() { abort('You are getting _reset on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '_reset', { configurable: true, set: function() { abort('You are setting _reset on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], '___stdio_exit')) {
-        Object.defineProperty(Module['ready'], '___stdio_exit', { configurable: true, get: function() { abort('You are getting ___stdio_exit on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], '___stdio_exit', { configurable: true, set: function() { abort('You are setting ___stdio_exit on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
-
-      if (!Object.getOwnPropertyDescriptor(Module['ready'], 'onRuntimeInitialized')) {
-        Object.defineProperty(Module['ready'], 'onRuntimeInitialized', { configurable: true, get: function() { abort('You are getting onRuntimeInitialized on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-        Object.defineProperty(Module['ready'], 'onRuntimeInitialized', { configurable: true, set: function() { abort('You are setting onRuntimeInitialized on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
-      }
-    
+// Attempt to auto-detect the environment
+var ENVIRONMENT_IS_WEB = !!globalThis.window;
+var ENVIRONMENT_IS_WORKER = !!globalThis.WorkerGlobalScope;
+// N.b. Electron.js environment is simultaneously a NODE-environment, but
+// also a web environment.
+var ENVIRONMENT_IS_NODE = globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
+var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// {{PRE_JSES}}
 
-// Sometimes an existing Module object exists with properties
-// meant to overwrite the default module functionality. Here
-// we collect those properties and reapply _after_ we configure
-// the current environment's defaults to avoid having to be so
-// defensive during initialization.
-var moduleOverrides = Object.assign({}, Module);
 
 var arguments_ = [];
 var thisProgram = './this.program';
@@ -115,17 +90,7 @@ var quit_ = (status, toThrow) => {
   throw toThrow;
 };
 
-// Determine the runtime environment we are in. You can customize this by
-// setting the ENVIRONMENT setting at compile time (see settings.js).
-
-var ENVIRONMENT_IS_WEB = true;
-var ENVIRONMENT_IS_WORKER = false;
-var ENVIRONMENT_IS_NODE = false;
-var ENVIRONMENT_IS_SHELL = false;
-
-if (Module['ENVIRONMENT']) {
-  throw new Error('Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -s ENVIRONMENT=web or -s ENVIRONMENT=node)');
-}
+var _scriptName = import.meta.url;
 
 // `/` should be present at the end if `scriptDirectory` is not empty
 var scriptDirectory = '';
@@ -137,78 +102,9 @@ function locateFile(path) {
 }
 
 // Hooks that are implemented differently in different runtime environments.
-var read_,
-    readAsync,
-    readBinary,
-    setWindowTitle;
-
-// Normally we don't log exceptions but instead let them bubble out the top
-// level where the embedding environment (e.g. the browser) can handle
-// them.
-// However under v8 and node we sometimes exit the process direcly in which case
-// its up to use us to log the exception before exiting.
-// If we fix https://github.com/emscripten-core/emscripten/issues/15080
-// this may no longer be needed under node.
-function logExceptionOnExit(e) {
-  if (e instanceof ExitStatus) return;
-  let toLog = e;
-  if (e && typeof e == 'object' && e.stack) {
-    toLog = [e, e.stack];
-  }
-  err('exiting due to exception: ' + toLog);
-}
+var readAsync, readBinary;
 
 if (ENVIRONMENT_IS_SHELL) {
-
-  if ((typeof process == 'object' && typeof require === 'function') || typeof window == 'object' || typeof importScripts == 'function') throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
-
-  if (typeof read != 'undefined') {
-    read_ = function shell_read(f) {
-      const data = tryParseAsDataURI(f);
-      if (data) {
-        return intArrayToString(data);
-      }
-      return read(f);
-    };
-  }
-
-  readBinary = function readBinary(f) {
-    let data;
-    data = tryParseAsDataURI(f);
-    if (data) {
-      return data;
-    }
-    if (typeof readbuffer == 'function') {
-      return new Uint8Array(readbuffer(f));
-    }
-    data = read(f, 'binary');
-    assert(typeof data == 'object');
-    return data;
-  };
-
-  readAsync = function readAsync(f, onload, onerror) {
-    setTimeout(() => onload(readBinary(f)), 0);
-  };
-
-  if (typeof scriptArgs != 'undefined') {
-    arguments_ = scriptArgs;
-  } else if (typeof arguments != 'undefined') {
-    arguments_ = arguments;
-  }
-
-  if (typeof quit == 'function') {
-    quit_ = (status, toThrow) => {
-      logExceptionOnExit(toThrow);
-      quit(status);
-    };
-  }
-
-  if (typeof print != 'undefined') {
-    // Prefer to use print/printErr where they exist, as they usually work better.
-    if (typeof console == 'undefined') console = /** @type{!Console} */({});
-    console.log = /** @type{!function(this:Console, ...*): undefined} */ (print);
-    console.warn = console.error = /** @type{!function(this:Console, ...*): undefined} */ (typeof printErr != 'undefined' ? printErr : print);
-  }
 
 } else
 
@@ -216,412 +112,57 @@ if (ENVIRONMENT_IS_SHELL) {
 // Node.js workers are detected as a combination of ENVIRONMENT_IS_WORKER and
 // ENVIRONMENT_IS_NODE.
 if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
-  if (ENVIRONMENT_IS_WORKER) { // Check worker, not web, since window could be polyfilled
-    scriptDirectory = self.location.href;
-  } else if (typeof document != 'undefined' && document.currentScript) { // web
-    scriptDirectory = document.currentScript.src;
-  }
-  // When MODULARIZE, this JS may be executed later, after document.currentScript
-  // is gone, so we saved it, and we use it here instead of any other info.
-  if (_scriptDir) {
-    scriptDirectory = _scriptDir;
-  }
-  // blob urls look like blob:http://site.com/etc/etc and we cannot infer anything from them.
-  // otherwise, slice off the final part of the url to find the script directory.
-  // if scriptDirectory does not contain a slash, lastIndexOf will return -1,
-  // and scriptDirectory will correctly be replaced with an empty string.
-  // If scriptDirectory contains a query (starting with ?) or a fragment (starting with #),
-  // they are removed because they could contain a slash.
-  if (scriptDirectory.indexOf('blob:') !== 0) {
-    scriptDirectory = scriptDirectory.substr(0, scriptDirectory.replace(/[?#].*/, "").lastIndexOf('/')+1);
-  } else {
-    scriptDirectory = '';
+  try {
+    scriptDirectory = new URL('.', _scriptName).href; // includes trailing slash
+  } catch {
+    // Must be a `blob:` or `data:` URL (e.g. `blob:http://site.com/etc/etc`), we cannot
+    // infer anything from them.
   }
 
-  if (!(typeof window == 'object' || typeof importScripts == 'function')) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
+  if (!(globalThis.window || globalThis.WorkerGlobalScope)) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
 
-  // Differentiate the Web Worker from the Node Worker case, as reading must
-  // be done differently.
   {
 // include: web_or_worker_shell_read.js
-
-
-  read_ = (url) => {
-    try {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, false);
-      xhr.send(null);
-      return xhr.responseText;
-    } catch (err) {
-      var data = tryParseAsDataURI(url);
-      if (data) {
-        return intArrayToString(data);
-      }
-      throw err;
+readAsync = async (url) => {
+    assert(!isFileURI(url), "readAsync does not work with file:// URLs");
+    var response = await fetch(url, { credentials: 'same-origin' });
+    if (response.ok) {
+      return response.arrayBuffer();
     }
-  }
-
-  if (ENVIRONMENT_IS_WORKER) {
-    readBinary = (url) => {
-      try {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, false);
-        xhr.responseType = 'arraybuffer';
-        xhr.send(null);
-        return new Uint8Array(/** @type{!ArrayBuffer} */(xhr.response));
-      } catch (err) {
-        var data = tryParseAsDataURI(url);
-        if (data) {
-          return data;
-        }
-        throw err;
-      }
-    };
-  }
-
-  readAsync = (url, onload, onerror) => {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'arraybuffer';
-    xhr.onload = () => {
-      if (xhr.status == 200 || (xhr.status == 0 && xhr.response)) { // file URLs can return 0
-        onload(xhr.response);
-        return;
-      }
-      var data = tryParseAsDataURI(url);
-      if (data) {
-        onload(data.buffer);
-        return;
-      }
-      onerror();
-    };
-    xhr.onerror = onerror;
-    xhr.send(null);
-  }
-
+    throw new Error(response.status + ' : ' + response.url);
+  };
 // end include: web_or_worker_shell_read.js
   }
-
-  setWindowTitle = (title) => document.title = title;
 } else
 {
   throw new Error('environment detection error');
 }
 
-var out = Module['print'] || console.log.bind(console);
-var err = Module['printErr'] || console.warn.bind(console);
+var out = console.log.bind(console);
+var err = console.error.bind(console);
 
-// Merge back in the overrides
-Object.assign(Module, moduleOverrides);
-// Free the object hierarchy contained in the overrides, this lets the GC
-// reclaim data used e.g. in memoryInitializerRequest, which is a large typed array.
-moduleOverrides = null;
-
-// Emit code to handle expected values on the Module object. This applies Module.x
-// to the proper local x. This has two benefits: first, we only emit it if it is
-// expected to arrive, and second, by using a local everywhere else that can be
-// minified.
-
-if (Module['arguments']) arguments_ = Module['arguments'];
-if (!Object.getOwnPropertyDescriptor(Module, 'arguments')) {
-  Object.defineProperty(Module, 'arguments', {
-    configurable: true,
-    get: function() {
-      abort('Module.arguments has been replaced with plain arguments_ (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-if (Module['thisProgram']) thisProgram = Module['thisProgram'];
-if (!Object.getOwnPropertyDescriptor(Module, 'thisProgram')) {
-  Object.defineProperty(Module, 'thisProgram', {
-    configurable: true,
-    get: function() {
-      abort('Module.thisProgram has been replaced with plain thisProgram (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-if (Module['quit']) quit_ = Module['quit'];
-if (!Object.getOwnPropertyDescriptor(Module, 'quit')) {
-  Object.defineProperty(Module, 'quit', {
-    configurable: true,
-    get: function() {
-      abort('Module.quit has been replaced with plain quit_ (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-// perform assertions in shell.js after we set up out() and err(), as otherwise if an assertion fails it cannot print the message
-// Assertions on removed incoming Module JS APIs.
-assert(typeof Module['memoryInitializerPrefixURL'] == 'undefined', 'Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead');
-assert(typeof Module['pthreadMainPrefixURL'] == 'undefined', 'Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead');
-assert(typeof Module['cdInitializerPrefixURL'] == 'undefined', 'Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead');
-assert(typeof Module['filePackagePrefixURL'] == 'undefined', 'Module.filePackagePrefixURL option was removed, use Module.locateFile instead');
-assert(typeof Module['read'] == 'undefined', 'Module.read option was removed (modify read_ in JS)');
-assert(typeof Module['readAsync'] == 'undefined', 'Module.readAsync option was removed (modify readAsync in JS)');
-assert(typeof Module['readBinary'] == 'undefined', 'Module.readBinary option was removed (modify readBinary in JS)');
-assert(typeof Module['setWindowTitle'] == 'undefined', 'Module.setWindowTitle option was removed (modify setWindowTitle in JS)');
-assert(typeof Module['TOTAL_MEMORY'] == 'undefined', 'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY');
-
-if (!Object.getOwnPropertyDescriptor(Module, 'read')) {
-  Object.defineProperty(Module, 'read', {
-    configurable: true,
-    get: function() {
-      abort('Module.read has been replaced with plain read_ (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-if (!Object.getOwnPropertyDescriptor(Module, 'readAsync')) {
-  Object.defineProperty(Module, 'readAsync', {
-    configurable: true,
-    get: function() {
-      abort('Module.readAsync has been replaced with plain readAsync (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-if (!Object.getOwnPropertyDescriptor(Module, 'readBinary')) {
-  Object.defineProperty(Module, 'readBinary', {
-    configurable: true,
-    get: function() {
-      abort('Module.readBinary has been replaced with plain readBinary (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-if (!Object.getOwnPropertyDescriptor(Module, 'setWindowTitle')) {
-  Object.defineProperty(Module, 'setWindowTitle', {
-    configurable: true,
-    get: function() {
-      abort('Module.setWindowTitle has been replaced with plain setWindowTitle (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
 var IDBFS = 'IDBFS is no longer included by default; build with -lidbfs.js';
 var PROXYFS = 'PROXYFS is no longer included by default; build with -lproxyfs.js';
 var WORKERFS = 'WORKERFS is no longer included by default; build with -lworkerfs.js';
+var FETCHFS = 'FETCHFS is no longer included by default; build with -lfetchfs.js';
+var ICASEFS = 'ICASEFS is no longer included by default; build with -licasefs.js';
+var JSFILEFS = 'JSFILEFS is no longer included by default; build with -ljsfilefs.js';
+var OPFS = 'OPFS is no longer included by default; build with -lopfs.js';
+
 var NODEFS = 'NODEFS is no longer included by default; build with -lnodefs.js';
 
+// perform assertions in shell.js after we set up out() and err(), as otherwise
+// if an assertion fails it cannot print the message
 
-assert(!ENVIRONMENT_IS_WORKER, "worker environment detected but not enabled at build time.  Add 'worker' to `-s ENVIRONMENT` to enable.");
+assert(!ENVIRONMENT_IS_WORKER, 'worker environment detected but not enabled at build time.  Add `worker` to `-sENVIRONMENT` to enable.');
 
-assert(!ENVIRONMENT_IS_NODE, "node environment detected but not enabled at build time.  Add 'node' to `-s ENVIRONMENT` to enable.");
+assert(!ENVIRONMENT_IS_NODE, 'node environment detected but not enabled at build time.  Add `node` to `-sENVIRONMENT` to enable.');
 
-assert(!ENVIRONMENT_IS_SHELL, "shell environment detected but not enabled at build time.  Add 'shell' to `-s ENVIRONMENT` to enable.");
+assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at build time.  Add `shell` to `-sENVIRONMENT` to enable.');
 
+// end include: shell.js
 
-
-
-var STACK_ALIGN = 16;
-var POINTER_SIZE = 4;
-
-function getNativeTypeSize(type) {
-  switch (type) {
-    case 'i1': case 'i8': return 1;
-    case 'i16': return 2;
-    case 'i32': return 4;
-    case 'i64': return 8;
-    case 'float': return 4;
-    case 'double': return 8;
-    default: {
-      if (type[type.length - 1] === '*') {
-        return POINTER_SIZE;
-      } else if (type[0] === 'i') {
-        const bits = Number(type.substr(1));
-        assert(bits % 8 === 0, 'getNativeTypeSize invalid bits ' + bits + ', type ' + type);
-        return bits / 8;
-      } else {
-        return 0;
-      }
-    }
-  }
-}
-
-function warnOnce(text) {
-  if (!warnOnce.shown) warnOnce.shown = {};
-  if (!warnOnce.shown[text]) {
-    warnOnce.shown[text] = 1;
-    err(text);
-  }
-}
-
-// include: runtime_functions.js
-
-
-// Wraps a JS function as a wasm function with a given signature.
-function convertJsFunctionToWasm(func, sig) {
-
-  // If the type reflection proposal is available, use the new
-  // "WebAssembly.Function" constructor.
-  // Otherwise, construct a minimal wasm module importing the JS function and
-  // re-exporting it.
-  if (typeof WebAssembly.Function == "function") {
-    var typeNames = {
-      'i': 'i32',
-      'j': 'i64',
-      'f': 'f32',
-      'd': 'f64'
-    };
-    var type = {
-      parameters: [],
-      results: sig[0] == 'v' ? [] : [typeNames[sig[0]]]
-    };
-    for (var i = 1; i < sig.length; ++i) {
-      type.parameters.push(typeNames[sig[i]]);
-    }
-    return new WebAssembly.Function(type, func);
-  }
-
-  // The module is static, with the exception of the type section, which is
-  // generated based on the signature passed in.
-  var typeSection = [
-    0x01, // id: section,
-    0x00, // length: 0 (placeholder)
-    0x01, // count: 1
-    0x60, // form: func
-  ];
-  var sigRet = sig.slice(0, 1);
-  var sigParam = sig.slice(1);
-  var typeCodes = {
-    'i': 0x7f, // i32
-    'j': 0x7e, // i64
-    'f': 0x7d, // f32
-    'd': 0x7c, // f64
-  };
-
-  // Parameters, length + signatures
-  typeSection.push(sigParam.length);
-  for (var i = 0; i < sigParam.length; ++i) {
-    typeSection.push(typeCodes[sigParam[i]]);
-  }
-
-  // Return values, length + signatures
-  // With no multi-return in MVP, either 0 (void) or 1 (anything else)
-  if (sigRet == 'v') {
-    typeSection.push(0x00);
-  } else {
-    typeSection = typeSection.concat([0x01, typeCodes[sigRet]]);
-  }
-
-  // Write the overall length of the type section back into the section header
-  // (excepting the 2 bytes for the section id and length)
-  typeSection[1] = typeSection.length - 2;
-
-  // Rest of the module is static
-  var bytes = new Uint8Array([
-    0x00, 0x61, 0x73, 0x6d, // magic ("\0asm")
-    0x01, 0x00, 0x00, 0x00, // version: 1
-  ].concat(typeSection, [
-    0x02, 0x07, // import section
-      // (import "e" "f" (func 0 (type 0)))
-      0x01, 0x01, 0x65, 0x01, 0x66, 0x00, 0x00,
-    0x07, 0x05, // export section
-      // (export "f" (func 0 (type 0)))
-      0x01, 0x01, 0x66, 0x00, 0x00,
-  ]));
-
-   // We can compile this wasm module synchronously because it is very small.
-  // This accepts an import (at "e.f"), that it reroutes to an export (at "f")
-  var module = new WebAssembly.Module(bytes);
-  var instance = new WebAssembly.Instance(module, {
-    'e': {
-      'f': func
-    }
-  });
-  var wrappedFunc = instance.exports['f'];
-  return wrappedFunc;
-}
-
-var freeTableIndexes = [];
-
-// Weak map of functions in the table to their indexes, created on first use.
-var functionsInTableMap;
-
-function getEmptyTableSlot() {
-  // Reuse a free index if there is one, otherwise grow.
-  if (freeTableIndexes.length) {
-    return freeTableIndexes.pop();
-  }
-  // Grow the table
-  try {
-    wasmTable.grow(1);
-  } catch (err) {
-    if (!(err instanceof RangeError)) {
-      throw err;
-    }
-    throw 'Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.';
-  }
-  return wasmTable.length - 1;
-}
-
-function updateTableMap(offset, count) {
-  for (var i = offset; i < offset + count; i++) {
-    var item = getWasmTableEntry(i);
-    // Ignore null values.
-    if (item) {
-      functionsInTableMap.set(item, i);
-    }
-  }
-}
-
-/**
- * Add a function to the table.
- * 'sig' parameter is required if the function being added is a JS function.
- * @param {string=} sig
- */
-function addFunction(func, sig) {
-  assert(typeof func != 'undefined');
-
-  // Check if the function is already in the table, to ensure each function
-  // gets a unique index. First, create the map if this is the first use.
-  if (!functionsInTableMap) {
-    functionsInTableMap = new WeakMap();
-    updateTableMap(0, wasmTable.length);
-  }
-  if (functionsInTableMap.has(func)) {
-    return functionsInTableMap.get(func);
-  }
-
-  // It's not in the table, add it now.
-
-  var ret = getEmptyTableSlot();
-
-  // Set the new value.
-  try {
-    // Attempting to call this with JS function will cause of table.set() to fail
-    setWasmTableEntry(ret, func);
-  } catch (err) {
-    if (!(err instanceof TypeError)) {
-      throw err;
-    }
-    assert(typeof sig != 'undefined', 'Missing signature argument to addFunction: ' + func);
-    var wrapped = convertJsFunctionToWasm(func, sig);
-    setWasmTableEntry(ret, wrapped);
-  }
-
-  functionsInTableMap.set(func, ret);
-
-  return ret;
-}
-
-function removeFunction(index) {
-  functionsInTableMap.delete(getWasmTableEntry(index));
-  freeTableIndexes.push(index);
-}
-
-// end include: runtime_functions.js
-// include: runtime_debug.js
-
-
-// end include: runtime_debug.js
-var tempRet0 = 0;
-var setTempRet0 = (value) => { tempRet0 = value; };
-var getTempRet0 = () => tempRet0;
-
-
-
+// include: preamble.js
 // === Preamble library stuff ===
 
 // Documentation for the public APIs defined in this file must be updated in:
@@ -633,75 +174,12 @@ var getTempRet0 = () => tempRet0;
 //    is up at http://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html
 
 var wasmBinary;
-if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
-if (!Object.getOwnPropertyDescriptor(Module, 'wasmBinary')) {
-  Object.defineProperty(Module, 'wasmBinary', {
-    configurable: true,
-    get: function() {
-      abort('Module.wasmBinary has been replaced with plain wasmBinary (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-var noExitRuntime = Module['noExitRuntime'] || true;
-if (!Object.getOwnPropertyDescriptor(Module, 'noExitRuntime')) {
-  Object.defineProperty(Module, 'noExitRuntime', {
-    configurable: true,
-    get: function() {
-      abort('Module.noExitRuntime has been replaced with plain noExitRuntime (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
+
+if (!globalThis.WebAssembly) {
+  err('no native wasm support detected');
 }
 
-if (typeof WebAssembly != 'object') {
-  abort('no native wasm support detected');
-}
-
-// include: runtime_safe_heap.js
-
-
-// In MINIMAL_RUNTIME, setValue() and getValue() are only available when building with safe heap enabled, for heap safety checking.
-// In traditional runtime, setValue() and getValue() are always available (although their use is highly discouraged due to perf penalties)
-
-/** @param {number} ptr
-    @param {number} value
-    @param {string} type
-    @param {number|boolean=} noSafe */
-function setValue(ptr, value, type = 'i8', noSafe) {
-  if (type.charAt(type.length-1) === '*') type = 'i32';
-    switch (type) {
-      case 'i1': HEAP8[((ptr)>>0)] = value; break;
-      case 'i8': HEAP8[((ptr)>>0)] = value; break;
-      case 'i16': HEAP16[((ptr)>>1)] = value; break;
-      case 'i32': HEAP32[((ptr)>>2)] = value; break;
-      case 'i64': (tempI64 = [value>>>0,(tempDouble=value,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math.min((+(Math.floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[((ptr)>>2)] = tempI64[0],HEAP32[(((ptr)+(4))>>2)] = tempI64[1]); break;
-      case 'float': HEAPF32[((ptr)>>2)] = value; break;
-      case 'double': HEAPF64[((ptr)>>3)] = value; break;
-      default: abort('invalid type for setValue: ' + type);
-    }
-}
-
-/** @param {number} ptr
-    @param {string} type
-    @param {number|boolean=} noSafe */
-function getValue(ptr, type = 'i8', noSafe) {
-  if (type.charAt(type.length-1) === '*') type = 'i32';
-    switch (type) {
-      case 'i1': return HEAP8[((ptr)>>0)];
-      case 'i8': return HEAP8[((ptr)>>0)];
-      case 'i16': return HEAP16[((ptr)>>1)];
-      case 'i32': return HEAP32[((ptr)>>2)];
-      case 'i64': return HEAP32[((ptr)>>2)];
-      case 'float': return HEAPF32[((ptr)>>2)];
-      case 'double': return Number(HEAPF64[((ptr)>>3)]);
-      default: abort('invalid type for getValue: ' + type);
-    }
-  return null;
-}
-
-// end include: runtime_safe_heap.js
 // Wasm globals
-
-var wasmMemory;
 
 //========================================
 // Runtime essentials
@@ -712,10 +190,14 @@ var wasmMemory;
 var ABORT = false;
 
 // set by exit() and abort().  Passed to 'onExit' handler.
-// NOTE: This is also used as the process return code code in shell environments
+// NOTE: This is also used as the process return code in shell environments
 // but only when noExitRuntime is false.
 var EXITSTATUS;
 
+// In STRICT mode, we only define assert() when ASSERTIONS is set.  i.e. we
+// don't define it at all in release modes.  This matches the behaviour of
+// MINIMAL_RUNTIME.
+// TODO(sbc): Make this the default even without STRICT enabled.
 /** @type {function(*, string=)} */
 function assert(condition, text) {
   if (!condition) {
@@ -723,656 +205,220 @@ function assert(condition, text) {
   }
 }
 
-// Returns the C function with a specified identifier (for C++, you need to do manual name mangling)
-function getCFunc(ident) {
-  var func = Module['_' + ident]; // closure exported function
-  assert(func, 'Cannot call unknown function ' + ident + ', make sure it is exported');
-  return func;
-}
-
-// C calling interface.
-/** @param {string|null=} returnType
-    @param {Array=} argTypes
-    @param {Arguments|Array=} args
-    @param {Object=} opts */
-function ccall(ident, returnType, argTypes, args, opts) {
-  // For fast lookup of conversion functions
-  var toC = {
-    'string': function(str) {
-      var ret = 0;
-      if (str !== null && str !== undefined && str !== 0) { // null string
-        // at most 4 bytes per UTF-8 code point, +1 for the trailing '\0'
-        var len = (str.length << 2) + 1;
-        ret = stackAlloc(len);
-        stringToUTF8(str, ret, len);
-      }
-      return ret;
-    },
-    'array': function(arr) {
-      var ret = stackAlloc(arr.length);
-      writeArrayToMemory(arr, ret);
-      return ret;
-    }
-  };
-
-  function convertReturnValue(ret) {
-    if (returnType === 'string') return UTF8ToString(ret);
-    if (returnType === 'boolean') return Boolean(ret);
-    return ret;
-  }
-
-  var func = getCFunc(ident);
-  var cArgs = [];
-  var stack = 0;
-  assert(returnType !== 'array', 'Return type should not be "array".');
-  if (args) {
-    for (var i = 0; i < args.length; i++) {
-      var converter = toC[argTypes[i]];
-      if (converter) {
-        if (stack === 0) stack = stackSave();
-        cArgs[i] = converter(args[i]);
-      } else {
-        cArgs[i] = args[i];
-      }
-    }
-  }
-  var ret = func.apply(null, cArgs);
-  function onDone(ret) {
-    if (stack !== 0) stackRestore(stack);
-    return convertReturnValue(ret);
-  }
-
-  ret = onDone(ret);
-  return ret;
-}
-
-/** @param {string=} returnType
-    @param {Array=} argTypes
-    @param {Object=} opts */
-function cwrap(ident, returnType, argTypes, opts) {
-  return function() {
-    return ccall(ident, returnType, argTypes, arguments, opts);
-  }
-}
-
 // We used to include malloc/free by default in the past. Show a helpful error in
 // builds with assertions.
 
-// include: runtime_legacy.js
-
-
-var ALLOC_NORMAL = 0; // Tries to use _malloc()
-var ALLOC_STACK = 1; // Lives for the duration of the current function call
-
 /**
- * allocate(): This function is no longer used by emscripten but is kept around to avoid
- *             breaking external users.
- *             You should normally not use allocate(), and instead allocate
- *             memory using _malloc()/stackAlloc(), initialize it with
- *             setValue(), and so forth.
- * @param {(Uint8Array|Array<number>)} slab: An array of data.
- * @param {number=} allocator : How to allocate memory, see ALLOC_*
+ * Indicates whether filename is delivered via file protocol (as opposed to http/https)
+ * @noinline
  */
-function allocate(slab, allocator) {
-  var ret;
-  assert(typeof allocator == 'number', 'allocate no longer takes a type argument')
-  assert(typeof slab != 'number', 'allocate no longer takes a number as arg0')
+var isFileURI = (filename) => filename.startsWith('file://');
 
-  if (allocator == ALLOC_STACK) {
-    ret = stackAlloc(slab.length);
-  } else {
-    ret = _malloc(slab.length);
-  }
-
-  if (!slab.subarray && !slab.slice) {
-    slab = new Uint8Array(slab);
-  }
-  HEAPU8.set(slab, ret);
-  return ret;
-}
-
-// end include: runtime_legacy.js
-// include: runtime_strings.js
-
-
-// runtime_strings.js: Strings related runtime functions that are part of both MINIMAL_RUNTIME and regular runtime.
-
-// Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the given array that contains uint8 values, returns
-// a copy of that string as a Javascript String object.
-
-var UTF8Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf8') : undefined;
-
-/**
- * @param {number} idx
- * @param {number=} maxBytesToRead
- * @return {string}
- */
-function UTF8ArrayToString(heap, idx, maxBytesToRead) {
-  var endIdx = idx + maxBytesToRead;
-  var endPtr = idx;
-  // TextDecoder needs to know the byte length in advance, it doesn't stop on null terminator by itself.
-  // Also, use the length info to avoid running tiny strings through TextDecoder, since .subarray() allocates garbage.
-  // (As a tiny code save trick, compare endPtr against endIdx using a negation, so that undefined means Infinity)
-  while (heap[endPtr] && !(endPtr >= endIdx)) ++endPtr;
-
-  if (endPtr - idx > 16 && heap.subarray && UTF8Decoder) {
-    return UTF8Decoder.decode(heap.subarray(idx, endPtr));
-  } else {
-    var str = '';
-    // If building with TextDecoder, we have already computed the string length above, so test loop end condition against that
-    while (idx < endPtr) {
-      // For UTF8 byte structure, see:
-      // http://en.wikipedia.org/wiki/UTF-8#Description
-      // https://www.ietf.org/rfc/rfc2279.txt
-      // https://tools.ietf.org/html/rfc3629
-      var u0 = heap[idx++];
-      if (!(u0 & 0x80)) { str += String.fromCharCode(u0); continue; }
-      var u1 = heap[idx++] & 63;
-      if ((u0 & 0xE0) == 0xC0) { str += String.fromCharCode(((u0 & 31) << 6) | u1); continue; }
-      var u2 = heap[idx++] & 63;
-      if ((u0 & 0xF0) == 0xE0) {
-        u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
-      } else {
-        if ((u0 & 0xF8) != 0xF0) warnOnce('Invalid UTF-8 leading byte 0x' + u0.toString(16) + ' encountered when deserializing a UTF-8 string in wasm memory to a JS string!');
-        u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heap[idx++] & 63);
-      }
-
-      if (u0 < 0x10000) {
-        str += String.fromCharCode(u0);
-      } else {
-        var ch = u0 - 0x10000;
-        str += String.fromCharCode(0xD800 | (ch >> 10), 0xDC00 | (ch & 0x3FF));
-      }
-    }
-  }
-  return str;
-}
-
-// Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the emscripten HEAP, returns a
-// copy of that string as a Javascript String object.
-// maxBytesToRead: an optional length that specifies the maximum number of bytes to read. You can omit
-//                 this parameter to scan the string until the first \0 byte. If maxBytesToRead is
-//                 passed, and the string at [ptr, ptr+maxBytesToReadr[ contains a null byte in the
-//                 middle, then the string will cut short at that byte index (i.e. maxBytesToRead will
-//                 not produce a string of exact length [ptr, ptr+maxBytesToRead[)
-//                 N.B. mixing frequent uses of UTF8ToString() with and without maxBytesToRead may
-//                 throw JS JIT optimizations off, so it is worth to consider consistently using one
-//                 style or the other.
-/**
- * @param {number} ptr
- * @param {number=} maxBytesToRead
- * @return {string}
- */
-function UTF8ToString(ptr, maxBytesToRead) {
-  ;
-  return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead) : '';
-}
-
-// Copies the given Javascript String object 'str' to the given byte array at address 'outIdx',
-// encoded in UTF8 form and null-terminated. The copy will require at most str.length*4+1 bytes of space in the HEAP.
-// Use the function lengthBytesUTF8 to compute the exact number of bytes (excluding null terminator) that this function will write.
-// Parameters:
-//   str: the Javascript string to copy.
-//   heap: the array to copy to. Each index in this array is assumed to be one 8-byte element.
-//   outIdx: The starting offset in the array to begin the copying.
-//   maxBytesToWrite: The maximum number of bytes this function can write to the array.
-//                    This count should include the null terminator,
-//                    i.e. if maxBytesToWrite=1, only the null terminator will be written and nothing else.
-//                    maxBytesToWrite=0 does not write any bytes to the output, not even the null terminator.
-// Returns the number of bytes written, EXCLUDING the null terminator.
-
-function stringToUTF8Array(str, heap, outIdx, maxBytesToWrite) {
-  if (!(maxBytesToWrite > 0)) // Parameter maxBytesToWrite is not optional. Negative values, 0, null, undefined and false each don't write out any bytes.
-    return 0;
-
-  var startIdx = outIdx;
-  var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
-  for (var i = 0; i < str.length; ++i) {
-    // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code unit, not a Unicode code point of the character! So decode UTF16->UTF32->UTF8.
-    // See http://unicode.org/faq/utf_bom.html#utf16-3
-    // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description and https://www.ietf.org/rfc/rfc2279.txt and https://tools.ietf.org/html/rfc3629
-    var u = str.charCodeAt(i); // possibly a lead surrogate
-    if (u >= 0xD800 && u <= 0xDFFF) {
-      var u1 = str.charCodeAt(++i);
-      u = 0x10000 + ((u & 0x3FF) << 10) | (u1 & 0x3FF);
-    }
-    if (u <= 0x7F) {
-      if (outIdx >= endIdx) break;
-      heap[outIdx++] = u;
-    } else if (u <= 0x7FF) {
-      if (outIdx + 1 >= endIdx) break;
-      heap[outIdx++] = 0xC0 | (u >> 6);
-      heap[outIdx++] = 0x80 | (u & 63);
-    } else if (u <= 0xFFFF) {
-      if (outIdx + 2 >= endIdx) break;
-      heap[outIdx++] = 0xE0 | (u >> 12);
-      heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-      heap[outIdx++] = 0x80 | (u & 63);
-    } else {
-      if (outIdx + 3 >= endIdx) break;
-      if (u > 0x10FFFF) warnOnce('Invalid Unicode code point 0x' + u.toString(16) + ' encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).');
-      heap[outIdx++] = 0xF0 | (u >> 18);
-      heap[outIdx++] = 0x80 | ((u >> 12) & 63);
-      heap[outIdx++] = 0x80 | ((u >> 6) & 63);
-      heap[outIdx++] = 0x80 | (u & 63);
-    }
-  }
-  // Null-terminate the pointer to the buffer.
-  heap[outIdx] = 0;
-  return outIdx - startIdx;
-}
-
-// Copies the given Javascript String object 'str' to the emscripten HEAP at address 'outPtr',
-// null-terminated and encoded in UTF8 form. The copy will require at most str.length*4+1 bytes of space in the HEAP.
-// Use the function lengthBytesUTF8 to compute the exact number of bytes (excluding null terminator) that this function will write.
-// Returns the number of bytes written, EXCLUDING the null terminator.
-
-function stringToUTF8(str, outPtr, maxBytesToWrite) {
-  assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-  return stringToUTF8Array(str, HEAPU8,outPtr, maxBytesToWrite);
-}
-
-// Returns the number of bytes the given Javascript string takes if encoded as a UTF8 byte array, EXCLUDING the null terminator byte.
-function lengthBytesUTF8(str) {
-  var len = 0;
-  for (var i = 0; i < str.length; ++i) {
-    // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code unit, not a Unicode code point of the character! So decode UTF16->UTF32->UTF8.
-    // See http://unicode.org/faq/utf_bom.html#utf16-3
-    var u = str.charCodeAt(i); // possibly a lead surrogate
-    if (u >= 0xD800 && u <= 0xDFFF) u = 0x10000 + ((u & 0x3FF) << 10) | (str.charCodeAt(++i) & 0x3FF);
-    if (u <= 0x7F) ++len;
-    else if (u <= 0x7FF) len += 2;
-    else if (u <= 0xFFFF) len += 3;
-    else len += 4;
-  }
-  return len;
-}
-
-// end include: runtime_strings.js
-// include: runtime_strings_extra.js
-
-
-// runtime_strings_extra.js: Strings related runtime functions that are available only in regular runtime.
-
-// Given a pointer 'ptr' to a null-terminated ASCII-encoded string in the emscripten HEAP, returns
-// a copy of that string as a Javascript String object.
-
-function AsciiToString(ptr) {
-  var str = '';
-  while (1) {
-    var ch = HEAPU8[((ptr++)>>0)];
-    if (!ch) return str;
-    str += String.fromCharCode(ch);
-  }
-}
-
-// Copies the given Javascript String object 'str' to the emscripten HEAP at address 'outPtr',
-// null-terminated and encoded in ASCII form. The copy will require at most str.length+1 bytes of space in the HEAP.
-
-function stringToAscii(str, outPtr) {
-  return writeAsciiToMemory(str, outPtr, false);
-}
-
-// Given a pointer 'ptr' to a null-terminated UTF16LE-encoded string in the emscripten HEAP, returns
-// a copy of that string as a Javascript String object.
-
-var UTF16Decoder = typeof TextDecoder != 'undefined' ? new TextDecoder('utf-16le') : undefined;
-
-function UTF16ToString(ptr, maxBytesToRead) {
-  assert(ptr % 2 == 0, 'Pointer passed to UTF16ToString must be aligned to two bytes!');
-  var endPtr = ptr;
-  // TextDecoder needs to know the byte length in advance, it doesn't stop on null terminator by itself.
-  // Also, use the length info to avoid running tiny strings through TextDecoder, since .subarray() allocates garbage.
-  var idx = endPtr >> 1;
-  var maxIdx = idx + maxBytesToRead / 2;
-  // If maxBytesToRead is not passed explicitly, it will be undefined, and this
-  // will always evaluate to true. This saves on code size.
-  while (!(idx >= maxIdx) && HEAPU16[idx]) ++idx;
-  endPtr = idx << 1;
-
-  if (endPtr - ptr > 32 && UTF16Decoder) {
-    return UTF16Decoder.decode(HEAPU8.subarray(ptr, endPtr));
-  } else {
-    var str = '';
-
-    // If maxBytesToRead is not passed explicitly, it will be undefined, and the for-loop's condition
-    // will always evaluate to true. The loop is then terminated on the first null char.
-    for (var i = 0; !(i >= maxBytesToRead / 2); ++i) {
-      var codeUnit = HEAP16[(((ptr)+(i*2))>>1)];
-      if (codeUnit == 0) break;
-      // fromCharCode constructs a character from a UTF-16 code unit, so we can pass the UTF16 string right through.
-      str += String.fromCharCode(codeUnit);
-    }
-
-    return str;
-  }
-}
-
-// Copies the given Javascript String object 'str' to the emscripten HEAP at address 'outPtr',
-// null-terminated and encoded in UTF16 form. The copy will require at most str.length*4+2 bytes of space in the HEAP.
-// Use the function lengthBytesUTF16() to compute the exact number of bytes (excluding null terminator) that this function will write.
-// Parameters:
-//   str: the Javascript string to copy.
-//   outPtr: Byte address in Emscripten HEAP where to write the string to.
-//   maxBytesToWrite: The maximum number of bytes this function can write to the array. This count should include the null
-//                    terminator, i.e. if maxBytesToWrite=2, only the null terminator will be written and nothing else.
-//                    maxBytesToWrite<2 does not write any bytes to the output, not even the null terminator.
-// Returns the number of bytes written, EXCLUDING the null terminator.
-
-function stringToUTF16(str, outPtr, maxBytesToWrite) {
-  assert(outPtr % 2 == 0, 'Pointer passed to stringToUTF16 must be aligned to two bytes!');
-  assert(typeof maxBytesToWrite == 'number', 'stringToUTF16(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-  // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
-  if (maxBytesToWrite === undefined) {
-    maxBytesToWrite = 0x7FFFFFFF;
-  }
-  if (maxBytesToWrite < 2) return 0;
-  maxBytesToWrite -= 2; // Null terminator.
-  var startPtr = outPtr;
-  var numCharsToWrite = (maxBytesToWrite < str.length*2) ? (maxBytesToWrite / 2) : str.length;
-  for (var i = 0; i < numCharsToWrite; ++i) {
-    // charCodeAt returns a UTF-16 encoded code unit, so it can be directly written to the HEAP.
-    var codeUnit = str.charCodeAt(i); // possibly a lead surrogate
-    HEAP16[((outPtr)>>1)] = codeUnit;
-    outPtr += 2;
-  }
-  // Null-terminate the pointer to the HEAP.
-  HEAP16[((outPtr)>>1)] = 0;
-  return outPtr - startPtr;
-}
-
-// Returns the number of bytes the given Javascript string takes if encoded as a UTF16 byte array, EXCLUDING the null terminator byte.
-
-function lengthBytesUTF16(str) {
-  return str.length*2;
-}
-
-function UTF32ToString(ptr, maxBytesToRead) {
-  assert(ptr % 4 == 0, 'Pointer passed to UTF32ToString must be aligned to four bytes!');
-  var i = 0;
-
-  var str = '';
-  // If maxBytesToRead is not passed explicitly, it will be undefined, and this
-  // will always evaluate to true. This saves on code size.
-  while (!(i >= maxBytesToRead / 4)) {
-    var utf32 = HEAP32[(((ptr)+(i*4))>>2)];
-    if (utf32 == 0) break;
-    ++i;
-    // Gotcha: fromCharCode constructs a character from a UTF-16 encoded code (pair), not from a Unicode code point! So encode the code point to UTF-16 for constructing.
-    // See http://unicode.org/faq/utf_bom.html#utf16-3
-    if (utf32 >= 0x10000) {
-      var ch = utf32 - 0x10000;
-      str += String.fromCharCode(0xD800 | (ch >> 10), 0xDC00 | (ch & 0x3FF));
-    } else {
-      str += String.fromCharCode(utf32);
-    }
-  }
-  return str;
-}
-
-// Copies the given Javascript String object 'str' to the emscripten HEAP at address 'outPtr',
-// null-terminated and encoded in UTF32 form. The copy will require at most str.length*4+4 bytes of space in the HEAP.
-// Use the function lengthBytesUTF32() to compute the exact number of bytes (excluding null terminator) that this function will write.
-// Parameters:
-//   str: the Javascript string to copy.
-//   outPtr: Byte address in Emscripten HEAP where to write the string to.
-//   maxBytesToWrite: The maximum number of bytes this function can write to the array. This count should include the null
-//                    terminator, i.e. if maxBytesToWrite=4, only the null terminator will be written and nothing else.
-//                    maxBytesToWrite<4 does not write any bytes to the output, not even the null terminator.
-// Returns the number of bytes written, EXCLUDING the null terminator.
-
-function stringToUTF32(str, outPtr, maxBytesToWrite) {
-  assert(outPtr % 4 == 0, 'Pointer passed to stringToUTF32 must be aligned to four bytes!');
-  assert(typeof maxBytesToWrite == 'number', 'stringToUTF32(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
-  // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
-  if (maxBytesToWrite === undefined) {
-    maxBytesToWrite = 0x7FFFFFFF;
-  }
-  if (maxBytesToWrite < 4) return 0;
-  var startPtr = outPtr;
-  var endPtr = startPtr + maxBytesToWrite - 4;
-  for (var i = 0; i < str.length; ++i) {
-    // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code unit, not a Unicode code point of the character! We must decode the string to UTF-32 to the heap.
-    // See http://unicode.org/faq/utf_bom.html#utf16-3
-    var codeUnit = str.charCodeAt(i); // possibly a lead surrogate
-    if (codeUnit >= 0xD800 && codeUnit <= 0xDFFF) {
-      var trailSurrogate = str.charCodeAt(++i);
-      codeUnit = 0x10000 + ((codeUnit & 0x3FF) << 10) | (trailSurrogate & 0x3FF);
-    }
-    HEAP32[((outPtr)>>2)] = codeUnit;
-    outPtr += 4;
-    if (outPtr + 4 > endPtr) break;
-  }
-  // Null-terminate the pointer to the HEAP.
-  HEAP32[((outPtr)>>2)] = 0;
-  return outPtr - startPtr;
-}
-
-// Returns the number of bytes the given Javascript string takes if encoded as a UTF16 byte array, EXCLUDING the null terminator byte.
-
-function lengthBytesUTF32(str) {
-  var len = 0;
-  for (var i = 0; i < str.length; ++i) {
-    // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code unit, not a Unicode code point of the character! We must decode the string to UTF-32 to the heap.
-    // See http://unicode.org/faq/utf_bom.html#utf16-3
-    var codeUnit = str.charCodeAt(i);
-    if (codeUnit >= 0xD800 && codeUnit <= 0xDFFF) ++i; // possibly a lead surrogate, so skip over the tail surrogate.
-    len += 4;
-  }
-
-  return len;
-}
-
-// Allocate heap space for a JS string, and write it there.
-// It is the responsibility of the caller to free() that memory.
-function allocateUTF8(str) {
-  var size = lengthBytesUTF8(str) + 1;
-  var ret = _malloc(size);
-  if (ret) stringToUTF8Array(str, HEAP8, ret, size);
-  return ret;
-}
-
-// Allocate stack space for a JS string, and write it there.
-function allocateUTF8OnStack(str) {
-  var size = lengthBytesUTF8(str) + 1;
-  var ret = stackAlloc(size);
-  stringToUTF8Array(str, HEAP8, ret, size);
-  return ret;
-}
-
-// Deprecated: This function should not be called because it is unsafe and does not provide
-// a maximum length limit of how many bytes it is allowed to write. Prefer calling the
-// function stringToUTF8Array() instead, which takes in a maximum length that can be used
-// to be secure from out of bounds writes.
-/** @deprecated
-    @param {boolean=} dontAddNull */
-function writeStringToMemory(string, buffer, dontAddNull) {
-  warnOnce('writeStringToMemory is deprecated and should not be called! Use stringToUTF8() instead!');
-
-  var /** @type {number} */ lastChar, /** @type {number} */ end;
-  if (dontAddNull) {
-    // stringToUTF8Array always appends null. If we don't want to do that, remember the
-    // character that existed at the location where the null will be placed, and restore
-    // that after the write (below).
-    end = buffer + lengthBytesUTF8(string);
-    lastChar = HEAP8[end];
-  }
-  stringToUTF8(string, buffer, Infinity);
-  if (dontAddNull) HEAP8[end] = lastChar; // Restore the value under the null character.
-}
-
-function writeArrayToMemory(array, buffer) {
-  assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
-  HEAP8.set(array, buffer);
-}
-
-/** @param {boolean=} dontAddNull */
-function writeAsciiToMemory(str, buffer, dontAddNull) {
-  for (var i = 0; i < str.length; ++i) {
-    assert(str.charCodeAt(i) === (str.charCodeAt(i) & 0xff));
-    HEAP8[((buffer++)>>0)] = str.charCodeAt(i);
-  }
-  // Null-terminate the pointer to the HEAP.
-  if (!dontAddNull) HEAP8[((buffer)>>0)] = 0;
-}
-
-// end include: runtime_strings_extra.js
-// Memory management
-
-function alignUp(x, multiple) {
-  if (x % multiple > 0) {
-    x += multiple - (x % multiple);
-  }
-  return x;
-}
-
-var HEAP,
-/** @type {ArrayBuffer} */
-  buffer,
-/** @type {Int8Array} */
-  HEAP8,
-/** @type {Uint8Array} */
-  HEAPU8,
-/** @type {Int16Array} */
-  HEAP16,
-/** @type {Uint16Array} */
-  HEAPU16,
-/** @type {Int32Array} */
-  HEAP32,
-/** @type {Uint32Array} */
-  HEAPU32,
-/** @type {Float32Array} */
-  HEAPF32,
-/** @type {Float64Array} */
-  HEAPF64;
-
-function updateGlobalBufferAndViews(buf) {
-  buffer = buf;
-  Module['HEAP8'] = HEAP8 = new Int8Array(buf);
-  Module['HEAP16'] = HEAP16 = new Int16Array(buf);
-  Module['HEAP32'] = HEAP32 = new Int32Array(buf);
-  Module['HEAPU8'] = HEAPU8 = new Uint8Array(buf);
-  Module['HEAPU16'] = HEAPU16 = new Uint16Array(buf);
-  Module['HEAPU32'] = HEAPU32 = new Uint32Array(buf);
-  Module['HEAPF32'] = HEAPF32 = new Float32Array(buf);
-  Module['HEAPF64'] = HEAPF64 = new Float64Array(buf);
-}
-
-var TOTAL_STACK = 5242880;
-if (Module['TOTAL_STACK']) assert(TOTAL_STACK === Module['TOTAL_STACK'], 'the stack size can no longer be determined at runtime')
-
-var INITIAL_MEMORY = Module['INITIAL_MEMORY'] || 16777216;
-if (!Object.getOwnPropertyDescriptor(Module, 'INITIAL_MEMORY')) {
-  Object.defineProperty(Module, 'INITIAL_MEMORY', {
-    configurable: true,
-    get: function() {
-      abort('Module.INITIAL_MEMORY has been replaced with plain INITIAL_MEMORY (the initial value can be provided on Module, but after startup the value is only looked for on a local variable of that name)')
-    }
-  });
-}
-
-assert(INITIAL_MEMORY >= TOTAL_STACK, 'INITIAL_MEMORY should be larger than TOTAL_STACK, was ' + INITIAL_MEMORY + '! (TOTAL_STACK=' + TOTAL_STACK + ')');
-
-// check for full engine support (use string 'subarray' to avoid closure compiler confusion)
-assert(typeof Int32Array != 'undefined' && typeof Float64Array !== 'undefined' && Int32Array.prototype.subarray != undefined && Int32Array.prototype.set != undefined,
-       'JS engine does not provide full typed array support');
-
-// If memory is defined in wasm, the user can't provide it.
-assert(!Module['wasmMemory'], 'Use of `wasmMemory` detected.  Use -s IMPORTED_MEMORY to define wasmMemory externally');
-assert(INITIAL_MEMORY == 16777216, 'Detected runtime INITIAL_MEMORY setting.  Use -s IMPORTED_MEMORY to define wasmMemory dynamically');
-
-// include: runtime_init_table.js
-// In regular non-RELOCATABLE mode the table is exported
-// from the wasm module and this will be assigned once
-// the exports are available.
-var wasmTable;
-
-// end include: runtime_init_table.js
+// include: runtime_common.js
 // include: runtime_stack_check.js
-
-
 // Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
 function writeStackCookie() {
   var max = _emscripten_stack_get_end();
   assert((max & 3) == 0);
-  // The stack grows downwards
-  HEAP32[((max + 4)>>2)] = 0x2135467;
-  HEAP32[((max + 8)>>2)] = 0x89BACDFE;
+  // If the stack ends at address zero we write our cookies 4 bytes into the
+  // stack.  This prevents interference with SAFE_HEAP and ASAN which also
+  // monitor writes to address zero.
+  if (max == 0) {
+    max += 4;
+  }
+  // The stack grow downwards towards _emscripten_stack_get_end.
+  // We write cookies to the final two words in the stack and detect if they are
+  // ever overwritten.
+  HEAPU32[((max)>>2)] = 0x02135467;
+  HEAPU32[(((max)+(4))>>2)] = 0x89BACDFE;
   // Also test the global address 0 for integrity.
-  HEAP32[0] = 0x63736d65; /* 'emsc' */
+  HEAPU32[((0)>>2)] = 1668509029;
 }
 
 function checkStackCookie() {
   if (ABORT) return;
   var max = _emscripten_stack_get_end();
-  var cookie1 = HEAPU32[((max + 4)>>2)];
-  var cookie2 = HEAPU32[((max + 8)>>2)];
-  if (cookie1 != 0x2135467 || cookie2 != 0x89BACDFE) {
-    abort('Stack overflow! Stack cookie has been overwritten, expected hex dwords 0x89BACDFE and 0x2135467, but received 0x' + cookie2.toString(16) + ' 0x' + cookie1.toString(16));
+  // See writeStackCookie().
+  if (max == 0) {
+    max += 4;
+  }
+  var cookie1 = HEAPU32[((max)>>2)];
+  var cookie2 = HEAPU32[(((max)+(4))>>2)];
+  if (cookie1 != 0x02135467 || cookie2 != 0x89BACDFE) {
+    abort(`Stack overflow! Stack cookie has been overwritten at ${ptrToString(max)}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(cookie2)} ${ptrToString(cookie1)}`);
   }
   // Also test the global address 0 for integrity.
-  if (HEAP32[0] !== 0x63736d65 /* 'emsc' */) abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
+  if (HEAPU32[((0)>>2)] != 0x63736d65 /* 'emsc' */) {
+    abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
+  }
+}
+// end include: runtime_stack_check.js
+// include: runtime_exceptions.js
+// Base Emscripten EH error class
+class EmscriptenEH extends Error {}
+
+class EmscriptenSjLj extends EmscriptenEH {}
+
+class CppException extends EmscriptenEH {
+  constructor(excPtr) {
+    super(excPtr);
+    this.excPtr = excPtr;
+    const excInfo = getExceptionMessage(this);
+    this.name = excInfo[0];
+    this.message = excInfo[1];
+  }
 }
 
-// end include: runtime_stack_check.js
-// include: runtime_assertions.js
+// end include: runtime_exceptions.js
+// include: runtime_debug.js
+var runtimeDebug = true; // Switch to false at runtime to disable logging at the right times
 
+// Used by XXXXX_DEBUG settings to output debug messages.
+function dbg(...args) {
+  if (!runtimeDebug && typeof runtimeDebug != 'undefined') return;
+  // TODO(sbc): Make this configurable somehow.  Its not always convenient for
+  // logging to show up as warnings.
+  console.warn(...args);
+}
 
 // Endianness check
-(function() {
+(() => {
   var h16 = new Int16Array(1);
   var h8 = new Int8Array(h16.buffer);
   h16[0] = 0x6373;
-  if (h8[0] !== 0x73 || h8[1] !== 0x63) throw 'Runtime error: expected the system to be little-endian! (Run with -s SUPPORT_BIG_ENDIAN=1 to bypass)';
+  if (h8[0] !== 0x73 || h8[1] !== 0x63) abort('Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)');
 })();
 
-// end include: runtime_assertions.js
-var __ATPRERUN__  = []; // functions called before the runtime is initialized
-var __ATINIT__    = []; // functions called during startup
-var __ATEXIT__    = []; // functions called during shutdown
-var __ATPOSTRUN__ = []; // functions called after the main() is called
+function consumedModuleProp(prop) {
+  if (!Object.getOwnPropertyDescriptor(Module, prop)) {
+    Object.defineProperty(Module, prop, {
+      configurable: true,
+      set() {
+        abort(`Attempt to set \`Module.${prop}\` after it has already been processed.  This can happen, for example, when code is injected via '--post-js' rather than '--pre-js'`);
 
-var runtimeInitialized = false;
-var runtimeExited = false;
-var runtimeKeepaliveCounter = 0;
-
-function keepRuntimeAlive() {
-  return noExitRuntime || runtimeKeepaliveCounter > 0;
+      }
+    });
+  }
 }
 
-function preRun() {
+function makeInvalidEarlyAccess(name) {
+  return () => assert(false, `call to '${name}' via reference taken before Wasm module initialization`);
 
+}
+
+function ignoredModuleProp(prop) {
+  if (Object.getOwnPropertyDescriptor(Module, prop)) {
+    abort(`\`Module.${prop}\` was supplied but \`${prop}\` not included in INCOMING_MODULE_JS_API`);
+  }
+}
+
+// forcing the filesystem exports a few things by default
+function isExportedByForceFilesystem(name) {
+  return name === 'FS_createPath' ||
+         name === 'FS_createDataFile' ||
+         name === 'FS_createPreloadedFile' ||
+         name === 'FS_preloadFile' ||
+         name === 'FS_unlink' ||
+         name === 'addRunDependency' ||
+         // The old FS has some functionality that WasmFS lacks.
+         name === 'FS_createLazyFile' ||
+         name === 'FS_createDevice' ||
+         name === 'removeRunDependency';
+}
+
+function missingLibrarySymbol(sym) {
+
+  // Any symbol that is not included from the JS library is also (by definition)
+  // not exported on the Module object.
+  unexportedRuntimeSymbol(sym);
+}
+
+function unexportedRuntimeSymbol(sym) {
+  if (!Object.getOwnPropertyDescriptor(Module, sym)) {
+    Object.defineProperty(Module, sym, {
+      configurable: true,
+      get() {
+        var msg = `'${sym}' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the Emscripten FAQ)`;
+        if (isExportedByForceFilesystem(sym)) {
+          msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
+        }
+        abort(msg);
+      },
+    });
+  }
+}
+
+// end include: runtime_debug.js
+// include: binaryDecode.js
+// Prevent Closure from minifying the binaryDecode() function, or otherwise
+// Closure may analyze through the WASM_BINARY_DATA placeholder string into this
+// function, leading into incorrect results.
+/** @noinline */
+function binaryDecode(bin) {
+  for (var i = 0, l = bin.length, o = new Uint8Array(l), c; i < l; ++i) {
+    c = bin.charCodeAt(i);
+    o[i] = ~c >> 8 & c; // Recover the null byte in a manner that is compatible with https://crbug.com/453961758
+  }
+  return o;
+}
+// end include: binaryDecode.js
+var readyPromiseResolve, readyPromiseReject;
+
+// Memory management
+
+var runtimeInitialized = false;
+
+
+
+function updateMemoryViews() {
+  var b = wasmMemory.buffer;
+  Module['HEAP8'] = HEAP8 = new Int8Array(b);
+  Module['HEAP16'] = HEAP16 = new Int16Array(b);
+  Module['HEAPU8'] = HEAPU8 = new Uint8Array(b);
+  Module['HEAPU16'] = HEAPU16 = new Uint16Array(b);
+  Module['HEAP32'] = HEAP32 = new Int32Array(b);
+  Module['HEAPU32'] = HEAPU32 = new Uint32Array(b);
+  Module['HEAPF32'] = HEAPF32 = new Float32Array(b);
+  Module['HEAPF64'] = HEAPF64 = new Float64Array(b);
+  Module['HEAP64'] = HEAP64 = new BigInt64Array(b);
+  Module['HEAPU64'] = HEAPU64 = new BigUint64Array(b);
+}
+
+// include: memoryprofiler.js
+// end include: memoryprofiler.js
+// end include: runtime_common.js
+assert(globalThis.Int32Array && globalThis.Float64Array && Int32Array.prototype.subarray && Int32Array.prototype.set,
+       'JS engine does not provide full typed array support');
+
+function preRun() {
   if (Module['preRun']) {
     if (typeof Module['preRun'] == 'function') Module['preRun'] = [Module['preRun']];
     while (Module['preRun'].length) {
       addOnPreRun(Module['preRun'].shift());
     }
   }
-
-  callRuntimeCallbacks(__ATPRERUN__);
+  consumedModuleProp('preRun');
+  // Begin ATPRERUNS hooks
+  callRuntimeCallbacks(onPreRuns);
+  // End ATPRERUNS hooks
 }
 
 function initRuntime() {
-  checkStackCookie();
   assert(!runtimeInitialized);
   runtimeInitialized = true;
 
-  
-if (!Module["noFSInit"] && !FS.init.initialized)
-  FS.init();
-FS.ignorePermissions = false;
-
-TTY.init();
-  callRuntimeCallbacks(__ATINIT__);
-}
-
-function exitRuntime() {
   checkStackCookie();
-  runtimeExited = true;
+
+  // No ATINITS hooks
+
+  wasmExports['__wasm_call_ctors']();
+
+  // No ATPOSTCTORS hooks
 }
 
 function postRun() {
   checkStackCookie();
+   // PThreads reuse the runtime from the main thread.
 
   if (Module['postRun']) {
     if (typeof Module['postRun'] == 'function') Module['postRun'] = [Module['postRun']];
@@ -1380,287 +426,138 @@ function postRun() {
       addOnPostRun(Module['postRun'].shift());
     }
   }
+  consumedModuleProp('postRun');
 
-  callRuntimeCallbacks(__ATPOSTRUN__);
+  // Begin ATPOSTRUNS hooks
+  callRuntimeCallbacks(onPostRuns);
+  // End ATPOSTRUNS hooks
 }
 
-function addOnPreRun(cb) {
-  __ATPRERUN__.unshift(cb);
-}
-
-function addOnInit(cb) {
-  __ATINIT__.unshift(cb);
-}
-
-function addOnExit(cb) {
-}
-
-function addOnPostRun(cb) {
-  __ATPOSTRUN__.unshift(cb);
-}
-
-// include: runtime_math.js
-
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
-
-assert(Math.imul, 'This browser does not support Math.imul(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill');
-assert(Math.fround, 'This browser does not support Math.fround(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill');
-assert(Math.clz32, 'This browser does not support Math.clz32(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill');
-assert(Math.trunc, 'This browser does not support Math.trunc(), build with LEGACY_VM_SUPPORT or POLYFILL_OLD_MATH_FUNCTIONS to add in a polyfill');
-
-// end include: runtime_math.js
-// A counter of dependencies for calling run(). If we need to
-// do asynchronous work before running, increment this and
-// decrement it. Incrementing must happen in a place like
-// Module.preRun (used by emcc to add file preloading).
-// Note that you can add dependencies in preRun, even though
-// it happens right before run - run will be postponed until
-// the dependencies are met.
-var runDependencies = 0;
-var runDependencyWatcher = null;
-var dependenciesFulfilled = null; // overridden to take different actions when all run dependencies are fulfilled
-var runDependencyTracking = {};
-
-function getUniqueRunDependency(id) {
-  var orig = id;
-  while (1) {
-    if (!runDependencyTracking[id]) return id;
-    id = orig + Math.random();
-  }
-}
-
-function addRunDependency(id) {
-  runDependencies++;
-
-  if (Module['monitorRunDependencies']) {
-    Module['monitorRunDependencies'](runDependencies);
-  }
-
-  if (id) {
-    assert(!runDependencyTracking[id]);
-    runDependencyTracking[id] = 1;
-    if (runDependencyWatcher === null && typeof setInterval != 'undefined') {
-      // Check for missing dependencies every few seconds
-      runDependencyWatcher = setInterval(function() {
-        if (ABORT) {
-          clearInterval(runDependencyWatcher);
-          runDependencyWatcher = null;
-          return;
-        }
-        var shown = false;
-        for (var dep in runDependencyTracking) {
-          if (!shown) {
-            shown = true;
-            err('still waiting on run dependencies:');
-          }
-          err('dependency: ' + dep);
-        }
-        if (shown) {
-          err('(end of list)');
-        }
-      }, 10000);
-    }
-  } else {
-    err('warning: run dependency added without ID');
-  }
-}
-
-function removeRunDependency(id) {
-  runDependencies--;
-
-  if (Module['monitorRunDependencies']) {
-    Module['monitorRunDependencies'](runDependencies);
-  }
-
-  if (id) {
-    assert(runDependencyTracking[id]);
-    delete runDependencyTracking[id];
-  } else {
-    err('warning: run dependency removed without ID');
-  }
-  if (runDependencies == 0) {
-    if (runDependencyWatcher !== null) {
-      clearInterval(runDependencyWatcher);
-      runDependencyWatcher = null;
-    }
-    if (dependenciesFulfilled) {
-      var callback = dependenciesFulfilled;
-      dependenciesFulfilled = null;
-      callback(); // can add another dependenciesFulfilled
-    }
-  }
-}
-
-Module["preloadedImages"] = {}; // maps url to image data
-Module["preloadedAudios"] = {}; // maps url to audio data
-
-/** @param {string|number=} what */
+/**
+ * @param {string|number=} what
+ */
 function abort(what) {
-  {
-    if (Module['onAbort']) {
-      Module['onAbort'](what);
-    }
-  }
+  Module['onAbort']?.(what);
 
-  what = 'Aborted(' + what + ')';
+  what = `Aborted(${what})`;
   // TODO(sbc): Should we remove printing and leave it up to whoever
   // catches the exception?
   err(what);
 
   ABORT = true;
-  EXITSTATUS = 1;
 
   // Use a wasm runtime error, because a JS error might be seen as a foreign
   // exception, which means we'd run destructors on it. We need the error to
   // simply make the program stop.
+  // FIXME This approach does not work in Wasm EH because it currently does not assume
+  // all RuntimeErrors are from traps; it decides whether a RuntimeError is from
+  // a trap or not based on a hidden field within the object. So at the moment
+  // we don't have a way of throwing a wasm trap from JS. TODO Make a JS API that
+  // allows this in the wasm spec.
 
   // Suppress closure compiler warning here. Closure compiler's builtin extern
-  // defintion for WebAssembly.RuntimeError claims it takes no arguments even
+  // definition for WebAssembly.RuntimeError claims it takes no arguments even
   // though it can.
   // TODO(https://github.com/google/closure-compiler/pull/3913): Remove if/when upstream closure gets fixed.
-
   /** @suppress {checkTypes} */
   var e = new WebAssembly.RuntimeError(what);
 
-  readyPromiseReject(e);
+  readyPromiseReject?.(e);
   // Throw the error whether or not MODULARIZE is set because abort is used
   // in code paths apart from instantiation where an exception is expected
   // to be thrown when abort is called.
   throw e;
 }
 
-// {{MEM_INITIALIZER}}
-
-// include: memoryprofiler.js
-
-
-// end include: memoryprofiler.js
-// include: URIUtils.js
-
-
-// Prefix of data URIs emitted by SINGLE_FILE and related options.
-var dataURIPrefix = 'data:application/octet-stream;base64,';
-
-// Indicates whether filename is a base64 data URI.
-function isDataURI(filename) {
-  // Prefix of data URIs emitted by SINGLE_FILE and related options.
-  return filename.startsWith(dataURIPrefix);
+// show errors on likely calls to FS when it was not included
+function fsMissing() {
+  abort('Filesystem support (FS) was not included. The problem is that you are using files from JS, but files were not used from C/C++, so filesystem support was not auto-included. You can force-include filesystem support with -sFORCE_FILESYSTEM');
 }
+var FS = {
+  init: fsMissing,
+  createDataFile: fsMissing,
+  createPreloadedFile: fsMissing,
+  createLazyFile: fsMissing,
+  open: fsMissing,
+  mkdev: fsMissing,
+  registerDevice:  fsMissing,
+  analyzePath: fsMissing,
+  ErrnoError: fsMissing,
+};
 
-// Indicates whether filename is delivered via file protocol (as opposed to http/https)
-function isFileURI(filename) {
-  return filename.startsWith('file://');
-}
 
-// end include: URIUtils.js
-/** @param {boolean=} fixedasm */
-function createExportWrapper(name, fixedasm) {
-  return function() {
-    var displayName = name;
-    var asm = fixedasm;
-    if (!fixedasm) {
-      asm = Module['asm'];
-    }
-    assert(runtimeInitialized, 'native function `' + displayName + '` called before runtime initialization');
-    assert(!runtimeExited, 'native function `' + displayName + '` called after runtime exit (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-    if (!asm[name]) {
-      assert(asm[name], 'exported native function `' + displayName + '` not found');
-    }
-    return asm[name].apply(null, arguments);
+function createExportWrapper(name, nargs) {
+  return (...args) => {
+    assert(runtimeInitialized, `native function \`${name}\` called before runtime initialization`);
+    var f = wasmExports[name];
+    assert(f, `exported native function \`${name}\` not found`);
+    // Only assert for too many arguments. Too few can be valid since the missing arguments will be zero filled.
+    assert(args.length <= nargs, `native function \`${name}\` called with ${args.length} args but expects ${nargs}`);
+    return f(...args);
   };
 }
 
 var wasmBinaryFile;
-  wasmBinaryFile = 'data:application/octet-stream;base64,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A3ENAAJAAkAgAEEDcQ0AIAAhAgwBCwJAIAJBAU4NACAAIQIMAQsgACECA0AgAiABLQAAOgAAIAFBAWohASACQQFqIgJBA3FFDQEgAiADSQ0ACwsCQCADQXxxIgRBwABJDQAgAiAEQUBqIgVLDQADQCACIAEoAgA2AgAgAiABKAIENgIEIAIgASgCCDYCCCACIAEoAgw2AgwgAiABKAIQNgIQIAIgASgCFDYCFCACIAEoAhg2AhggAiABKAIcNgIcIAIgASgCIDYCICACIAEoAiQ2AiQgAiABKAIoNgIoIAIgASgCLDYCLCACIAEoAjA2AjAgAiABKAI0NgI0IAIgASgCODYCOCACIAEoAjw2AjwgAUHAAGohASACQcAAaiICIAVNDQALCyACIARPDQEDQCACIAEoAgA2AgAgAUEEaiEBIAJBBGoiAiAESQ0ADAILAAsCQCADQQRPDQAgACECDAELAkAgA0F8aiIEIABPDQAgACECDAELIAAhAgNAIAIgAS0AADoAACACIAEtAAE6AAEgAiABLQACOgACIAIgAS0AAzoAAyABQQRqIQEgAkEEaiICIARNDQALCwJAIAIgA08NAANAIAIgAS0AADoAACABQQFqIQEgAkEBaiICIANHDQALCyAAC/cCAQJ/AkAgACABRg0AAkAgASAAIAJqIgNrQQAgAkEBdGtLDQAgACABIAIQoQEPCyABIABzQQNxIQQCQAJAAkAgACABTw0AAkAgBEUNACAAIQMMAwsCQCAAQQNxDQAgACEDDAILIAAhAwNAIAJFDQQgAyABLQAAOgAAIAFBAWohASACQX9qIQIgA0EBaiIDQQNxRQ0CDAALAAsCQCAEDQACQCADQQNxRQ0AA0AgAkUNBSAAIAJBf2oiAmoiAyABIAJqLQAAOgAAIANBA3ENAAsLIAJBA00NAANAIAAgAkF8aiICaiABIAJqKAIANgIAIAJBA0sNAAsLIAJFDQIDQCAAIAJBf2oiAmogASACai0AADoAACACDQAMAwsACyACQQNNDQADQCADIAEoAgA2AgAgAUEEaiEBIANBBGohAyACQXxqIgJBA0sNAAsLIAJFDQADQCADIAEtAAA6AAAgA0EBaiEDIAFBAWohASACQX9qIgINAAsLIAAL8gICA38BfgJAIAJFDQAgACABOgAAIAIgAGoiA0F/aiABOgAA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AQF+AkACQCADQcAAcUUNACABIANBQGqthiECQgAhAQwBCyADRQ0AIAFBwAAgA2utiCACIAOtIgSGhCECIAEgBIYhAQsgACABNwMAIAAgAjcDCAtTAQF+AkACQCADQcAAcUUNACACIANBQGqtiCEBQgAhAgwBCyADRQ0AIAJBwAAgA2uthiABIAOtIgSIhCEBIAIgBIghAgsgACABNwMAIAAgAjcDCAvqAwICfwJ+IwBBIGsiAiQAAkACQCABQv///////////wCDIgRCgICAgICAwP9DfCAEQoCAgICAgMCAvH98Wg0AIABCPIggAUIEhoQhBAJAIABC//////////8PgyIAQoGAgICAgICACFQNACAEQoGAgICAgICAwAB8IQUMAgsgBEKAgICAgICAgMAAfCEFIABCgICAgICAgIAIhUIAUg0BIAUgBEIBg3whBQwBCwJAIABQIARCgICAgICAwP//AFQgBEKAgICAgIDA//8AURsNACAAQjyIIAFCBIaEQv////////8Dg0KAgICAgICA/P8AhCEFDAELQoCAgICAgID4/wAhBSAEQv///////7//wwBWDQBCACEFIARCMIinIgNBkfcASQ0AIAJBEGogACABQv///////z+DQoCAgICAgMAAhCIEIANB/4h/ahDXASACIAAgBEGB+AAgA2sQ2AEgAikDACIEQjyIIAJBCGopAwBCBIaEIQUCQCAEQv//////////D4MgAikDECACQRBqQQhqKQMAhEIAUq2EIgRCgYCAgICAgIAIVA0AIAVCAXwhBQwBCyAEQoCAgICAgICACIVCAFINACAFQgGDIAV8IQULIAJBIGokACAFIAFCgICAgICAgICAf4OEvwsdAAJAQQAoAohsDQBBACABNgKMbEEAIAA2AohsCwsWAAJAIAJFDQAgACABIAIQoQEaCyAACxcAAkAgABAnRQ0AIAAQ5wEPCyAAEO0BCwQAIAALBwAgABDmAQsHACAAEPEBC60BAQR/IwBBEGsiAyQAAkAgASACEPMBIgQgABD0AUsNAAJAAkAgBEEKSw0AIAAgBBDsASAAEO0BIQUMAQsgBBD1ASEFIAAgABDeASAFQQFqIgYQ9gEiBRD3ASAAIAYQ+AEgACAEEPkBCwJAA0AgASACRg0BIAUgARDuASAFQQFqIQUgAUEBaiEBDAALAAsgA0EAOgAPIAUgA0EPahDuASADQRBqJAAPCyAAEPoBAAseAQF/QQohAQJAIAAQJ0UNACAAEOIBQX9qIQELIAELEAAgABAqKAIIQf////8HcQsNACABKAIAIAIoAgBJCwsAIAAgASACEOUBCzsAQQBBADYCiGxBCyABIAJBARAQQQAoAohsIQFBAEEANgKIbAJAIAFBAUYNAA8LQQAQBxoQCBoQrQIACwcAIAAQ6wELCQAgABBrKAIACwkAIAAgARDpAQsHACAAEOoBCwcAIAAQigILBAAgAAsLACAAEGsgAToACwsJACAAEGsQ7wELDAAgACABLQAAOgAACwcAIAAQ8AELBAAgAAsHACAAEPIBCwQAIAALCQAgACABEPsBCw0AIAAQ3wEQ/AFBcGoLLQEBf0EKIQECQCAAQQtJDQAgAEEBahD9ASIAIABBf2oiACAAQQtGGyEBCyABCwkAIAAgARD+AQsLACAAEGsgATYCAAsSACAAEGsgAUGAgICAeHI2AggLCwAgABBrIAE2AgQLCAAgABCaAgALBwAgASAAawsHACAAEP8BCwoAIABBD2pBcHELHQACQCAAEPwBIAFPDQBBiwoQgAIACyABQQEQgQILBABBfwtPAQF/QQgQACEBQQBBADYCiGxBDCABIAAQCxpBACgCiGwhAEEAQQA2AohsAkAgAEEBRg0AIAFBlBlBAhABAAsQCSEAEAgaIAEQESAAEAoACwcAIAAQgwILFwAgACABEI4CGiAAQewYQQhqNgIAIAALBwAgABCJAgsJACAAIAEQhQILKQECfyMAQRBrIgIkACACQQhqIAAgARDjASEDIAJBEGokACABIAAgAxsLAgALGwACQCAAECdFDQAgACABEPkBDwsgACABEOwBCwgAIAAQmwIAC0QBAX8gAEEBIAAbIQECQANAIAEQ0wEiAA0BAkAQsAIiAEUNACAAEQgADAELC0EEEAAiABDIAhogAEGcGEEOEAEACyAACwcAIAAQ1AELDwAgAEHgF0EIajYCACAACzwBAn8gARC9ASICQQ1qEIkCIgNBADYCCCADIAI2AgQgAyACNgIAIAAgAxCNAiABIAJBAWoQoQE2AgAgAAsHACAAQQxqC1kBAX8gABCLAiECIABBqBhBCGo2AgBBAEEANgKIbEEPIABBBGogARALGkEAKAKIbCEBQQBBADYCiGwCQCABQQFGDQAgAA8LEAkhABAIGiACEMUCGiAAEAoACwQAQQELYAEBfyAAEIsCIQIgAEG8GEEIajYCACABEI0BIQFBAEEANgKIbEEPIABBBGogARALGkEAKAKIbCEBQQBBADYCiGwCQCABQQFGDQAgAA8LEAkhABAIGiACEMUCGiAAEAoAC1kBAX8gABCLAiECIABBvBhBCGo2AgBBAEEANgKIbEEPIABBBGogARALGkEAKAKIbCEBQQBBADYCiGwCQCABQQFGDQAgAA8LEAkhABAIGiACEMUCGiAAEAoAC0wBAX8CQCAAQf/B1y9LDQAgASAAEJMCDwsgASAAQYDC1y9uIgIQlAIgACACQYDC1y9sayIAQZDOAG4iARCVAiAAIAFBkM4AbGsQlQILMwEBfwJAIAFBj84ASw0AIAAgARCWAg8LIAAgAUGQzgBuIgIQlgIgASACQZDOAGxrEJUCCxsAAkAgAUEJSw0AIAAgARCXAg8LIAAgARCYAgsdAQF/IAAgAUHkAG4iAhCYAiABIAJB5ABsaxCYAgsvAAJAIAFB4wBLDQAgACABEJQCDwsCQCABQecHSw0AIAAgARCZAg8LIAAgARCVAgsRACAAIAFBMGo6AAAgAEEBagsYACAAIAFBAXRBkBNqLwEAOwAAIABBAmoLHQEBfyAAIAFB5ABuIgIQlwIgASACQeQAbGsQmAILCQBB+gkQgAIACwkAQfoJEJwCAAtPAQF/QQgQACEBQQBBADYCiGxBECABIAAQCxpBACgCiGwhAEEAQQA2AohsAkAgAEEBRg0AIAFByBlBAhABAAsQCSEAEAgaIAEQESAAEAoACxYAAkAgAkUNACAAIAEgAhCiARoLIAALuQIBBH8jAEEQayIIJAACQCAAEPQBIgkgAUF/c2ogAkkNACAAENwBIQoCQAJAIAlBAXZBcGogAU0NACAIIAFBAXQ2AgggCCACIAFqNgIMIAhBDGogCEEIahCEAigCABD1ASECDAELIAlBf2ohAgsgABDeASACQQFqIgsQ9gEhAiAAEIYCAkAgBEUNACACEN0BIAoQ3QEgBBDbARoLAkAgBkUNACACEN0BIARqIAcgBhDbARoLAkAgAyAFIARqIgVrIglFDQAgAhDdASAGIARqaiAKEN0BIAVqIAkQ2wEaCwJAIAFBAWoiAUELRg0AIAAQ3gEgCiABEOQBCyAAIAIQ9wEgACALEPgBIAAgBiAEaiAJaiIEEPkBIAhBADoAByACIARqIAhBB2oQ7gEgCEEQaiQADwsgABD6AQAL0QEBBX8jAEEQayIEJAACQCAAEI8BIgUgAUkNAAJAAkAgABDhASIGIAVrIANJDQAgA0UNASAAENwBEN0BIQYCQCAFIAFrIgdFDQAgBiABaiIIIANqIAggBxCdAhogAiADQQAgBiAFaiACSxtBACAIIAJNG2ohAgsgBiABaiACIAMQnQIaIAAgBSADaiIDEIcCIARBADoADyAGIANqIARBD2oQ7gEMAQsgACAGIAUgA2ogBmsgBSABQQAgAyACEJ4CCyAEQRBqJAAgAA8LIAAQiAIACw8AIAAgASACIAIQGhCfAgsJACAAIAEQogILOAEBfyMAQSBrIgIkACACQQhqIAJBFWogAkEgaiABEKMCIAAgAkEVaiACKAIIEKQCGiACQSBqJAALDQAgACABIAIgAxClAgsrAQF/IwBBEGsiAyQAIAAgA0EIaiADEBkaIAAgASACEOABIANBEGokACAACzwBAX8gAxCmAiEEAkAgA0F/Sg0AIAEgAkYNACABQS06AAAgAUEBaiEBIAQQpwIhBAsgACABIAIgBBCoAgsEACAACwcAQQAgAGsLRwEBfwJAAkACQCACIAFrIgRBCUoNACADEKkCIARKDQELIAAgAyABEKoCNgIAQQAhAQwBCyAAIAI2AgBBPSEBCyAAIAE2AgQLKQEBf0EgIABBAXJna0HRCWxBDHYiASABQQJ0QeAUaigCACAAS2tBAWoLCQAgACABEJICCwUAEBIACwcAIAAoAgALCQAQrgIQrwIACwgAQdQdEKwCC8MBAEEAQQA2AohsIAAQD0EAKAKIbCEAQQBBADYCiGwCQAJAIABBAUYNAEEAQQA2AohsQRJB4ApBABAMQQAoAohsIQBBAEEANgKIbCAAQQFHDQELQQAQByEAEAgaIAAQDRpBAEEANgKIbEESQa0JQQAQDEEAKAKIbCEAQQBBADYCiGwgAEEBRw0AQQAQBxoQCBpBAEEANgKIbEETEA9BACgCiGwhAEEAQQA2AohsAkAgAEEBRw0AQQAQBxoQCBoLEK0CCwALCQBBmPQAEKwCCwoAIAAQ1wIaIAALAgALAgALDQAgABCxAhogABCKAgsNACAAELECGiAAEIoCCzAAAkAgAg0AIAAoAgQgASgCBEYPCwJAIAAgAUcNAEEBDwsgABC3AiABELcCELwBRQsHACAAKAIEC64BAQJ/IwBBwABrIgMkAEEBIQQCQCAAIAFBABC2Ag0AQQAhBCABRQ0AQQAhBCABQawVQdwVQQAQuQIiAUUNACADQQhqQQRyQQBBNBCjARogA0EBNgI4IANBfzYCFCADIAA2AhAgAyABNgIIIAEgA0EIaiACKAIAQQEgASgCACgCHBEHAAJAIAMoAiAiBEEBRw0AIAIgAygCGDYCAAsgBEEBRiEECyADQcAAaiQAIAQLqgIBA38jAEHAAGsiBCQAIAAoAgAiBUF8aigCACEGIAVBeGooAgAhBSAEIAM2AhQgBCABNgIQIAQgADYCDCAEIAI2AghBACEBIARBGGpBAEEnEKMBGiAAIAVqIQACQAJAIAYgAkEAELYCRQ0AIARBATYCOCAGIARBCGogACAAQQFBACAGKAIAKAIUEQwAIABBACAEKAIgQQFGGyEBDAELIAYgBEEIaiAAQQFBACAGKAIAKAIYEQkAAkACQCAEKAIsDgIAAQILIAQoAhxBACAEKAIoQQFGG0EAIAQoAiRBAUYbQQAgBCgCMEEBRhshAQwBCwJAIAQoAiBBAUYNACAEKAIwDQEgBCgCJEEBRw0BIAQoAihBAUcNAQsgBCgCGCEBCyAEQcAAaiQAIAELYAEBfwJAIAEoAhAiBA0AIAFBATYCJCABIAM2AhggASACNgIQDwsCQAJAIAQgAkcNACABKAIYQQJHDQEgASADNgIYDwsgAUEBOgA2IAFBAjYCGCABIAEoAiRBAWo2AiQLCx8AAkAgACABKAIIQQAQtgJFDQAgASABIAIgAxC6AgsLOAACQCAAIAEoAghBABC2AkUNACABIAEgAiADELoCDwsgACgCCCIAIAEgAiADIAAoAgAoAhwRBwALnwEAIAFBAToANQJAIAEoAgQgA0cNACABQQE6ADQCQAJAIAEoAhAiAw0AIAFBATYCJCABIAQ2AhggASACNgIQIAEoAjBBAUcNAiAEQQFGDQEMAgsCQCADIAJHDQACQCABKAIYIgNBAkcNACABIAQ2AhggBCEDCyABKAIwQQFHDQIgA0EBRg0BDAILIAEgASgCJEEBajYCJAsgAUEBOgA2CwsgAAJAIAEoAgQgAkcNACABKAIcQQFGDQAgASADNgIcCwuCAgACQCAAIAEoAgggBBC2AkUNACABIAEgAiADEL4CDwsCQAJAIAAgASgCACAEELYCRQ0AAkACQCABKAIQIAJGDQAgASgCFCACRw0BCyADQQFHDQIgAUEBNgIgDwsgASADNgIgAkAgASgCLEEERg0AIAFBADsBNCAAKAIIIgAgASACIAJBASAEIAAoAgAoAhQRDAACQCABLQA1RQ0AIAFBAzYCLCABLQA0RQ0BDAMLIAFBBDYCLAsgASACNgIUIAEgASgCKEEBajYCKCABKAIkQQFHDQEgASgCGEECRw0BIAFBAToANg8LIAAoAggiACABIAIgAyAEIAAoAgAoAhgRCQALC5sBAAJAIAAgASgCCCAEELYCRQ0AIAEgASACIAMQvgIPCwJAIAAgASgCACAEELYCRQ0AAkACQCABKAIQIAJGDQAgASgCFCACRw0BCyADQQFHDQEgAUEBNgIgDwsgASACNgIUIAEgAzYCICABIAEoAihBAWo2AigCQCABKAIkQQFHDQAgASgCGEECRw0AIAFBAToANgsgAUEENgIsCws+AAJAIAAgASgCCCAFELYCRQ0AIAEgASACIAMgBBC9Ag8LIAAoAggiACABIAIgAyAEIAUgACgCACgCFBEMAAshAAJAIAAgASgCCCAFELYCRQ0AIAEgASACIAMgBBC9AgsLRgEBfyMAQRBrIgMkACADIAIoAgA2AgwCQCAAIAEgA0EMaiAAKAIAKAIQEQMAIgBFDQAgAiADKAIMNgIACyADQRBqJAAgAAscAAJAIAANAEEADwsgAEGsFUG8FkEAELkCQQBHCwQAIAALBwAgABCKAgsFAEGeCQsVACAAEIsCGiAAQcwXQQhqNgIAIAALBwAgABCKAgsFAEGICwseACAAQagYQQhqNgIAIABBBGoQzAIaIAAQxQIaIAALKwEBfwJAIAAQjwJFDQAgACgCABDNAiIBQQhqEM4CQX9KDQAgARCKAgsgAAsHACAAQXRqCxUBAX8gACAAKAIAQX9qIgE2AgAgAQsKACAAEMsCEIoCCwoAIABBBGoQ0QILBwAgACgCAAseACAAQbwYQQhqNgIAIABBBGoQzAIaIAAQxQIaIAALCgAgABDSAhCKAgsKACAAQQRqENECCw0AIAAQywIaIAAQigILDQAgABDLAhogABCKAgsEACAACwQAIwALBgAgACQACxIBAn8jACAAa0FwcSIBJAAgAQsVAEGg9MACJAJBnPQAQQ9qQXBxJAELBwAjACMBawsEACMCCwQAIwELDQAgASACIAMgABELAAskAQF+IAAgASACrSADrUIghoQgBBDfAiEFIAVCIIinEBMgBacLEwAgACABpyABQiCIpyACIAMQFAsL45WAgAACAEGACAuMElJPTSB0b28gbGFyZ2UgZm9yIG1lbW9yeQAtKyAgIDBYMHgALTBYKzBYIDBYLTB4KzB4IDB4AFN0YXJ0IGFkZHJlc3Mgb3V0IG9mIGJvdW5kcwBNZW1vcnkgd3JpdGUgb3V0IG9mIGJvdW5kcwBNZW1vcnkgcmVhZCBvdXQgb2YgYm91bmRzAFN0YWNrIHVuZGVyZmxvdyBvbiBwb3AAc3RkOjpleGNlcHRpb24AdGVybWluYXRlX2hhbmRsZXIgdW5leHBlY3RlZGx5IHRocmV3IGFuIGV4Y2VwdGlvbgBuYW4AU3RhY2sgb3ZlcmZsb3cgb24gcHVzaABiYXNpY19zdHJpbmcAaW5mAGFsbG9jYXRvcjxUPjo6YWxsb2NhdGUoc2l6ZV90IG4pICduJyBleGNlZWRzIG1heGltdW0gc3VwcG9ydGVkIHNpemUASW52YWxpZCBST00gc2l6ZQB0ZXJtaW5hdGVfaGFuZGxlciB1bmV4cGVjdGVkbHkgcmV0dXJuZWQAc3RkOjpiYWRfYWxsb2MATnVsbCBST00gZGF0YQBTdGFjayB1bmRlcmZsb3cgb24gUkVUAE5BTgBTdGFjayBvdmVyZmxvdyBvbiBDQUxMAElORgAuAChudWxsKQAlMDJYIABST00gbG9hZGVkIHN1Y2Nlc3NmdWxseS4gRmlyc3QgZmV3IGJ5dGVzOiAAVW5rbm93biBvcGNvZGU6IABDKys6IFJPTSBsb2FkZWQgc3VjY2Vzc2Z1bGx5CgBDKys6IExvYWRpbmcgUk9NIGZyb20gSmF2YVNjcmlwdCwgc2l6ZTogJWQgYnl0ZXMKAEVSUk9SOiBzdGFydF9hZGRyZXNzIDB4JVggb3V0IG9mIGJvdW5kcwoARGF0YSBwb2ludGVyOiAlcAoARVJST1I6IGRhdGEgcG9pbnRlciBpcyBudWxsCgBFUlJPUjogZGF0YSBpcyBu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';
-  if (!isDataURI(wasmBinaryFile)) {
-    wasmBinaryFile = locateFile(wasmBinaryFile);
-  }
 
-function getBinary(file) {
+function findWasmBinary() {
+  return binaryDecode(' asm   °``~~`|` `  ` ` ` `` ```~` ` ``||``~`~`|~`~~ `~~|` `£env__cxa_begin_catch \nenv__cxa_throw 	wasi_snapshot_preview1fd_write wasi_snapshot_preview1fd_close \nwasi_snapshot_preview1fd_seek env	_abort_js envemscripten_resize_heap \nenv\ninvoke_iii  env\ninvoke_vii 	env__cxa_find_matching_catch_3 \nenv	invoke_ii env__cxa_find_matching_catch_2 \renv__resumeException env	invoke_vi envinvoke_v envinvoke_viiii envinvoke_viii env\r__assert_fail \n\n\n\n\n\n\n\n	\n\n			\n							\n\n \n   \n\n\n	\n\n\n\n\n\n\n\n\n\n\n		 \n\n  \n\n\n			  \n\n\n	\n\r\r\n\r\r\r\n  \n\n  \n \r\r \r\r\r\n\n\n 	\n  \n \n  \r\n\r\r\r\r	\n\n  \n\n\n\n\r\n\n\n   \n\n\n\n\n\n\n\n\n\n\n\r\n	 \n\n\n\n\n\n		\n\n\n	\n\n\n\n \n   \n\n\n\n \n\n\n\n \n \n\n\n\n \n\n  \n\n	\n	p¦¦3AA A A  A¨ AÉ A¨ AåÎ"memory __wasm_call_ctors __indirect_function_table strerror ³load_rom \remulate_cycle should_draw get_display_buffer get_display_width get_display_height key_down key_up reset __em_lib_deps_sdlaudio__em_lib_deps_sdlmousemalloc Êfree Ìfflush emscripten_stack_get_end Ùemscripten_stack_get_base ØsetThrew Û_emscripten_tempret_set Üemscripten_stack_init Öemscripten_stack_get_free ×_emscripten_stack_restore ¹_emscripten_stack_alloc ºemscripten_stack_get_current »"__cxa_decrement_exception_refcount "__cxa_increment_exception_refcount __get_exception_message ¡__cxa_can_catch ©__cxa_get_exception_ptr ª__start_em_lib_deps__stop_em_lib_deps	Ï A¥³¯­®ÂÃÆâP«÷«¨¦¢§¥£­®±²´µ¶·¾ÂÃÓÔØÙÚÝÞ÷ª¬®ÓÇËÌÍÎÏ ¡©«­¯°±²ÄÅÉÊËÌÍÎÏÐÑÒÔÕÖ×ØÙÚÛÜÝÞßâãäåæçèéêëìíðñòóôõö÷øùúûüýþÿ ¡¢£¤¥¦§¨©ª«­®¯°±²³´µ¶¸¹·º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\nïó Öªs# Ak! $    6 (!   AÀ jÿ  AÀ jæ  AÐ0jõ  A 6ä0   Aj$  e# Ak! $    6 (!   AÀ j  AÀ jç  AÐ0jö  A : â0 Aj$ q# Ak! $    6 (!@@ Ñ AqE\r  Í   AÀ j AÀ j AÐ0j§  Í  Aj$        # Ak!   6 (AÀ j # Ak!   6 (AÐ0j# Ak!   6 (8# Ak!   6 (- Av!A ! Aÿq AÿqGAqC# Ak! $    6 (! A6<   Aj$  À# Ak! $    6 (!  !  ! A 6   Aj  A ;  (<; A :  A :  Aj  ! Aj¡ ! A 6   Aj¢  A : 6 A : 7 Aÿ: 8 Aj$ # Ak!   6 (# Ak!   6 (AjM# Ak! $    6  6  6 ( ( (£  Aj$ # Ak!   6 (# Ak!   6 (A jM# Ak! $    6  6  6 ( ( (¤  Aj$ T# Ak! $    6  6  6  ( ( (k ( Ò  Aj$ W# Ak! $    6  6  6  ( ( (kAu ( Õ  Aj$ «# Ak! $    6  ;\n (!Aÿ@ - 6ANAqE\r A ! A ú  AÐ· A    /\n! Aj! - 6!  Aj: 6  AÿqAtj ;  Aj$ ¡# Ak! $    6 (!Aÿ@ - 6\r A ! A© ú  AÐ· A    Aj! - 6Aj!  : 6  AÿqAtj!Aÿÿ / ! Aj$  ¤# A°k! $    6¬  6¨  6¤  6  (¬!   (¨¨ ;  /Aj; /Aàq!@@@@@@@@@@@@@@@@@@@ E\r  A F\r AÀ F\r Aà F\r AF\r A F\r AÀF\r AàF\r AF\r A F\r	 AÀF\r\n AàF\r AF\r A F\r\r AÀF\r AàF\r - A ~j! AK@@@@    (¤©  ª  AAq: {A ! .!	 Aj 	  AjA   Aj«   Ajù  A Aq: { AÐ· A  Aÿÿ  /¬ Aÿÿ  /­ Aÿÿ  /® \rAÿÿ  /¯ Aÿÿ  /° Aÿÿ  /± \nAÿÿ  /² 	 /Aq!\n \nAK@@@@@@@@@@@ \n 							Aÿÿ  /³ 	Aÿÿ  /´ Aÿÿ  /µ Aÿÿ  /¶ Aÿÿ  /· Aÿÿ  /¸ Aÿÿ  /¹ Aÿÿ  /º Aÿÿ  /»  AAq: _A ! .! Aà j   Aì jA   Aà j«   Aì jù  A Aq: _ AÐ· A  \nAÿÿ  /¼ Aÿÿ  /½ Aÿÿ  /¾ Aÿÿ  /¿  (¨!\r (¤!Aÿÿ  \r  /À  - Aâ~j! AK@@@@   /! ( !  Aÿÿq Á  /! ( !  Aÿÿq Â  AAq: CA ! .! AÄ j   AÐ jA   AÄ j«   AÐ jù  A Aq: C AÐ· A   - !@@@@@@@@@@@ AF\r  A\nF\r AF\r AF\r AF\r A)F\r A3F\r AÕ F\r Aå F\r	Aÿÿ  /Ã 	 /! ( !  Aÿÿq Ä Aÿÿ  /Å Aÿÿ  /Æ Aÿÿ  /Ç Aÿÿ  /È  /! (¨!  Aÿÿq É  /! (¨!  Aÿÿq Ê  /! (¨!  Aÿÿq Ë  AAq: \'A ! .!  A(j    A4jA   A(j«   A4jù  A Aq: \' AÐ· A   AAq: A !! .!" Aj "  AjA   Aj«  ! Ajù  A Aq:  !AÐ· A   A°j$  # Ak! $    6  6 (! (!Aÿÿ  / AÿqAt! (!Aÿÿ   /AjAÿÿq AÿqrAÿÿq! Aj$  <# Ak! $    6  6 (ç  Aj$ z# Ak! $    6 (!Aÿ@ - 6\r A ! Að ú  AÐ· A     ¦ ; Aj$ [# Ak! $    6  6  6 (! (!   A  ü Ì  Aj$ 8# Ak!   6  ;\n (!Aÿÿ  /\nAÿq; # Ak! $    6  ;\n (!Aÿ@ - 6ANAqE\r A ! A± ú  AÐ· A   Aÿÿ  /¥ Aÿÿ  /\nAÿq; Aj$ # Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAÿq: Aÿ  - 	j!Aÿ -  !Aÿ@  - FAqE\r Aÿÿ  /Aj;# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAÿq: Aÿ  - 	j!Aÿ -  !Aÿ@  - GAqE\r Aÿÿ  /Aj;# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - 	j!Aÿ -  !Aÿ  - j!Aÿ@  -  FAqE\r Aÿÿ  /Aj;f# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAÿq:  - !Aÿ  - 	j :  x# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAÿq: Aÿ - !Aÿ  - 	j!Aÿ   -  j:  s# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - j-  !Aÿ  - 	j :  # Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - 	j!Aÿ -  !Aÿ  - j!Aÿ  -  r!Aÿ  - 	j :   A : # Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - 	j!Aÿ -  !Aÿ  - j!Aÿ  -  q!Aÿ  - 	j :   A : # Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - 	j!Aÿ -  !Aÿ  - j!Aÿ  -  s!Aÿ  - 	j :   A : Õ# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ   - 	j-  : Aÿ   - j-  : Aÿ - !Aÿ   - j;Aÿÿ /Aÿq!Aÿ  - 	j :  Aÿÿ /AÿJ! AA  Aq: Ë# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ   - 	j-  : Aÿ   - j-  : Aÿ - !Aÿ  - k!Aÿ  - 	j :  Aÿ - !Aÿ  - N! AA  Aq: §# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - j!Aÿ  -  Aq: Aÿ  - j!Aÿ -  Au!Aÿ  - 	j :    - : Ë# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ   - 	j-  : Aÿ   - j-  : Aÿ - !Aÿ  - k!Aÿ  - 	j :  Aÿ - !Aÿ  - N! AA  Aq: «# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - j!Aÿ  -  AqAu: Aÿ  - j!Aÿ -  At!Aÿ  - 	j :    - : # Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAðqAu: Aÿ  - 	j!Aÿ -  !Aÿ  - j!Aÿ@  -  GAqE\r Aÿÿ  /Aj;8# Ak!   6  ;\n (!Aÿÿ  /\nAÿq;U# Ak!   6  ;\n (!Aÿÿ  /\nAÿq;Aÿ -  !Aÿÿ   /j;# Ak! $    6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ  /\nAÿq: ¬ Ao!Aÿ  - q!Aÿ  - 	j :   Aj$ \n# AÀ k! $    6<  68  64  ;2 (<!@@ (4ò Aq\r Aÿÿ  /Ak;Aÿÿ  /2AqAu: 1Aÿÿ  /2AðqAu: 0Aÿÿ  /2Aq: /Aÿ   - 1j-  : .Aÿ   - 0j-  : - A 6@@ (!Aÿ  - /HAqE\r (8!Aÿÿ  / (jAÿÿq ! ( Ajj :    (Aj6  (4!	 - .!\n - -! - /!  	 \n  Aj í :  - !\r AA  \rAq:  AÀ j$ ¶# Ak! $    6  ;\n  6 (!Aÿÿ  /\nAqAu: Aÿ  - j!Aÿ@ -  AHAqE\r  (!Aÿ  - j!Aÿ  -  ü AqE\r Aÿÿ  /Aj; Aj$ µ# Ak! $    6  ;\n  6 (!Aÿÿ  /\nAqAu: Aÿ  - j!Aÿ@ -  AHAqE\r  (!Aÿ  - j!Aÿ  -  ü Aq\r Aÿÿ  /Aj; Aj$ S# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	 - !Aÿ  - 	j :  ù# A k! $    6  ;  6 (!Aÿÿ  /AqAu:  A6 A 6@@ (AHAqE\r@ ( (ü AqE\r   (6  (Aj6 @@ (AGAqE\r  (!Aÿ  - j :   A : 7 A: 7Aÿÿ  /Ak; A j$ O# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿ   - 	j-  : O# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿ   - 	j-  : j# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿÿ /!Aÿ  - 	j!Aÿ   -  jAÿq;o# Ak!   6  ;\n (!Aÿÿ  /\nAqAu: 	Aÿ  - 	j!Aÿ  -  Aq: Aÿ  - AlAÐ j;¦# Ak! $    6  ;\n  6 (!Aÿÿ  /\nAqAu:  (! /!Aÿ  - j!Aÿ -  Aä m!  Aÿÿq Aÿq  (!	Aÿÿ /Aj!\nAÿ  - j!Aÿ -  A\nmA\no! 	 \nAÿÿq Aÿq  (!\rAÿÿ /Aj!Aÿ  - j!Aÿ -  A\no! \r Aÿÿq Aÿq  Aj$ ù	# Ak! $    6  ;\n  6 (!Aÿÿ  /\nAqAu:  A : @@Aÿ - !Aÿ  - LAqE\r (!Aÿÿ /!Aÿ  - j!Aÿ  - j!	 Aÿÿq!\nAÿ  \n 	-     - Aj:  Aÿ - Aj!Aÿÿ   /j; Aj$ í# Ak! $    6  ;\n  6 (!Aÿÿ  /\nAqAu:  A : @@Aÿ - !Aÿ  - LAqE\r (!Aÿÿ /!Aÿ   - jAÿÿq !Aÿ  - j :    - Aj:  Aÿ - Aj!	Aÿÿ  	 /j; Aj$ È# A k! $    6  6 (!  6 (! Aj × !  (6  ) 7  A 6 B 7  (!  (6  ) 7  (A Ø @  Aq\r   Ù Ø  (! A j$  b# Ak!   6 (!Aÿ@ - A JAqE\r   - Aj: Aÿ@ - A JAqE\r   - Aj: (# Ak!   6 (!Aÿÿ /+# Ak!   6  ;\n ( /\n;V# Ak! $    6  6 (!  (ø  A· Aj6  Aj$  "# Ak!   6 (- 7AqW# Ak! $    6  6  6 ( (Ó  (Ô ! Aj$  # Ak!   6 (n# Ak!   6  6  6@@ (A JAqE\r (( ! ( :    (Aj6  (Aj6  (W# Ak! $    6  6  6 ( (Ó  (Ö ! Aj$  n# Ak!   6  6  6@@ (A JAqE\r (( ! ( ;   (Aj6  (Aj6  (X# Ak! $    6  6@ ( Aq\r  (Ú  (! Aj$  e# Ak! $    6  6 (!  Û  Ü jAj Û  (jAjÝ  Aj$ a# Ak! $    6 (!@@  AqE\r  Þ ! ß ! ! Aj$  a# Ak! $    6 (!  Û  Ù jAj Û  Ü jAjÝ  Aj$ ?# Ak! $    6 (à á ! Aj$  ^# Ak! $    6 (!@@  AqE\r  â !A! Ak! Aj$  %# Ak!   6  6  6# Ak!   6 ((\'# Ak!   6 (- Aÿ qAÿqa# Ak! $    6 (!@@  AqE\r  ã ! ä ! ! Aj$  # Ak!   6 ()# Ak!   6 ((AÿÿÿÿqA t# Ak!   6 (( 9# Ak! $    6 (å ! Aj$  # Ak!   6 ([# Ak! $    6 (! A 6 A 6 A :  A :  ç  Aj$  c# Ak! $    6 (! è ! é ! A :    Ajê  A:  Aj$ # Ak!   6 ( # Ak!   6 (AjM# Ak! $    6  6  6 ( ( (ë  Aj$ T# Ak! $    6  6  6  ( ( (k ( ó  Aj$ "# Ak!   6 (A: Ã# A0k! $    6,  : +  : *  6$  : # (,! A : "Aÿ  - +AÀ o6Aÿ  - *A o6 A 6@@ (!Aÿ  - #HAqE\r  ($ (j-  :   ( (j6@ (A NAqE\r @@ (A HAqE\r  A 6@@ (AHAqE\rAÿ - ! (!	@@ A 	uqE\r   ( (j6@ (AÀ NAqE\r @ (A HAqE\r  (!\n (!@  \nAÿq Aÿqî AqE\r  A: "  (Aj6   (Aj6  A:  - "Aq! A0j$  Î# A k!   6  :   :  (!Aÿ@@@ - AÀ NAq\r Aÿ - A NAqE\r A Aq:   -  - Atj6   (j-  A G: @@ - AqE\r   (jA :    (jAÿ:    - Aq:  - Aq## Ak!   6 (- Aq"# Ak!   6 (A : .# Ak!   6 (! A:  A : ^# Ak!   6 (!@@ - AqE\r  A :  AAq:  A:  A Aq:  - AqW# Ak! $    6  6  6 ( (Ó  (ô ! Aj$  q# Ak!   6  6  6@@ (A JAqE\r (-  Aq! ( :    (Aj6  (Aj6  (;# Ak! $    6 (! ö  Aj$  j# Ak! $    6 (! ÷ ! ø ! A :    Ajù  A :  Aÿ:  Aj$ # Ak!   6 (# Ak!   6 (AjM# Ak! $    6  6  6 ( ( (ú  Aj$ T# Ak! $    6  6  6  ( ( (k ( ý  Aj$ \\# Ak!   6  :   : \n (!Aÿ@ - AHAqE\r  - \n!Aÿ  - j Aq:  p# Ak!   6  6 (!@@@ (A HAq\r  (ANAqE\r A Aq:    (j-  Aq:  - AqW# Ak! $    6  6  6 ( (Ó  (þ ! Aj$  q# Ak!   6  6  6@@ (A JAqE\r (-  ! ( Aq:    (Aj6  (Aj6  (;# Ak! $    6 (!   Aj$  c# Ak! $    6 (!  !  ! A 6   Aj    Aj$ # Ak!   6 ( # Ak!   6 (A j# Að k!   6l (l!AÀ !AÐ ! Aj  ü\n   A 6@@ (AÐ IAqE\r ( Ajj-  !  (AÐ jj :    (Aj6 # Ak! $    6  ;\n (!Aÿÿ@ /\nA NAqE\r A ! A¼ Ð  A°· A   Aÿÿ  /\nj!Aÿ -  ! Aj$  # Ak! $    6  ;\n  : 	 (!Aÿÿ@ /\nA NAqE\r A ! A¡ Ð  A°· A    - 	!Aÿÿ  /\nj :   Aj$  Að  # AÀ k! $    6<  68  (86 AÕ  A j¨ @@ (<A GAq\r Aú A ¨  (<!Aÿ -  ! (<!Aÿ - ! (<!Aÿ - ! (<!	Aÿ  	- 6  6  6  6A  Aj¨ Að   Að  64 Að  60 A 6,@ (, (8H!\nA ! \nAq! !\r@ E\r  (,! (0(<! A  kI!\r@ \rAqE\r  (4! (0(< (,j! (< (,j! Aÿÿq!Aÿ   -     (,Aj6, (0 (0(<AÿÿqÏ Að  ì A!A  : Ø¿   (0(<6 A·  ¨  AÀ j$  # Ak!   6 (AÀ j# A k!   $ @A (Ü¿ A\no\r Að  ñ @A (Ü¿ Aèo\r A (Ü¿ !  Að  Î Aÿÿq6   6Aå   Aj¨ Að  A (Ü¿ Aj!A  6Ü¿ @Að  ï AqE\r A!A  : Ø¿ Að  ð   A (Ü¿ 6 Aø   ¨   A j$ A - Ø¿ ! AA   Aq# Ak!   $   Að  6    ( 6@@  (A GAq\r A A ¨   A 6A !A  : Ø¿     (6  (!  Aj$  # Ak!   6 ( AÀ  A V# Ak! $    6Að  ! (!A!  Aÿq Aqû  Aj$ V# Ak! $    6Að  ! (!A !  Aÿq Aqû  Aj$  Að  A ! A   : Ø¿ 	   Aà¿ @  \r A !@A ( E\r A (  !@A ( E\r A (   r!@¦ ( " E\r @@  (  (F\r     r!  (8" \r §  @  (  (F\r   A A   ($    (\r A@  ("  ("F\r     k¬A  ((    A 6  B 7  B 7A ò~@ E\r    :     j"Aj :   AI\r    :    :  A}j :   A~j :   AI\r    :  A|j :   A	I\r   A   kAq"j" AÿqAl"6    kA|q"j"A|j 6  A	I\r   6  6 Axj 6  Atj 6  AI\r   6  6  6  6 Apj 6  Alj 6  Ahj 6  Adj 6   AqAr"k"A I\r  ­B~!  j!@  7  7  7  7  A j! A`j"AK\r      (<  ¤ # A k"$    ("6  (!  6  6   k"6  j! Aj!A!@@@@@  (< AjA Aj Ç E\r  !@  ("F\r@ AJ\r  ! AA   ("K"	j" (   A  	k"j6  AA 	j" (  k6   k! !  (<   	k" Aj Ç E\r  AG\r    (,"6   6     (0j6 !A !  A 6  B 7    ( A r6  AF\r   (k! A j$        (<  Ç   @    ü\n    @ AI\r         j!@@   sAq\r @@  Aq\r   !@ \r   !  !@  -  :   Aj! Aj"AqE\r  I\r  A|q!@ AÀ I\r   A@j"K\r @  ( 6   (6  (6  (6  (6  (6  (6  (6  ( 6   ($6$  ((6(  (,6,  (060  (464  (868  (<6< AÀ j! AÀ j" M\r   O\r@  ( 6  Aj! Aj" I\r @ AO\r   !@ AO\r   ! A|j!  !@  -  :    - :   - :   - :  Aj! Aj" M\r @  O\r @  -  :   Aj! Aj" G\r   \\    (H"Aj r6H@  ( "AqE\r    A r6 A  B 7    (,"6   6     (0j6A æ@@ ("\r A !  \r (!@   ("kM\r      ($  @@ (PA H\r  E\r  !@@   j"Aj-  A\nF\r Aj"E\r      ($  " I\r  k! (!  !A !      ( j6  j! ,@    l"  " G\r  A    n A*   A   K# Ak"$     Aÿq Aj Ç ! )! Aj$ B  @@@ AI\r    rAq\r@  (  ( G\r Aj!  Aj!  A|j"AK\r  E\r@@  -  " -  "G\r Aj!  Aj!  Aj"E\r   kA  AÀ ¢ A À  AÀ £ ;# Ak"$   6A    Á ! Aj$   A¤À N  ! A A 6ÔÀ A   6¼À A A A k6ØÀ A A (è 6ÜÀ 	   -~A A ) Á B­þÕäÔý¨Ø ~B|" 7 Á   B!§ A  B Y -  !@  -  "E\r   AÿqG\r @ - !  - "E\r Aj!  Aj!   AÿqF\r   Aÿqkà@@@   sAqE\r  -  !@ AqE\r @   -  ":   E\r  Aj!  Aj"Aq\r A ( "k rAxqAxG\r @   6   Aj!  "Aj!A ("k rAxqAxF\r    :   AÿqE\r @   - ":   Aj!  Aj! \r       °   EA !@  AK\r @@  \r A !   At/  " E\r  AÔ j!      ²   !@@  AqE\r @  -  \r     k  !@ Aj"AqE\r -  \r @ "Aj!A ( "k rAxqAxF\r @ "Aj! -  \r    ké A G!@@@  AqE\r  E\r  Aÿq!@  -   F\r Aj"A G!  Aj" AqE\r \r  E\r@  -   AÿqF\r  AI\r  AÿqAl!@A  (  s"k rAxqAxG\r  Aj!  A|j"AK\r  E\r Aÿq!@@  -   G\r     Aj!  Aj"\r A   A  µ "  k  ~@  ½"B4§Aÿq"AÿF\r @ \r @@  D        b\r A !  D      ðC¢ · !  ( A@j!  6     Axj6  BÿÿÿÿÿÿÿBð?¿!   æ# AÐk"$   6Ì A jA A(ü   (Ì6È@@A   AÈj AÐ j A j  ¹ A N\r A!     ( "A_q6 @@@@  (0\r   AÐ 60  A 6  B 7  (,!   6,A !  (\rA!   \r    AÈj AÐ j A j  ¹ ! A q!@ E\r   A A   ($    A 60   6,  A 6  (!  B 7 A !    ( " r6 A  A q!  AÐj$   ~# AÀ k"$   6< A)j! A\'j!	 A(j!\nA !A !@@@@@A !\r@ ! \r AÿÿÿÿsJ\r \r j! !\r@@@@@@ -  "E\r @@@@ Aÿq"\r  \r! A%G\r \r!@@ - A%F\r  ! \rAj!\r - ! Aj"! A%F\r  \r k"\r Aÿÿÿÿs"J\r\n@  E\r     \rº  \r\r  6< Aj!\rA!@ , APj"A	K\r  - A$G\r  Aj!\rA! !  \r6<A !@@ \r,  "A`j"AM\r  \r!A ! \r!A t"AÑqE\r @  \rAj"6<  r! \r, "A`j"A O\r !\rA t"AÑq\r @@ A*G\r @@ , APj"\rA	K\r  - A$G\r @@  \r   \rAtjA\n6 A !  \rAtj( ! Aj!A! \r Aj!@  \r   6<A !A !  ( "\rAj6  \r( !A !  6< AJ\rA  k! AÀ r! A<j» "A H\r (<!A !\rA!@@ -  A.F\r A !@ - A*G\r @@ , APj"A	K\r  - A$G\r @@  \r   AtjA\n6 A !  Atj( ! Aj! \r Aj!@  \r A !  ( "Aj6  ( !  6< AJ!  Aj6<A! A<j» ! (<!@ \r!A! ",  "\rAjAFI\r Aj! A:l \rjAÿ¬ j-  "\rAjAÿqAI\r   6<@@ \rAF\r  \rE\r\r@ A H\r @  \r   Atj \r6 \r   Atj) 70  E\r	 A0j \r  ¼  AJ\rA !\r  E\r	  -  A q\r Aÿÿ{q"  AÀ q!A !AÂ ! \n!@@@@@@@@@@@@@@@@@ -  "À"\rASq \r AqAF \r "\rA¨j!	\n  \n!@ \rA¿j  \rAÓ F\rA !AÂ ! )0!A !\r@@@@@@@   (0 6  (0 6  (0 ¬7  (0 ;  (0 :   (0 6  (0 ¬7  A AK! Ar!Aø !\rA !AÂ ! )0" \n \rA q½ ! P\r AqE\r \rAvAÂ j!A!A !AÂ ! )0" \n¾ ! AqE\r   k"\r  \rJ!@ )0"BU\r  B  }"70A!AÂ !@ AqE\r A!AÃ !AÄ AÂ  Aq"!  \n¿ !  A Hq\r Aÿÿ{q  !@ B R\r  \r  \n! \n!A !  \n k Pj"\r  \rJ!\r - 0!\r (0"\rAÏ  \r!   Aÿÿÿÿ AÿÿÿÿI¶ "\rj!@ AL\r  ! \r!\r ! \r! -  \r )0"PE\rA !\r	@ E\r  (0!A !\r  A  A  À  A 6  >  Aj60 Aj!A!A !\r@@ ( "E\r Aj É "A H\r   \rkK\r Aj!  \rj"\r I\r A=! \rA H\r\r  A   \r À @ \r\r A !\rA ! (0!@ ( "E\r Aj É " j" \rK\r   Aj º  Aj!  \rI\r   A   \r AÀ sÀ   \r  \rJ!\r	  A Hq\r\nA=!   +0    \r   "\rA N\r \r- ! \rAj!\r   \r\n E\rA!\r@@  \rAtj( "E\r  \rAtj   ¼ A! \rAj"\rA\nG\r @ \rA\nI\r A!@  \rAtj( \rA! \rAj"\rA\nF\r A!  \r: \'A! 	! \n! ! \n!   k"  J" AÿÿÿÿsJ\rA=!   j"  J"\r K\r  A  \r  À     º   A0 \r  AsÀ   A0  A À     º   A  \r  AÀ sÀ  (<!A !A=!  6 A! AÀ j$   @  -  A q\r      {A !@  ( ",  APj"A	M\r A @A!@ AÌ³æ K\r A  A\nl"j  AÿÿÿÿsK!   Aj"6  , ! ! ! APj"A\nI\r  ¾ @@@@@@@@@@@@@@@@@@@ Awj 	\n\r  ( "Aj6    ( 6   ( "Aj6    4 7   ( "Aj6    5 7   ( "Aj6    4 7   ( "Aj6    5 7   ( AjAxq"Aj6    ) 7   ( "Aj6    2 7   ( "Aj6    3 7   ( "Aj6    0  7   ( "Aj6    1  7   ( AjAxq"Aj6    ) 7   ( "Aj6    5 7   ( AjAxq"Aj6    ) 7   ( AjAxq"Aj6    ) 7   ( "Aj6    4 7   ( "Aj6    5 7   ( AjAxq"Aj6    + 9       5 @  P\r @ Aj"  §Aq- ±  r:    B" B R\r  . @  P\r @ Aj"  §AqA0r:    B" B R\r  {~@  BT\r @ Aj"  " B\n" B\n~}§A0r:   BÿÿÿÿV\r @  P\r   §!@ Aj"  A\nn"A\nlkA0r:   A	K! ! \r  # Ak"$ @  L\r  AÀq\r     k"A AI" @ \r @   Aº  A~j"AÿK\r     º  Aj$      A A ¸ Ä~~|# A°k"$ A ! A 6,@@ Ä "BU\r A!	AÌ !\n "Ä !@ AqE\r A!	AÏ !\nAÒ AÍ  Aq"	!\n 	E!@@ Bøÿ Bøÿ R\r   A   	Aj" Aÿÿ{qÀ    \n 	º   A A¢  A q"AÒ AÖ    bAº   A    AÀ sÀ     J!\r Aj!@@@@  A,j· "  "D        a\r   (,"Aj6, A r"Aá G\r A r"Aá F\rA  A H! (,!  Acj"6,A  A H! D      °A¢! A0jA A  A Hj"!@  ü"6  Aj!  ¸¡D    eÍÍA¢"D        b\r @@ AN\r  ! ! ! ! !@ A AI!@ A|j" I\r  ­!B !@  5   |" BëÜ"BëÜ~}>  A|j" O\r  BëÜT\r  A|j" > @@ " M\r A|j"( E\r   (, k"6, ! A J\r @ AJ\r  AjA	nAj! Aæ F!@A  k"A	 A	I!\r@@  I\r A A ( !AëÜ \rv!A \rtAs!A ! !@  ( " \rv j6   q l! Aj" I\r A A ( ! E\r   6  Aj!  (, \rj"6,   j" " Atj   kAu J! A H\r A !@  O\r   kAuA	l!A\n! ( "A\nI\r @ Aj!  A\nl"O\r @ A   Aæ Fk A G Aç Fqk"  kAuA	lAwjN\r  A0jA`A¤b A Hj AÈ j"A	m"Atj!\rA\n!@  A	lk"AJ\r @ A\nl! Aj"AG\r  \rAj!@@ \r( "  n" lk"\r   F\r@@ Aq\r D      @C! AëÜG\r \r M\r \rA|j-  AqE\rD     @C!D      à?D      ð?D      ø?  FD      ø?  Av"F  I!@ \r  \n-  A-G\r  ! ! \r  k"6     a\r  \r  j"6 @ AëÜI\r @ \rA 6 @ \rA|j"\r O\r  A|j"A 6  \r \r( Aj"6  AÿëÜK\r   kAuA	l!A\n! ( "A\nI\r @ Aj!  A\nl"O\r  \rAj"   K!@@ " M"\r A|j"( E\r @@ Aç F\r  Aq! AsA A " J A{Jq"\r j!AA~ \r j! Aq"\r Aw!@ \r  A|j( "\rE\r A\n!A ! \rA\np\r @ "Aj! \r A\nl"pE\r  As!  kAuA	l!@ A_qAÆ G\r A !   jAwj"A  A J"  H!A !   j jAwj"A  A J"  H!A!\r AýÿÿÿAþÿÿÿ  r"J\r  A GjAj!@@ A_q"AÆ G\r   AÿÿÿÿsJ\r A  A J!@   Au"s k­ ¿ "kAJ\r @ Aj"A0:    kAH\r  A~j" :  A!\r AjA-A+ A H:    k" AÿÿÿÿsJ\rA!\r  j" 	AÿÿÿÿsJ\r  A    	j" À    \n 	º   A0   AsÀ @@@@ AÆ G\r  AjA	r!    K"!@ 5  ¿ !@@  F\r   AjM\r@ Aj"A0:    AjK\r   G\r  Aj"A0:       kº  Aj" M\r @ E\r   Aß Aº   O\r AH\r@@ 5  ¿ " AjM\r @ Aj"A0:    AjK\r     A	 A	Hº  Awj! Aj" O\r A	J! ! \r @ A H\r   Aj  K!\r AjA	r! !@@ 5  ¿ " G\r  Aj"A0:  @@  F\r   AjM\r@ Aj"A0:    AjK\r    Aº  Aj!  rE\r   Aß Aº      k"   Jº   k! Aj" \rO\r AJ\r   A0 AjAA À      kº  !  A0 A	jA	A À   A    AÀ sÀ     J!\r \n AtAuA	qj!@ AK\r A k!D      0@!@ D      0@¢! Aj"\r @ -  A-G\r    ¡ !    ¡!@ (," Au"s k­ ¿ " G\r  Aj"A0:   (,! 	Ar! A q! A~j" Aj:   AjA-A+ A H:   AH AqEq! Aj!@ " ü"A± j-   r:    ·¡D      0@¢!@ Aj" AjkAG\r  D        a q\r  A.:  Aj! D        b\r A!\r Aûÿÿÿ 	  k"jkJ\r   A    j Aj  Ajk" A~j H  "j" À     º   A0   AsÀ    Aj º   A0  kA A À     º   A    AÀ sÀ     J!\r A°j$  \r.  ( AjAxq"Aj6    )  )Ú 9    ½# A k"$     Aj " 6   A Gk6 A Aü  A6L A 6$ A6P  Aj6,  Aj6T  A :     Á ! A j$  ¶  (T"( !@ ("  (  ("k"  I"E\r       (  j"6   ( k"6@    I"E\r       (  j"6   ( k6 A :      (,"6   6  @  \r A    6 A¬A!@@  E\r  Aÿ M\r@@A ( ( \r  AqA¿F\r A6 @ AÿK\r    A?qAr:    AvAÀr:  A@@ A°I\r  A@qAÀG\r   A?qAr:    AvAàr:     AvA?qAr: A@ A|jAÿÿ?K\r    A?qAr:    AvAðr:     AvA?qAr:    AvA?qAr: A A6 A!    :  A @  \r A    A È ø&# Ak"$ @@@@@  AôK\r @A (¸É "A  AjAøq  AI"Av"v" AqE\r @@  AsAq j"At"AàÉ j" (èÉ "(" G\r A  A~ wq6¸É   A (ÈÉ I\r  ( G\r   6   6 Aj!   Ar6  j" (Ar6 A (ÀÉ "M\r@  E\r @@   tA t" A   krqh"At"AàÉ j" (èÉ " ("G\r A  A~ wq"6¸É  A (ÈÉ I\r (  G\r  6  6   Ar6   j"  k"Ar6   j 6 @ E\r  AxqAàÉ j!A (ÌÉ !@@ A Avt"q\r A   r6¸É  ! ("A (ÈÉ I\r  6  6  6  6  Aj! A  6ÌÉ A  6ÀÉ A (¼É "	E\r 	hAt(èË "(Axq k! !@@@ (" \r  (" E\r  (Axq k"   I"!    !  !  A (ÈÉ "\nI\r (!@@ ("  F\r  (" \nI\r ( G\r  ( G\r   6   6@@@ ("E\r  Aj! ("E\r Aj!@ ! " Aj!  ("\r   Aj!  ("\r   \nI\r A 6 A ! @ E\r @@  ("At"(èË G\r  AèË j  6   \rA  	A~ wq6¼É   \nI\r@@ ( G\r    6   6  E\r   \nI\r   6@ ("E\r   \nI\r   6   6 ("E\r   \nI\r   6   6@@ AK\r    j" Ar6   j"   (Ar6  Ar6  j" Ar6  j 6 @ E\r  AxqAàÉ j!A (ÌÉ ! @@A Avt" q\r A   r6¸É  ! (" \nI\r   6   6   6   6A  6ÌÉ A  6ÀÉ  Aj! A!  A¿K\r   Aj"Axq!A (¼É "E\r A!@  AôÿÿK\r  A& Avg" kvAq  AtkA>j!A  k!@@@@ At(èË "\r A ! A !A !  A A Avk AFt!A !@@ (Axq k" O\r  ! ! \r A ! ! !    ("   AvAqj("F   !  At! ! \r @   r\r A !A t" A   kr q" E\r  hAt(èË !   E\r@  (Axq k" I!@  ("\r   (!   !    ! !  \r  E\r  A (ÀÉ  kO\r  A (ÈÉ "I\r (!@@ ("  F\r  (" I\r ( G\r  ( G\r   6   6@@@ ("E\r  Aj! ("E\r Aj!@ ! " Aj!  ("\r   Aj!  ("\r   I\r A 6 A ! @ E\r @@  ("At"(èË G\r  AèË j  6   \rA  A~ wq"6¼É   I\r@@ ( G\r    6   6  E\r   I\r   6@ ("E\r   I\r   6   6 ("E\r   I\r   6   6@@ AK\r    j" Ar6   j"   (Ar6  Ar6  j" Ar6  j 6 @ AÿK\r  AøqAàÉ j! @@A (¸É "A Avt"q\r A   r6¸É   !  (" I\r   6  6   6  6A! @ AÿÿÿK\r  A& Avg" kvAq  AtrA>s!    6 B 7  AtAèË j!@@@ A  t"q\r A   r6¼É   6   6 A A  Avk  AFt!  ( !@ "(Axq F\r  Av!  At!   Aqj"("\r  Aj"  I\r   6   6  6  6  I\r ("  I\r   6  6 A 6  6   6 Aj! @A (ÀÉ "  I\r A (ÌÉ !@@   k"AI\r   j" Ar6   j 6   Ar6   Ar6   j"   (Ar6A !A !A  6ÀÉ A  6ÌÉ  Aj! @A (ÄÉ " M\r A   k"6ÄÉ A A (ÐÉ "  j"6ÐÉ   Ar6   Ar6  Aj! @@A (Í E\r A (Í !A B7Í A B 7Í A  AjApqAØªÕªs6Í A A 6¤Í A A 6ôÌ A !A !   A/j"j"A  k"q" M\rA ! @A (ðÌ "E\r A (èÌ " j" M\r  K\r@@@A - ôÌ Aq\r @@@@@A (ÐÉ "E\r AøÌ ! @@   ( "I\r     (jI\r  (" \r A Ó "AF\r !@A (Í " Aj" qE\r   k  jA   kqj!  M\r@A (ðÌ " E\r A (èÌ " j" M\r   K\r Ó "  G\r  k q"Ó "  (   (jF\r !   AF\r@  A0jI\r   !  kA (Í "jA  kq"Ó AF\r  j!  ! AG\rA A (ôÌ Ar6ôÌ  Ó !A Ó !  AF\r  AF\r   O\r   k" A(jM\rA A (èÌ  j" 6èÌ @  A (ìÌ M\r A   6ìÌ @@@@A (ÐÉ "E\r AøÌ ! @   ( "  ("jF\r  (" \r @@A (ÈÉ " E\r    O\rA  6ÈÉ A ! A  6üÌ A  6øÌ A A6ØÉ A A (Í 6ÜÉ A A 6Í @  At" AàÉ j"6èÉ   6ìÉ   Aj" A G\r A  AXj" Ax kAq"k"6ÄÉ A   j"6ÐÉ   Ar6   jA(6A A ( Í 6ÔÉ   O\r   I\r   (Aq\r     j6A  Ax kAq" j"6ÐÉ A A (ÄÉ  j"  k" 6ÄÉ    Ar6  jA(6A A ( Í 6ÔÉ @ A (ÈÉ O\r A  6ÈÉ   j!AøÌ ! @@@  ( " F\r  (" \r   - AqE\rAøÌ ! @@@   ( "I\r     (j"I\r  (!  A  AXj" Ax kAq"k"6ÄÉ A   j"6ÐÉ   Ar6   jA(6A A ( Í 6ÔÉ   A\' kAqjAQj"    AjI"A6 A )Í 7 A )øÌ 7A  Aj6Í A  6üÌ A  6øÌ A A 6Í  Aj! @  A6  Aj!  Aj!   I\r   F\r   (A~q6   k"Ar6  6 @@ AÿK\r  AøqAàÉ j! @@A (¸É "A Avt"q\r A   r6¸É   !  ("A (ÈÉ I\r   6  6A!A!A! @ AÿÿÿK\r  A& Avg" kvAq  AtrA>s!    6 B 7  AtAèË j!@@@A (¼É "A  t"q\r A   r6¼É   6   6 A A  Avk  AFt!  ( !@ "(Axq F\r  Av!  At!   Aqj"("\r  Aj" A (ÈÉ I\r   6   6A!A! ! !  A (ÈÉ "I\r ("  I\r   6  6   6A ! A!A!  j 6   j  6 A (ÄÉ "  M\r A    k"6ÄÉ A A (ÐÉ "  j"6ÐÉ   Ar6   Ar6  Aj!  A06 A ! «     6     ( j6   Ë !  Aj$   \n  Ax  kAqj" Ar6 Ax kAqj"  j"k! @@@ A (ÐÉ G\r A  6ÐÉ A A (ÄÉ   j"6ÄÉ   Ar6@ A (ÌÉ G\r A  6ÌÉ A A (ÀÉ   j"6ÀÉ   Ar6  j 6 @ ("AqAG\r  (!@@ AÿK\r @ (" AøqAàÉ j"F\r  A (ÈÉ I\r ( G\r@  G\r A A (¸É A~ Avwq6¸É @  F\r  A (ÈÉ I\r ( G\r  6  6 (!@@  F\r  ("A (ÈÉ I\r ( G\r ( G\r  6  6@@@ ("E\r  Aj! ("E\r Aj!@ !	 "Aj! ("\r  Aj! ("\r  	A (ÈÉ I\r 	A 6 A ! E\r @@  ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É  A (ÈÉ I\r@@ ( G\r   6  6 E\r A (ÈÉ "I\r  6@ ("E\r   I\r  6  6 ("E\r   I\r  6  6 Axq"  j!   j"(!  A~q6   Ar6   j  6 @  AÿK\r   AøqAàÉ j!@@A (¸É "A  Avt" q\r A    r6¸É  !  (" A (ÈÉ I\r  6   6  6   6A!@  AÿÿÿK\r   A&  Avg"kvAq AtrA>s!  6 B 7 AtAèË j!@@@A (¼É "A t"q\r A   r6¼É   6   6  A A Avk AFt! ( !@ "(Axq  F\r Av! At!  Aqj"("\r  Aj"A (ÈÉ I\r  6   6  6  6 A (ÈÉ " I\r ("  I\r  6  6 A 6  6  6 Aj«  Ä\n@@  E\r   Axj"A (ÈÉ "I\r  A|j( "AqAF\r  Axq" j!@ Aq\r  AqE\r  ( "k" I\r   j! @ A (ÌÉ F\r  (!@ AÿK\r @ (" AøqAàÉ j"F\r   I\r ( G\r@  G\r A A (¸É A~ Avwq6¸É @  F\r   I\r ( G\r  6  6 (!@@  F\r  (" I\r ( G\r ( G\r  6  6@@@ ("E\r  Aj! ("E\r Aj!@ ! "Aj! ("\r  Aj! ("\r   I\r A 6 A ! E\r@@  ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É   I\r@@ ( G\r   6  6 E\r  I\r  6@ ("E\r   I\r  6  6 ("E\r  I\r  6  6 ("AqAG\r A   6ÀÉ   A~q6   Ar6   6   O\r ("AqE\r@@ Aq\r @ A (ÐÉ G\r A  6ÐÉ A A (ÄÉ   j" 6ÄÉ    Ar6 A (ÌÉ G\rA A 6ÀÉ A A 6ÌÉ @ A (ÌÉ "	G\r A  6ÌÉ A A (ÀÉ   j" 6ÀÉ    Ar6   j  6  (!@@ AÿK\r @ (" AøqAàÉ j"F\r   I\r ( G\r@  G\r A A (¸É A~ Avwq6¸É @  F\r   I\r ( G\r  6  6 (!\n@@  F\r  (" I\r ( G\r ( G\r  6  6@@@ ("E\r  Aj! ("E\r Aj!@ ! "Aj! ("\r  Aj! ("\r   I\r A 6 A ! \nE\r @@  ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É  \n I\r@@ \n( G\r  \n 6 \n 6 E\r  I\r  \n6@ ("E\r   I\r  6  6 ("E\r   I\r  6  6  Axq  j" Ar6   j  6   	G\rA   6ÀÉ   A~q6   Ar6   j  6 @  AÿK\r   AøqAàÉ j!@@A (¸É "A  Avt" q\r A    r6¸É  !  ("  I\r  6   6  6   6A!@  AÿÿÿK\r   A&  Avg"kvAq AtrA>s!  6 B 7 AtAèË j!@@@@A (¼É "A t"q\r A   r6¼É   6 A! A!  A A Avk AFt! ( !@ "(Axq  F\r Av! At!  Aqj"("\r  Aj"  I\r   6 A! A! ! ! !  I\r (" I\r  6  6A !A! A!  j 6   6   j 6 A A (ØÉ Aj"A 6ØÉ «  @  \r  Ê @ A@I\r  A06 A @  AxjA AjAxq AIÎ "E\r  Aj@ Ê "\r A    A|Ax  A|j( "Aq Axqj"   I   Ì  		@@  A (ÈÉ "I\r   ("Aq"AF\r  Axq"E\r    j"("AqE\r @ \r A ! AI\r@  AjI\r   !  kA (Í AtM\rA !@  I\r @  k"AI\r     AqrAr6   j" Ar6  (Ar6  Ñ   A !@ A (ÐÉ G\r A (ÄÉ  j" M\r    AqrAr6   j"  k"Ar6A  6ÄÉ A  6ÐÉ   @ A (ÌÉ G\r A !A (ÀÉ  j" I\r@@  k"AI\r     AqrAr6   j" Ar6   j" 6   (A~q6   Aq rAr6   j" (Ar6A !A !A  6ÌÉ A  6ÀÉ   A ! Aq\r Axq j" I\r (!@@ AÿK\r @ (" AøqAàÉ j"	F\r   I\r ( G\r@  G\r A A (¸É A~ Avwq6¸É @  	F\r   I\r ( G\r  6  6 (!\n@@  F\r  (" I\r ( G\r ( G\r  6  6@@@ ("E\r  Aj! ("E\r Aj!@ !	 "Aj! ("\r  Aj! ("\r  	 I\r 	A 6 A ! \nE\r @@  ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É  \n I\r@@ \n( G\r  \n 6 \n 6 E\r  I\r  \n6@ ("E\r   I\r  6  6 ("E\r   I\r  6  6@  k"AK\r    Aq rAr6   j" (Ar6      AqrAr6   j" Ar6   j" (Ar6  Ñ   «   ±A!@@  A  AK" Ajq\r  ! @ " At!   I\r @ A@  kI\r  A06 A @A AjAxq AI"  jAjÊ "\r A  Axj!@@  Aj q\r  !  A|j"( "Axq   jAjA   kqAxj"A     kAKj"  k"k!@ Aq\r  ( !   6    j6      (AqrAr6   j" (Ar6   ( AqrAr6   j" (Ar6  Ñ @  ("AqE\r  Axq" AjM\r     AqrAr6   j"  k"Ar6   j" (Ar6  Ñ   Ajx@@@ AG\r  Ê !A! Aq\r Av"E\r iAK\r@ A@ kM\r A0 A AK Ï !@ \r A0   6 A ! ø	   j!@@@@  ("AqE\r A (ÈÉ ! AqE\r    ( "k" A (ÈÉ "I\r  j!@  A (ÌÉ F\r   (!@ AÿK\r @  (" AøqAàÉ j"F\r   I\r (  G\r@  G\r A A (¸É A~ Avwq6¸É @  F\r   I\r (  G\r  6  6  (!@@   F\r   (" I\r (  G\r (  G\r  6  6@@@  ("E\r   Aj!  ("E\r  Aj!@ ! "Aj! ("\r  Aj! ("\r   I\r A 6 A ! E\r@@    ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É   I\r@@ (  G\r   6  6 E\r  I\r  6@  ("E\r   I\r  6  6  ("E\r  I\r  6  6 ("AqAG\r A  6ÀÉ   A~q6   Ar6  6   I\r@@ ("Aq\r @ A (ÐÉ G\r A   6ÐÉ A A (ÄÉ  j"6ÄÉ    Ar6  A (ÌÉ G\rA A 6ÀÉ A A 6ÌÉ @ A (ÌÉ "	G\r A   6ÌÉ A A (ÀÉ  j"6ÀÉ    Ar6   j 6  (!@@ AÿK\r @ (" AøqAàÉ j"F\r   I\r ( G\r@  G\r A A (¸É A~ Avwq6¸É @  F\r   I\r ( G\r  6  6 (!\n@@  F\r  (" I\r ( G\r ( G\r  6  6@@@ ("E\r  Aj! ("E\r Aj!@ ! "Aj! ("\r  Aj! ("\r   I\r A 6 A ! \nE\r @@  ("At"(èË G\r  AèË j 6  \rA A (¼É A~ wq6¼É  \n I\r@@ \n( G\r  \n 6 \n 6 E\r  I\r  \n6@ ("E\r   I\r  6  6 ("E\r   I\r  6  6   Axq j"Ar6   j 6    	G\rA  6ÀÉ   A~q6   Ar6   j 6 @ AÿK\r  AøqAàÉ j!@@A (¸É "A Avt"q\r A   r6¸É  ! (" I\r   6   6   6   6A!@ AÿÿÿK\r  A& Avg"kvAq AtrA>s!   6  B 7 AtAèË j!@@@A (¼É "A t"q\r A   r6¼É    6    6 A A Avk AFt! ( !@ "(Axq F\r Av! At!  Aqj"("\r  Aj" I\r   6    6    6    6  I\r (" I\r   6   6  A 6   6   6«   ? Atd~@@  ­B|BøÿÿÿA (  " ­|"BÿÿÿÿV\r Ò  §"O\r  \r A06 AA  6    S~@@ AÀ qE\r   A@j­!B ! E\r  AÀ  k­  ­"!  !   7    7S~@@ AÀ qE\r   A@j­!B ! E\r  AÀ  k­  ­"!  !   7    7  A $ A AjApq$  # # k #  # ©~# A k"$  Bÿÿÿÿÿÿ?!@@ B0Bÿÿ"§"AÿjAýK\r   B< B! Aj­!@@  Bÿÿÿÿÿÿÿÿ" BT\r  B|!  BR\r  B |!B   BÿÿÿÿÿÿÿV"!  ­ |!@   P\r  BÿÿR\r   B< BB! Bÿ!@ AþM\r Bÿ!B ! @Aø Aø  P"" k"Að L\r B ! B !  BÀ  !A !@  F\r  Aj   A kÔ  ) )B R!     Õ  ) "B< )B! @@ Bÿÿÿÿÿÿÿÿ ­"BT\r   B|!  BR\r   B  |!   B    BÿÿÿÿÿÿÿV"!  ­! A j$  B4 B  ¿& @A (¨Í \r A  6¬Í A   6¨Í \n   $  #        kß @ A÷ÿÿÿO\r @@ A\nK\r    :  Ar"Ajò !   Axj6   6    6 !   k!@  F\r  E\r     ü\n     jA :  à   A¼ á  A !A A 6¨Í A     !A (¨Í ! A A 6¨Í @  AF\r  Aü¶ A    ! Ý           ø "Aè¶ Aj6   A³# Ak"$   : @@  ("\r @   E\r A!  (!@  (" F\r   (P Aÿq"F\r    Aj6  :  @   AjA  ($  AF\r A! - ! Aj$  9# Ak"$   6     Å ! Aj$  >@   F\r @   Aj"O\r  -  !   -  :    :    Aj!   A¼ è  A !A A 6¨Í A     !A (¨Í ! A A 6¨Í @  AF\r  A°· A    ! Ý       @ A¿=K\r @ AÎ K\r @ Aã K\r @ A	K\r    A0r:    Aj   At/Ð± ;    Aj@ AçK\r    AÿÿqAä n"A0r:      Aä lkAÿÿqAt/Ð± ;   Aj   ê @ AK\r    ë    ì @ AÿÁ×/K\r @ Aÿ¬âK\r    í    î @ AÿëÜK\r    ï    ð 8   Aä n"At/Ð± ;      Aä lkAt/Ð± ;   Aj*   AÎ n"A0j:    Aj  AÎ lkê 1   AÎ n"At/Ð± ;    Aj  AÎ lkê *   AÀ=n"A0j:    Aj  AÀ=lkì 1   AÀ=n"At/Ð± ;    Aj  AÀ=lkì ,   AÂ×/n"A0j:    Aj  AÂ×/lkî 3   AÂ×/n"At/Ð± ;    Aj  AÂ×/lkî T# Ak"$ A !@  Aq\r    p\r  Aj   Ð ! A  (  ! Aj$  H  A  AK!@@ Ê " \r@ " E\r     ö    \n   Ì \n   ó $      jAjA   kq"  Kñ # A ¬ A¶ A   S ´ "A\rjò "A 6  6  6  Aj!@ Aj"E\r    ü\n     6   s   A¤¶ Aj6 A A 6¨Í A   Aj  A (¨Í !A A 6¨Í @ AF\r    !Ý   «      A¸¶ Aj6  ( ! , !A A 6¨Í A   Aj   A H A (¨Í !A A 6¨Í @ AF\r    !Ý   «    s   A¸¶ Aj6 A A 6¨Í A   Aj  A (¨Í !A A 6¨Í @ AF\r    !Ý   «    ¦@ Aöÿÿÿ kK\r   , A H!  ( !	A÷ÿÿÿ!\n@ AòÿÿÿK\r A  j" At"\n  \nK"ArAj AI!\n 	   !	 \nò !@ E\r  E\r   	 ü\n  @ E\r  E\r   j  ü\n     j"k!@  F\r  E\r   j j 	 j j ü\n  @ Aj"AF\r  	 ô    6    \nAxr6    j j"6  jA :  à        ´ ý @  (  , " A H"" I\r @@  (AÿÿÿÿqAjA\n " k I\r  E\r  (    A H!@  F\r   j!@  k"E\r   j  ü\n    A    jIA   Oj!@ E\r   j  ü\n    j!@@  , AJ\r    6   Aÿ q:   jA :         j k  A   û   ç  2A!@  I\r    j   kÿ "  kA !      µ H@  (  (  ("  ("    I¥ "\r A !   F\r AA   I! I# A k"$  Aj Aj A j     Aj (Þ  A j$ E# Ak"$  Aj       (6    (6 Aj$ 6 @  F\r  AJ\r  A-:  A  k! Aj!      E@@  k"A	J\r A=!   J\rA !  é !   6   6 )A   ArgkAÑ	lAv"   At( ± IkAjA A 6¨Í A   AjA|q" ! A (¨Í !A A 6¨Í @@ AF\r   E\r@ E\r   A  ü   AjA  ! Ý       Y A A 6¨Í A   Ahj A (¨Í ! A A 6¨Í @  AF\r A  ! Ý      @  E\r   Ahj"   ( Aj6 î@@  E\r @  Ahj"( \r A A 6¨Í A A Aæ AAÖ  A (¨Í ! A A 6¨Í   AF\r   ( "Aj6  AG\r   Auj-  \r @  Apj( "E\r A A 6¨Í     A (¨Í !A A 6¨Í  AF\r   A  ! Ý          {@@ (L"A H\r  E\r Aÿÿÿÿq© (G\r@  Aÿq" (PF\r  (" (F\r   Aj6   :     ä     @ AÌ j" E\r  ã @@  Aÿq" (PF\r  (" (F\r   Aj6   :    ä !@  AqE\r        ( "Aÿÿÿÿ 6    ( !  A 6  \r   A¡ W# Ak"$ A AAA ( "   6    Á A\n  «   A (¤   ä A A 6¨Í    A (¨Í ! A A 6¨Í @@  AF\r A A 6¨Í A A¶ A  A (¨Í ! A A 6¨Í   AG\rA  ! Ý    A A 6¨Í A AÜ A  A (¨Í ! A A 6¨Í   AG\r A  ! Ý      A (°Í  A³ A   +@A  A  AK"õ " \r   !    # A k"$   AjAv!@A (´Í " \r A Aô6ÌÍ AÌÍ ! A AÌÍ 6´Í  Aj!A !@@@@  AÀÑ G\r A !  Aj"Aq\r@  /" kAqA   K j" O\r     k";   AÿÿqAtj"  ;  A ;   Aj"AqE\r Aµ 6 A§6 Aê 6 AÙ      O\r  / !@@ \r A  AtAÀÍ j6´Í   ;   A ;  A j$   Aµ 6 A6 Aê 6AÙ  Aj    !  / AtAÀÍ j!  , @  AÀÍ I\r   AÀÑ O\r      Ì ß  A~j!  A|j!A !A (´Í "!@@ " E\r  AÀÑ F\r@    /"Atj G\r    /  j;@  / "Atj  G\r    j; @ \r A  6´Í    / ;   AÀÍ kAv;   / AtAÀÍ j!  !   AÀÍ kAv; A  6´Í \n   ¸      ¸ Aô    ¸ Aô 3 @ \r   ( (F@   G\r A  ( (¯ E# AÐ k"$ @@@  ( (G\r A!A ! A³ AÈ³ A   "E\r  ( "E\r AjA A8ü  A: K A6    6  6 A6D  Aj A ( (  @ (,"AG\r   ($6  AF! AÐ j$   Aë 6 Aç6 A¦ 6 AÙ    ø# AÀ k"$     ( "Axj( "j!@@ A|j( "( (G\r A !@ A H\r  A  A  kF! A~F\r B 7  6  6   6  6 B 7 B 7$ B 7, A 6< B74  Aj  AA  ( (   A  (AF!@ A H\r    k" H\r  B 7  6  6  6  6 B 7 B 7$ B 7, A 6< B74  Aj  AA  ( (   (\r B 7  6  6   6  6 B 7 B 7$ B 7, B 7 3 A 6< A: ;  Aj AA  ( (  A !@@ ((  (A  ($AFA  ( AFA  (,AF!@ (AF\r @ (,E\r A !@ ( AF\r A !A ! ($AG\r (! AÀ j$  w@ ($"\r   6  6 A6$  (86@@ ( (8G\r  ( G\r  (AG\r  6 A: 6 A6  Aj6$# @  ( ((G\r     ¡ D @  ( ((G\r     ¡   ("      ( (    A: 5@  (G\r  A: 4@@ ("\r  A6$  6  6 AG\r (0AF\r@  G\r @ ("AG\r   6 ! (0AG\r AF\r  ($Aj6$ A: 6ª @@   (  E\r   (G\r (AF\r  6@   (   E\r @@  (F\r   (G\r AG\r A6   6 @ (,AF\r  A ;4  ("    A   ( (  @ - 5AG\r  A6, - 4E\r A6,  6  ((Aj6( ($AG\r (AG\r A: 6  ("       ( (  ± @@   (  E\r   (G\r (AF\r  6   (   E\r @@  (F\r   (G\r AG\r A6   6  6   ((Aj6(@ ($AG\r  (AG\r  A: 6 A6,L @   (  E\r      ¤   ("        ( (  \' @   (  E\r      ¤ Z# Ak"$   ( 6@    Aj  ( (  " E\r   (6  Aj$   E@  Alj( "E\r  Að· A¨´ A   E\r   (   Axj( "  Ahj       AÜµ Aj6      «   Aô  Aç $   A¤¶ Aj6   Aj°   « 4  ( "A|j" ( Aj"6 @ AJ\r  Atjó      ¯   Aô    ($   A¸¶ Aj6   Aj°   «    ³   Aô    (   ¯   Aô    ¯   Aô    \n   $ #   kApq"$   # µ# A°$k"$ @@@@@  E\r  E\r \rA !  E\r A}6   ´ !  Aôj6p  Aô j"6l  6h   6`    j6d A Aü   Aj6ü  Aj" 6ø   6ô  A Aü  B 7  A¬j6  Aj" 6   6 B 7 B 7 B 7¤ B 7¸  AÈj6´  A¸j" 6°   6¬ B 7À B 7Ô  Aäj6Ð  AÔj" 6Ì   6È B 7Ü A;ä A6è A : æ A 6ü B 7ô B 7ì  Aøj"6ø# A6H Aå 6D  )D78@@@@@@@@@ Aà j A8j½ \r  A6¬$ Aä 6¨$  )¨$70 Aà j A0j½ E\rA A 6¨Í A¨  Aà j !A (¨Í ! A A 6¨Í   AF\r E\r@ (d" (`"G\r  !  -  A.G\r A¿ " A:     k6   6   6  AÜû 6     / AàqAÀ\nr;   (d6` A6¤$ Aã 6 $  ) $7(@@ Aà j A(j½ \r  A6$ Aâ 6$  )$7  Aà j A j½ E\rA ! A A 6¨Í A¨  Aà j !A (¨Í !A A 6¨Í  AF\r  6$ E\r A\r6$ A 6$  )$7 Aà j Aj½ E\rA ! A !@ (`" (dF\r A ! -  Aß G\r A!  Aj6` A$j Aà jA À @ E\r  ($E\r@ (d" (`"F\r  -  A.G\r  6` Aà jA  A$jÁ ! A A 6¨Í A©  Aà j ! A (¨Í !A A 6¨Í  AF\r  (d (`F\r ! Ý   E\rA !@ E\r  ( ! A6\\ B7T  6P A 6L  6H A¸ 6D (È (ÌF\r A® 6 A A 6¨Í  A6 Aµ 6A AÙ   A (¨Í ! A A 6¨Í   AF\r A~!A !  ! Ý A A 6¨Í Aª    AÄ j A (¨Í ! A A 6¨Í   AF\r AÄ jA Ä @ E\r   (L6  (H! A !@ E\r   6  Aà jÅ  A°$j$    ! Ý  Aà jÅ     ~# A k"$   (!   ( "6   k6  ) "7  )7  7 @ Aj Ð "E\r     (  B §j6  A j$   #~# Ak"$  AÄ j  Ò !@@@@@  ("  ( "F\r   k!@ -  "AÇ F\r  AÔ G\r@ AI\r @@@@@@@@@@ - "A¿j	\n\n\n\n\n  A­j	   Aj6 A !A A 6¨Í A«    !A (¨Í !A A 6¨Í  AF\r\r E\r  AjA¿ "A:   6 A6 A¢ 6 Aì¸ 6   / AàqAÀ\nr;    Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r E\r  AjA¿ "A:   6 A6 Aº 6 Aì¸ 6   / AàqAÀ\nr;    Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r E\r\n  AjA¿ "A:   6 A6 AÚ 6 Aì¸ 6   / AàqAÀ\nr; \n   Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r\n E\r	  AjA¿ "A:   6 A\r6 AÁ 6 Aì¸ 6   / AàqAÀ\nr; 	   Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r	 E\r  AjA¿ "A:   6 A6 A 6 Aì¸ 6   / AàqAÀ\nr;    Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r E\r A,j  AÀ  (0E\r  ( "  (F\r -  Aß G\r   Aj6 A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r E\r  AjA¿ "A:   6  6 A¸º 6   / AàqAÀ\nr;    Aj6 A !A A 6¨Í A¬   A  !A (¨Í !A A 6¨Í  AF\r  6, E\r  AÏ  A,jÁ !   Aj6 A !A A 6¨Í A¬   A  !A (¨Í !A A 6¨Í  AF\r E\r  AjA¿ "A:   6 A(6 Añ 6 Aì¸ 6   / AàqAÀ\nr;  Aã F\r   Aj"6 A !A !@  F\r  -  Aö F!  Õ \rA !A A 6¨Í A¨    !A (¨Í !A A 6¨Í  AF\r E\r  AjA¿ "A:  Aì¸ 6   / AàqAÀ\nr; @ E\r   6 A6 A 6  6 A6 Aþ 6A ! AI\r@@@ - "A®j    Aj6 A !A A 6¨Í A¬   A  !A (¨Í !A A 6¨Í  AF\r E\r  AjA¿ "A:   6 A6 AÆ 6 Aì¸ 6   / AàqAÀ\nr;    Aj6 A !A A 6¨Í A¬   A  !A (¨Í !A A 6¨Í  AF\r E\r   A,jÖ !@@  ( "  (F\r  -  Aß G\r    Aj6 A ! E\r  AjA¿ "A:   6 A6 A 6 Aì¸ 6   / AàqAÀ\nr;  AÉ G\r   Aj6 A ! A 6,   A,j× \r (,"E\r  AjA¿ "A:   6 A6 AÓ 6 Aì¸ 6   / AàqAÀ\nr;    6@A ! A : 4 A 60 A ;,  (è!  (ì! A : <A A 6¨Í    kAu68A¬    A,j !A (¨Í !A A 6¨Í @@ AF\r  E\r  Aèj! (8"  (ì  (èkAu"	  	K!\n  AÌj! !@@@@  \nF\rA A 6¨Í A­    !A (¨Í !A A 6¨Í  AF\r  (Ì  (ÐF\r ( (!A A 6¨Í A®  A  !A (¨Í !A A 6¨Í  AF\r ( E\rA A 6¨Í A®  A  !A (¨Í !A A 6¨Í  AF\r  ( "( ( kAuO\rA A 6¨Í A®  A  !A (¨Í !A A 6¨Í  AF\r ( !A A 6¨Í A¯    !A (¨Í !A A 6¨Í  AF\r ( !A A 6¨Í A­    !A (¨Í !A A 6¨Í  AF\r (  6 Aj! @   (ì  (è"kAuM\r  AÕ 6 A A 6¨Í  A6 A 6A AÙ   A (¨Í ! A A 6¨Í   AF\r     Atj6ìA !  	I\r@ AÀ jÛ E\r  ! A\r6( AÈ 6$  )$7A !A !\n@@@@@@@@   Aj½ E\r   Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\rA A 6¨Í A«    !A (¨Í !A A 6¨Í  AF\r  6 E\r  AjÜ     Aj6 A A 6¨Í A°  Aj    A (¨Í !A A 6¨Í  AF\r  AjA¿ !\n )!\r \nA\n:  \n \r7 \nAù 6  \n \n/ AàqAÀ\nr; @ - ,\r  - -AqE\r A !A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r E\r@@  ( "  ("F\r  -  Aö G\r    Aj"6 A !A !  Aj!  Aj!  (  (k"Au!	 - <Aq!@A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r  6 E\r@   (  (kG\r  E\r  A¿ "A× :   6 Aðù 6   / AàqAÀ\nr;   6  AjÜ @ AÀ jÛ \r   (  ( "F\r -  AÑ G\rA A 6¨Í A°  Aj   	 A (¨Í !A A 6¨Í  AF\r (! (!  (!  ( !A !@  F\r A ! -  AÑ G\r    Aj6 A !A A 6¨Í A±    !A (¨Í !A A 6¨Í  AF\r E\r  AjA(¿ !  (0! - 4!  AA AA ß " : $  6   6  \n6  6  6  6  6 Aèú 6 \n ! Ý  ! Ý \n ! Ý 	A ! ! Ý  ! Ý  ! Ý  ! Ý  ! Ý    Aj6 A !  Õ \r   Õ \r A !A A 6¨Í A¨    !A (¨Í !A A 6¨Í  AF\r E\r   AjA¿ "A:   6 A6 Aã 6 Aì¸ 6   / AàqAÀ\nr;  à  Aj$   ! Ý  à     °@@@  ( "(" AjApq"jAøO\r  !@ AùI\r  ArÊ "E\r ( ! A 6  6   6  AjA Ê "E\rA ! A 6  6    6    j6  jAj  ¸ (! ( "!@ E\r  !  F\r  ! -  Aî G\r   Aj"6 @@  G\r A !A !A !A ! ,  APjA	K\r @@@  F\r  ,  APjA	M\r !  k! !  Aj"6     6   6 a  AjA¿ !  ´ ! ( !  A:    6   6   6  Aì¸ 6     / AàqAÀ\nr;   ½%~# A0k"$  A 6@@@@@@@@@@  ("  ( "F\r   k!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ -  "A¿j:!!&!!! !!! % !!!!!!!!!!	\n!!! \r!  Aò F"M\r$@ AA    j-  AÿqAÖ F"M\r    j-  AÿqAË Fj!  M\r$@  j-  A¼j %&%  Aj"M\r$  j-  "Aj"A	K\r#A tAqE\r#%   Aj6   A± á !(   Aj6   AÒ â !\'   Aj6   AÓ á !&   Aj6   A á !%   Aj6   A ã !$   Aj6   A ä !#   Aj6   AÆ å !"   Aj6   A½ æ !!   Aj6   A ç !    Aj6   Aù è !   Aj6   A· á !   Aj6   A® ä !   Aj6   A¤ é !   Aj6   AjA¿ "A:  A6 A 6 A°» 6   / AàqAÀ\nr;    Aj6   Aë ê !   Aj6   Aâ ë !   Aj6   A¶ å !   Aj6   A ì !   Aj6   A ã !   Aj6   Aô í !   Aj6   AÝ ç !   Aj6  A(j  î  (,E\r@  ( "  (F\r  -  AÉ G\r    Aj6   Â "E\r  ( "  (F\r -  AÅ G\r   Aj6   AjA¿ ! )(! A:   6  7 Aì 6   / AàqAÀ\nr; \r   A(jï !A ! AI\r@@@@@@@@@@@@@@@@@@@ - "A¿j8%%%%%%%%%%!%%%%%%%%%%%%%%\r %	%%%!%%\n!!%   Aj6   A é !$   Aj6   Aÿ í !#   Aj6   A é !"   Aj6   AÖ á !!   Aj6  A6 Aÿ 6  )7 @   ½ E\r   Aâ ð !!A ! A(j  A À    A(jñ !  ( "  (F\r  -  Aß G\r    Aj6   AjA¿ "A:   6 AÜ 6   / AàqAÀ\nr;  @ AG\r    Aj6   - !   Aj6 @@@@@@ Aj%%%%%% %  AÉ è !$  AÀ ò !#  A ì !"  A ð !!  A ã !   Aø ó !@ AG\r    Aj6  - !   Aj6 @@@@@@ Aj$$$$$$ $  AÝ è !#  AÔ ò !"  A¯ ì !!  A¦ ð !   A ã !  A ó !   Aj"6   F\r  k"AI\r -  AÿqAÄ G\r@ - "AÒ F\r  AÁ G\r@ AK\r    Aj6  - !   Aj6 @@@@@@ Aj$$$$$$ $  A© ë !#  A» ô !"  AÖ ã !!  A ó !   Aâ õ !  Aó ö !@ AK\r    Aj6  - !   Aj6 @@@@@@ Aj###### #  A½ ë !"  AÏ ô !!  Aê ã !   A¡ ó !  Aö õ !  A ö !   Aj"6 @@  F\r  ,  APjA	K\r  A(j  A À    A(jñ !  ÷ "E\r  ( "  (F\r -  Aß G\r   Aj6   AjA¿ "A :   AÂ F:   6 AÌ 6   / AàqAÀ\nr;    Aj6   Aû ê !   Aj6   Aò ê !   Aj6   AÚ â !   Aj6   AÇ á !   Aj6   AÀ æ !   Aj6 A !  A Ô "E\r  AjA¿ "A:  AA Aë F" 6 AÆ A¿   6  6 A¸ 6   / AàqAÀ\nr;    Aj6   AÃ æ !  ø ! A6, Aû 6(  )(7A !   Aj½ E\r@@  (  ( "F\r  ,  "A1H\r @ A9K\r A ! Aj  A À     Ajñ "6$  ( "  ("F\r -  Aß G\r   Aj"6 @  F\r  -  Að G\r    Aj6   AjA¿ "A:   6 A° 6   / AàqAÀ\nr;    Â "6 E\r   Aj A$jù ! Aß F\r   ÷ "6A ! E\r  ( "  (F\r -  Aß G\r   Aj6    Â "6$ E\r   A$j Ajù !   Aj6   Â "E\r  AjA¿ "A:  A 6  6 A  6   / AàqAÀ\nr;    Aj6    Â "6( E\r   A(jú !   Aj"6 @@  F\r @ ,  APjA	K\r A ! A(j  A À    A(jñ !  ( "  (F\r -  Aß G\r Aj! -  Aß G\r  Aj!A !A !  ÷ "E\r  ( "  (F\r -  Aß G\r Aj!   6   Â "E\r	  AjA¿ AA A Aß " 6  6 A 6    Aj6 A !  Â "E\r\r  Â "E\r\r  AjA¿ A - AvAAß " 6  6 A 6 \r@ AI\r @ - "Aj  Aå F\r   û "6 E\r  - AG\r\r  (  ( "F\r\r -  AÉ G\r\r  Aj AjÜ A !   A ü "6( E\r   Aj A(jý !   Aj6   Â "E\r\r  AjA¿ A - AvAAß " 6 Aø 6    Aj6    Â "6( E\r A 6   A(j Ajþ !   Aj6    Â "6( E\r A6   A(j Ajþ !   Aj6   Â "E\r\n  AjA¿ "A:  A6 A¶ 6  6 A¸ 6   / AàqAÀ\nr;    Aj6   Â "E\r	  AjA¿ "A:  A\n6 A¥ 6  6 A¸ 6   / AàqAÀ\nr; @ AI\r  - Aô F\r A :    A  Ajÿ "6 E\r@  (  ( "G\r  - E\r\n - !@ -  AÉ G\r @ Aq"E\r   - AqE\r@ \r   Aj AjÜ    A ü "6( E\r	   Aj A(jý ! AqE\r	   !A !  6 AÏ F\r   !   !  6 E\r  Aj AjÜ A ! A0j$  B     ( (  @  / AÀqAÀ F\r     ( (  ,  AÆ     ("Aj6   (j :      Aj!@@  (#"E\r   ( 6#  F\r  Ì  @  (è"  AôjF\r  Ì   AÌjÈ   A jÉ   AjÊ   AjÊ   V@  ( j"  ("M\r    At" Aàj"  K"6    ( Í "6 \r «      @  ( "  AjF\r  Ì    @  ( "  AjF\r  Ì    @  ( "  AjF\r  Ì      Aô      ( (        ( ($    ~# A k"$ A !@ ("  (K\r    6 ) !   ) "7A !  BÿÿÿÿV\r   7  7 Aj Aj E! A j$      6    ´ 6  µ  B 7   6   B 7  B 7,  B 74  B 7<  B 7D    A j"6    Aj"6   6    AÌ j6(    A,j"6$   6   Aj AÌj    ( A j   ( " (Ì6Ð  ( 6¤  ×~# Ak"$ @@  ("  ( "F\r @@@@ ,  A¶jAw    Aj6 A !  ÷ "E\r  ( "  (F\r -  AÅ G\r   Aj6  !   Aj"6   Aj!  (  (kAu!@@@@  F\r  -  AÅ F\r   Ó "6 E\r  AjÜ   (!  ( !    Aj6     Ý   AjA¿ ! ) ! A):   7 A÷ 6   / AàqAÀ\nr; A !@  kAI\r  - AÚ G\r    Aj6 A !  ¾ "E\r  ( "  (F\r -  AÅ G\r   Aj6  !   !   E\r A !  A  "E\r  Ó "E\r  AjA¿ "A":   6  6 Aø 6   / AàqAÀ\nr;   Â ! Aj$  # Aà k"$ @@@@@@@  ("  ( "F\r @ -  "AÚ F\r  AÎ G\r   Aj"6 @@  F\r  -  AÈ F\r   !@ E\r   6@  ( "  ("F\r @ -  AÏ G\r    Aj"6  E\r	A! -  AÒ G\r A!   Aj"6  E\r E\rA !   Aj"6  E\rA!A!   Aj6    ¾ "6\\A ! E\r  ( "  ("F\r -  AÅ G\r   Aj"6 @  F\r  -  Aó G\r    Aj"6      6    Aß æ 6   AÜ j Aj ! Aj  Ò !@@@  ( "  (F\r  -  Aä G\r    Aj6  Aj  AÀ A !  ( "  (F\r -  Aß G\r   Aj6 A !A A 6¨Í A¬     !A (¨Í !A A 6¨Í  AF\r  6 E\r   AÜ j Aj !A !A A 6¨Í A¬     !A (¨Í !A A 6¨Í  AF\r  6 E\r     (   ( 6    AÜ j Aj ! à  !Ý A ! A : \\     AÜ jÿ "6 E\r@  (  ( "F\r  -  AÉ G\r @ - \\\r   Aj AjÜ A !    A Gü "6 E\r@ E\r  A:    Aj Ajý !A   - \\! !Ý  à    A!  j :   A 6  Aj!A !@@@@@@@  F"\r  -  AÅ F\r@ E\r  A : A ! \r  k!@@@@@ -  "A­j  AÄ F\r AÉ G\rA ! E\r\n    A Gü "6 E\r\n - A-F\r\n@ E\r  A:     Aj Ajý "6 E\r AI\r - A rAô G\r \r  ø !@@ AI\r  - Aô G\r    Aj6   A­ ç !   "E\r - AF\r \r  6  (!  ( ! !  û !   Aj6 A ! E\r  (  ("F\r   A|j6 !      !  6 E\r  AjÜ   ( "!   ("F\r  ! -  AÍ G\r    Aj"6  ! A ! Aà j$  ¨# Ak"$ A!@  ( "  (F\r @@ -  Aè G\r A!   Aj6  Aj  AÀ  (E\r  ( "  (F\r -  Aß G\r   Aj6  -  Aö G\rA!   Aj6  Aj  AÀ  (E\r  ( "  (F\r -  Aß G\rA!   Aj6    AÀ  (E\r  ( "  (F\r -  Aß G\r   Aj6 A ! Aj$  °A!@  ("  ( "F\r  ,  "A0H\r A !@ A:I\r  A¿jAÿqAK\r@@  F\r ,  "A0H\r@@ A:O\r AP! A¿jAÿqAO\rAI!   Aj"6  A$l j Aÿqj!   6 A ! # Ak"$   Aj!  Aj!A !@@  ( "  ("F\r  -  A× G\r    Aj"6 A !@  F\r  -  AÐ G\r    Aj6 A!   "\rA! Aj$   A¿ ! ( ! A:   :   6  6 A¼ 6   / AàqAÀ\nr;   6   6  AjÜ  m# Ak"$ @   (  ( " kAuI\r  Aæ 6 A6 AÕ 6 AÙ     Aj$    Atjm# Ak"$ @   (  ( " kAuI\r  Aæ 6 A6 AÕ 6 AÙ     Aj$    Atjm# Ak"$ @   (  ( " kAuI\r  Aæ 6 A6 AÕ 6 AÙ     Aj$    AtjOA!@  ( " (  ( " F\r A !  -  ARj" AÿqA1K\r B  ­Bÿ§! Aq¶@@  ("  (G\r    ( "k"At!@@   AjG\r  Ê "E\r@  F\r  E\r    ü\n     6     Í "6  E\r    AuAtj6  j! ( !   Aj6  6 «  # A k"$ @@  (" ("kAuK\r  Aj   Atj"k"¿ !@  F\r  E\r    ü\n     6    Au6  ( (" kAuK\r    Atj6 A j$  Aµ 6 A¨6 AÕ 6 AÙ     A 6 A6 AÕ 6AÙ  Aj  z  - !  A: A A 6¨Í A²    !A (¨Í !A A 6¨Í @ AF\r    :   !Ý    :        A     F  ( AÌj  Aj"   ( A j  A j"  É  È   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   p# Ak"$ @@@  Aj \r  ( ( "k ("O\r  B 7    6   6    j6  Aj$ I~  AjA¿ !  ) !  A:    7  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   I~  AjA¿ !  ) !  A:    7  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   S  AjA¿ !  ´ !  A:    6   6  A°» 6     / AàqAÀ\nr;   þ6~~# AÀk"$  A6 A 6  )7   Aj½ !@@@@@@  ³ "E\r  A¸j ´ A !@@@@@@@@@@@@ - \r 	\n - ! )¸!  ÷ "E\r  ÷ "E\r  AjA¿ "A6:   6  7  6 AÂ 6   / Aàq AvrAÀ\nr;   )¸"7 - !  7   Aj Avµ !@  ( "  (F\r  -  Aß G\r    Aj6   )¸"7 - !  7   Aj Avµ !  ÷ "E\r - !  AjA¿ ! )¸! A8:   7  6 AØÃ 6   / Aàq AvrAÀ\nr;   ÷ "E\r\r  ÷ "E\r\r - !  AjA¿ "A7:   6  6 AÄÄ 6   / Aàq AvrAÀ\nr; \r  ÷ "E\r  ÷ "E\r - !  AjA¿ ! )¸! A::   6  7  6 A¸Å 6   / Aàq AvrAÀ\nr;   Aj!  (  (kAu!@@@  ( "  (F\r  -  Aß F\r   ÷ "6° E\r\r  A°jÜ     Aj6  A°j   Ý A !  Â "	E\r Aú 6 A6  )7   Aj½ !  (  (kAu!\n@@@  ( "  (F\r  -  AÅ F\r E\r\r   ÷ "6  E\r\r  A jÜ     Aj6  A j   \nÝ  - !  AjA ¿ ! )°! ) ! AÀ :   Aq:   :   7  	6  7 A¤Æ 6   / Aàq AvrAÀ\nr;   ÷ "E\r\n - !  AjA¿ "AÁ :   Aq: \r  :   6 AÇ 6   / Aàq AvrAÀ\nr; \n   ÷ "6 A ! E\r	  Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\r   ÷ "6° E\r  A°jÜ     Aj6  A°j   Ý   - "Aq: ¬  Av: ÿ   A j A°j A¬j Aÿj¶ !	  - !A !  A : A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r   :  E\r  (  (k!	A !@  ( "  ("F\r  -  Aß G\r A!   Aj"6   Aj! 	Au!	@@  F\r  -  AÅ G\r    Aj6 	   ÷ "6° E\r  A°jÜ  E\r  (!  ( !   ÷ "E\r  ÷ "E\r  ÷ "E\r - !  AjA¿ "A9:   6  6  6 AÐÉ 6   / Aàq AvrAÀ\nr;   Â "E\r  ÷ "E\r - !  AjA¿ ! )¸! A=:   6  6  7 AÀÊ 6   / Aàq AvrAÀ\nr; @@ - AqE\r   Â !  ÷ ! E\r - !  AjA¿ ! )¸! A<:  B 7  6  7 A¨Ë 6   / Aàq AvrAÀ\nr; A !  ("  ( "k"AI\r@@ -  "Aæ F\r @ AÔ F\r  AÌ G\r   !  û !@@ - "Að F\r  AF\r AÌ G\r , APjA	K\r  · !  F\r   Aj"6   F\rA !@@@ -  "Aò G\r A !@@ AÒ F\r  Aì F\r AÌ G\r	A!A!A!A !A!A !   Aj6   ³ "E\r@@ - A~j  A¸j ¸  (¸ (¼jAj-  A*G\r  ÷ "E\rA !@@ \r  !  ÷ "E\r   !   ! A¸j ´   AjA¿ ! )¸! AÇ :   :   7  6  6 AÌÛ 6   / AàqAÀ\nr;  A6ø AÜ 6ô  )ô7x@   Aø j½ E\r   Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\r   ¹ "6¸ E\r  A¸jÜ     Aj6  A¸j   Ý   AjA¿ ! )¸! AÆ :   7 A 6 Aß 6   / AàqAÀ\nr;  A6ð Aö 6ì  )ì7p@   Að j½ E\r   Â "E\r  ÷ "E\r A¸j  AÀ A !  ( "  (F\r -  AÅ G\r   Aj6   AjA¿ ! )¸! AÅ :   7  6  6 Aøß 6   / AàqAÂ\nr;  A6è A³ 6ä  )ä7h@   Aè j½ E\r   ÷ "E\r  AjA¿ "A<:  B 7  6 A	6 AØ 6 A¨Ë 6   / AàqAÂ\nr;   ("  ( "F\r  kAI\r -  AÿqAò G\r - A rAñ G\r A6¼ A 6¸  )¸7`@@   Aà j½ E\r   Aj!  (  (kAu!@@@  ( "  (F\r  -  Aß F\r   Â "6° E\r  A°jÜ     Aj6  A°j   Ý  (´! (°! A6´ A  6°  )°7XA !A !   AØ j½ E\r  Aj!  Aj!  ( "  (F!  (  (kAu!\r@ Aq\r@@@@ -  AØ G\r    Aj6   ÷ "E\rA !  ( "  ("	F\r -  AÎ G\rA!\n   Aj"6 @ -  AÔ G\r    Aj6   Â "E\r A¿ "AÕ :   6 Aèá 6   / AàqAÀ\nr;  -  AÑ G\r   Aj6   ÷ "E\r A¿ "AÖ :   6 AØâ 6   / AàqAÀ\nr; A !\n@  	F\r  -  AÒ G\r    Aj6   A Ô "E\r A¿ "AÔ :   6  \n:   6 Aøà 6   / AàqAÀ\nr;   6   A jÜ   ( "  (F"\r  -  AÅ G\r    Aj6  A j   \rÝ  A¿ !  ) !  AÓ :    7   6   6  AÌã 6     / AàqAÀ\nr;   ! !Ý    :     A6à AÖ 6Ü  )Ü7P@   AÐ j½ E\r   Â "E\r  ÷ "E\r A¸j  AÀ   Aj!  (  (kAu!	A !@  ( "  ("F\r@ -  Aß G\r    Aj6  A°j  A À     A°jñ 6   A jÜ @ -  "Að G\r    Aj"6   F\r -  AÅ G\r   Aj6  A°j   	Ý   AjA$¿ ! )¸! )°! A;:   Að F:    7  7  6  6 A¼ä 6   / AàqAÀ\nr;  A6Ø A£ 6Ô  )Ô7H@   AÈ j½ E\r    ÷ "6¸ E\r   A¸jú ! A6Ð Aß 6Ì  )Ì7@@   AÀ j½ E\r @  (  ( "F\r  -  AÔ G\r   û "E\r  AjA¿ "A>:   6 A¬å 6   / AàqAÀ\nr;    · "6¸ E\r   A¸jº ! A6È A 6Ä  )Ä78@   A8j½ E\r   Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\r   Ó "6¸ E\r  A¸jÜ     Aj6  A¸j   Ý   AjA¿ ! )¸! A :   7 A æ 6   / AàqAÀ\nr;   6°   A°jº ! A6À AÐ 6¼  )¼70@   A0j½ E\r   Â "E\r  Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\r   ¹ "6¸ E\r  A¸jÜ     Aj6  A¸j   Ý   AjA¿ ! )¸! AÆ :   7  6 Aß 6   / AàqAÀ\nr;  A6¸ Aè 6´  )´7(@   A(j½ E\r   Aâ å ! A6° Aß 6¬  )¬7 @   A j½ E\r   ÷ "E\r  AjA¿ "AÈ :   6 Aç 6   / AàqAÀ\nr; @@@  ( "  (F\r  -  Aõ G\r    Aj6     "6  E\rA ! A 6¬ A j  ( (    ) "7° BpBR\r A6¼ AÉ 6¸  )¸7A !A ! A°j Aj \r@  ( "  (G\r A !@@ -  Aô G\r A!   Aj6   Â !A !A ! -  Aú G\rA!   Aj6   ÷ !  6¬ A6¼ A 6¸A ! A 6   )¸7@   Aj½ E\r    » "6  E\r@  (  ( "F\r  -  AÉ G\r A !   A ü "6° E\r    A j A°jý 6 @@@  ( "  (F\r  -  AÅ F\r   ¼ "6° E\r    A j A°j½ 6     Aj6    ¾ "6° E\r   A j A°j½ ! A6´ Aë 6°  )°7@   Aj½ \r    ¾ "6  As Er\r   A j¿ !@@  (  ( "F\r  ,  APjA	K\r A!@   ¼ "6¬ E\r@@ Aq\r    A j A¬j½ ! E\r    A¬j¿ !  6 A !  ( "  (F\r  -  AÅ G\r    Aj6    » "6  E\r  (  ( "F\r  -  AÉ G\r A !   A ü "6¬ E\r    A j A¬jý 6    ¾ "6¬ E\r   A j A¬j½ !A !  Aj!  (!  (!@@ \r @@  ( "  (F\r  -  AÅ G\r    Aj6    Ó "6¸ E\r  A¸jÜ   E\r  A¬jÜ  A¸j    kAuÝ  A : ° A: ÿ   A j A¸j A°j Aÿj¶ !A ! A°j   	Ý A !  (´AFrAG\r  - !  AjA¿ ! )°! AÄ :   7  6 AàÈ 6   / Aàq AvrAÀ\nr;  AÀj$  ãA !@  ( "  ("F\r  -  AÄ G\r    Aj"6   F\r @ -  Aô F\r  -  AÔ G\r   Aj6   ÷ "E\r   ( "  (F\r  -  AÅ G\r    Aj6   AjA¿ "A<:  B 7  6 A6 Aý 6 A¨Ë 6   / AàqAÀ\nr;  U   AjA¿ !  ( ! ( !  A:    6   6  A  6     / AàqAÀ\nr;   G   AjA¿ !  ( !  A*:    6  A´Ü 6     / AàqAÀ\nr;   Þ# A k"$ A !@@@  ( "  ("F\r  -  AÔ G\r    Aj"6 @@@  G\r A !@@ -  "AÌ F\r A !   Aj6 A !   Aj \r  ( "  ("F\r -  Aß G\r (Aj!   Aj"6   F\r -  !A ! AÿqAß F\rA !   Aj \r  ( "  (F\r -  Aß G\r (Aj!   Aj6 @  - AG\r   6   k6   Ajñ !@  - AG\r  \r   AjA¿ A,AAAß "A :  A 6  6 A½ 6  - A,G\r@  (ì"  (ðG\r    (è"k"At!@@   AôjG\r  Ê "E\r@  F\r  E\r    ü\n     6è    Í "6è E\r    AuAtj6ð  j!   Aj6ì  6   AÌj!@@   (Ð  (ÌkAuO\r   Ù ( E\r    Ù ( "( ( kAuI\rA !  ( G\r   (Ð  (ÌkAu"K\r@  G\r  A 6  Aj¢   AÇ á !  Ù (  Ú ( ! A j$   Aµ 6 A±.6 AÕ 6 AÙ    «  ®	~# Ak"$ A !@  ( "  ("F\r  -  AÉ G\r    Aj"6 @ E\r     (Ì6Ð   A j6   AÌj ¢     ( 6¤  (!  ( !  F!  A j!  Aj!  Aj!  (  (kAu!	@@@ Aq\r  -  AÅ G\r A !@@ E\r    Ó "6  E\r  Ü   6@@@ - "A)F\r  A"G\r (!\n )! A¿ "\nA(:  \n 7 \nA´ô 6  \n \n/ A`q"Ar"\r;  §" B §Atj! !@@@  F\r ( ! Aj! / AqAF\r  \n Ar"\r;  !@@@  F\r ( ! Aj! / AqAF\r  \n \rAÿgqAr"\r; @@  F\r ( ! Aj! / AÀqAÀ F\r  \n \rA¿þqAÀ r;   \n6  Aj£    Ó "6  E\r  Ü   ( "  (F"\r  -  AÑ G\r    Aj6   Þ "E\r  ( "  (F\r -  AÅ G\r   Aj6     	Ý  A¿ ! ) ! A+:   6  7 A¤õ 6   / AàqAÀ\nr;  Aj$  U   AjA¿ !  ( ! ( !  A-:    6   6  Aö 6     / AàqAÀ\nr;   V   AjA¿ !  ( !  A\r ( "- AvAAß " A :    6   6  Aä 6   Â# Ak"$  A6 A 6  )7 A !A !@   ½ E\r   A­ ç !@@  (  ( "F\r  -  AÓ G\r A !   "E\r - AF\r  \r A:   !      ! Aj$  Ù# A0k"$  A6, AÖ 6(  )(7@@   Aj½ E\r A!A  !A ! A6$ Aþ 6   ) 7@   Aj½ E\r A!A !A ! A6 Aª 6  )7 @   ½ \r A !A!A !A!A !A¤ !  A Ô !@@ \r  E\r   AjA¿ " A:    6   6   6  A 6     / AàqAÀ\nr;  !  A0j$   Ñ~# A0k"$ @@  ( "  (F\r  -  AÕ G\r    Aj6  A(j  î A ! (,"E\r A	6 AÌ 6  )("7   7  )7 @ Aj Ð E\r   ) !   §"A	j6     j6 Aj  î  (! (!   7  E\r   "E\r  AjA¿ "A:   6  6  6 A ÿ 6   / AàqAÀ\nr; A !@  (  ( "F\r  -  AÉ G\r A !  A ü "E\rA !   "E\r  AjA¿ "A:   6  7  6 A 6   / AàqAÀ\nr;    !@  Â "\r A !@ \r  !  AjA¿ A / " AÀqAv  AvAq  A\nvAqß " 6  6 A 6  A0j$  à~# Að k"$    ! A6l AÙ 6h  )h70@@@   A0j½ E\r   AÍ ê ! A6d A 6`  )`7(@   A(j½ E\r A !  ÷ "E\r  ( "  (F\r -  AÅ G\r   Aj6   AjA¿ "A:   6 AÈü 6   / AàqAÀ\nr;  A6\\ Aõ 6X  )X7 A !   A j½ E\r   Aj!  (  (kAu!@@@  ( "  (F\r  -  AÅ F\r   Â "6P@ E\r   AÐ jÜ A !   Aj6  AÐ j   Ý   AjA¿ ! )P! A:   7 A¸ý 6   / AàqAÀ\nr;  A6L A¿ 6H  )H7   Aj½ A !  ( "  ("F\r  -  AÆ G\r    Aj"6 @  F\r  -  AÙ G\r    Aj6   Â "E\r   Aj!  (  (kAu!	@@@  ( "  (F\r @ -  AÅ G\r    Aj6 A ! -  Aö G\r    Aj6  A6D AÚ 6@  )@7@   Aj½ E\r A!A! A6< AÝ 68  )87   Aj½ \r   Â "6P E\r  AÐ jÜ   AÐ j   	Ý   AjA ¿ !  )P!  AA AA ß " 6  :   6  7  6 A°þ 6  Að j$  ¾  Aj!  ( !@ ( " Aj"G\r @@  G\r  ! Ì     Aj6   6   6  ( !@@ (" G\r  !@  k"E\r    ü\n   ( ! (!  ( !     kj6  6     6 @  G\r    (6   (6  Aj6  6  6     6   (!   (6  6  (!   (6  6  ( 6  ¾  Aj!  ( !@ ( " Aj"G\r @@  G\r  ! Ì     A,j6   6   6  ( !@@ (" G\r  !@  k"E\r    ü\n   ( ! (!  ( !     kj6  6     6 @  G\r    (6   (6  A,j6  6  6     6   (!   (6  6  (!   (6  6  ( 6  A !@  ( "  ("F\r  -  Aò G\r    Aj"6 A!@  F\r  -  AÖ G\r    Aj"6  Ar!@  F\r  -  AË G\r    Aj6  Ar! ·@   F\r @  ,  "Aß G\r   Aj" F\r@ ,  "APjA	K\r   Aj Aß G\r  Aj!@  F\r@ ,  "APjA	K\r  Aj! Aj   Aß F APjA	K\r   !@@ Aj" G\r   ,  APjA\nI\r   U   AjA¿ !  ( ! ( !  A:    6   6  AÈó 6     / AàqAÀ\nr;   ð# Ak"$ A !@  ( "  ("F\r  -  AÓ G\r    Aj"6 @  F\r @ ,  "Aá H\r  Aú K\rA !@@@@@@@ Aÿq"Aj						  AjA!A!A!A!A!   Aj6   AjA¿ "A0:   6 A°ì 6   / AàqAÀ\nr;     ¤ "6@  F\r   Aj AjÜ  ! ! Aß G\r    Aj6   (  (F\r  AjA ¥ ( !A ! A 6   AjÖ \r   ( "  (F\r  -  Aß G\r  (!   Aj6  Aj"  (  (kAuO\r   Aj ¥ ( ! Aj$  æ	~# A0k"$   6$  6(@@   A$j× \r   (!  ( !@@@@ E\r @  G\r A ! -  AÆ G\r A!   Aj"6 A !@  F\r  -  AÌ G\r    Aj"6   F\r  ,  "A1H\r @ A9K\r    ! AÕ G\r    ¦ ! A6  Aè 6  )7@   Aj½ E\r   Aj!  (  (kAu!@    "6 E\r  AjÜ   ( "  (F\r  -  AÅ G\r    Aj6  Aj   Ý   AjA¿ ! )! A5:   7 Aï 6   / AàqAÀ\nr; @  ("  ( "F\r  -  A½jAÿqAK\r A ! E\r ($\r@ - A0G\r   AjA¿ ! (! A/:   6 Aðí 6   / AàqAÀ\nr;   6(  (!  ( ! !A !  F\r@ -  AÃ G\r    Aj"	6 A !@@ 	 G\r A !\nA !\n 	-  AÉ G\r    Aj"	6 A!\n  	F\r 	-  "AOjAÿqAK\r  APj6   	Aj6 @ E\r  A:  @ \nE\r    Ô \r A ! A : /   A(j A/j Aj§ !  kAI\r -  AÿqAÄ G\r - "	APj"AK\r AF\r  	APj6   Aj6 @ E\r  A:   A: /   A(j A/j Aj§ !   ¨ !@@ E\r  ($"E\r   AjA¿ "A:   6  6 Aôð 6   / AàqAÀ\nr;  ! E\r@ As   ¤ "Er\r   AjA¿ "A:   6  6 Aäñ 6   / AàqAÀ\nr; @ E\r  E\r   AjA¿ "A:   6  6 AÜò 6   / AàqAÀ\nr;  !A ! A0j$  ²\n~# A°k"$ A !@  ( "  ("F\r  -  AÌ G\r    Aj"6 @  F\r @@@@@@@@@@@@@@@@@@@@@@ -  A¿j9	\n\r    Aj6  A6¬ AÒ 6¨  )¨7   AjÀ ! A6¤ Aä 6   ) 7@   Aj½ E\r  A 6   AjÁ ! A6 Aà 6  )7   Aj½ E\r A6   AjÁ !   Aj6  A6 A 6  )7    A jÀ !   Aj6  A6 A 6  )7(   A(jÀ !   Aj6  A\r6 A 6  )70   A0jÀ !   Aj6  A6ü AÆ 6ø  )ø78   A8jÀ !   Aj6  A6ô A½ 6ð  )ð7@   AÀ jÀ !   Aj6  A 6ì Aµ 6è  )è7H   AÈ jÀ !   Aj6  A6ä Aÿ 6à  )à7P   AÐ jÀ !   Aj6  A6Ü Aï 6Ø  )Ø7X   AØ jÀ !\r   Aj6  A6Ô AÍ 6Ð  )Ð7`   Aà jÀ !   Aj6  A6Ì AÙ 6È  )È7h   Aè jÀ !   Aj6  A6Ä AØ 6À  )À7p   Að jÀ !\n   Aj6  A6¼ Aë 6¸  )¸7x   Aø jÀ !	   Aj6  A6´ Aâ 6°  )°7   AjÀ !   Aj"6   kA	I\r A\nj!A !@@ AF\r  j-  "Aj!	A ! Aj"\n! APjAÿqA\nI\r  \n! 	AÿqAI\r 	   6 A !  F\r -  AÅ G\r   Aj6   AjA¿ "AÎ :  A6  6 AðÍ 6   / AàqAÀ\nr;    Aj"6   kAI\r Aj!A !@@ AF\r  j-  "Aj!	A ! Aj"\n! APjAÿqA\nI\r  \n! 	AÿqAI\r    6 A !  F\r -  AÅ G\r   Aj6   AjA¿ "AÏ :  A6  6 AäÎ 6   / AàqAÀ\nr;    Aj"6   kA!I\r A"j!A !@@ A F\r  j-  "Aj!	A ! Aj"\n! APjAÿqA\nI\r  \n! 	AÿqAI\r    6 A !  F\r -  AÅ G\r   A#j6   AjA¿ "AÐ :  A 6  6 AØÏ 6   / AàqAÀ\nr;  A6¬ Aå 6¨  )¨7   Aj½ E\r  ¾ "E\r  ( "  (F\r -  AÅ G\r   Aj6  !  Â "E\r  ( "  (F\r -  AÅ G\r   Aj6   AjA¿ "AÊ :   6 AÌÐ 6   / AàqAÀ\nr;  A6¤ A¡ 6   ) 7   Aj½ E\r@  ( "  ("F\r  -  A0G\r    Aj"6   F\r -  AÅ G\r   Aj6   Aã â !  kAI\r - Aì G\rA !  A ¦ "E\r  ( "  (F\r -  AÅ G\r   Aj6   AjA¿ "AË :   6 AÙ 6   / AàqAÀ\nr;   Â "E\r  Aj  AÀ A ! (E\r   ( "  (F\r  -  AÅ G\r    Aj6   AjA¿ ! )! AÌ :   7  6 AðÙ 6   / AàqAÀ\nr;  A°j$  # Ak"$ @@  ("  ( "G\r A ! A !  -  AÔ G\r  A6 Añ 6A ! @  kAI\r  - !  Aj  ÀA î AG!  Aj$   \n~# A k"$   6 A6 A° 6   6  )7(  Aj6@@@   A(j½ E\r  AjA ï !  AjA¿ A#A AAß " 6 A¨Ó 6  A6 A÷ 6  )7 @@@@@   A j½ E\r   - !  A: A !A A 6¨Í A¬   A  !A (¨Í !A A 6¨Í  AF\r@ E\r  AjA ï !  AjA¿ A$A AAß " 6  6 A Ô 6    :  A6 A 6|  )|7@   Aj½ E\r  AjAï !@  Â "\r A !  AjA¿ A%A AAß " 6  6 A¤Õ 6  A6x A 6t  )t7@   Aj½ E\r   Aj! AjAï !  (  (kAu! AÀ j  à "Aj!  (!  ( !@@@@@  F\r  -  AÅ G\r    Aj6 A !A A 6¨Í A³     !A (¨Í !A A 6¨Í  AF\r  68 E\r  A8jÜ   ( "  ("F\r  -  AÑ G\r    Aj6 A A 6¨Í A±    !A (¨Í !A A 6¨Í  AF\r E\r  ( "  (F\r -  AÅ G\r   Aj6  !Ý  !Ý A ! A64 AÃ 60  )07A !   Aj½ E\r   ( "E\r  AjA¿ A\'A AAß " 6 A× 6  !Ý    : A A 6¨Í A°  A8j    A (¨Í !A A 6¨Í @ AF\r   AjA¿ !  )8!	  A&A AAß " 6  	7  6 A Ö 6  !Ý  á  á  A j$     Ç# A0k"$ A !@   A,j \r  (,"Aj  (  ( "kO\r   6$  6(    j6  A\n6  A 6  )$7  )7@ Aj AjÐ E\r   AÖ ò !   A$jï ! A0j$  A    :   Aº 6    At At A?qrAÿqr A\ntr  / Aàqr;    A  A  A     A 	   B 7    Aô N~# Ak"$    )"7   7   !  ( Ã  Aj$ H@ ("E\r    Æ @ E\r   (  (j (  ü\n      ( j6        Aô # A k"$  A6 A­ 6  )7  Aj !  ( Ã  A6 Aë 6  )7    !  ( Ã  A j$ A ! A 6 A!@  ("  ( "F\r  -  AFjAÿqAöI\r @A !  F\r -  APjAÿqA	K\r  A\nl"6    Aj"6    ,  jAPj"6  !      )7    Aô @~# Ak"$    )"7   7    Aj$    Aô f@@  ("\r A !  Ã   (A G!  - !@@ \r  AqE\r A:A. AqÄ   ( Ã ¶@@  ("  (G\r    ( "k"At!@@   AjG\r  Ê "E\r@  F\r  E\r    ü\n     6     Í "6  E\r    AuAtj6  j! ( !   Aj6  6 «  ¶@@  ("  (G\r    ( "k"At!@@   AjG\r  Ê "E\r@  F\r  E\r    ü\n     6     Í "6  E\r    AuAtj6  j! ( !   Aj6  6 «  Ì~# Ak"$   Aj!@@  ( "  (F\r  -  AÂ G\r    Aj6  Aj  î  (\rA ! Aj$   A¿ ! )! A	 / "AÀqAv AvAq A\nvAqß " 7  6 A î 6  ! m# Ak"$ @   (  ( " kAuI\r  Aæ 6 A6 AÕ 6 AÙ     Aj$    AtjÜ~~# A k"$ @ E\r     (Ì6Ð A6 A 6  )7(@@@@@@   A(j½ E\r A ! AØ j  A À   ( "  (F\r -  Aß G\r   Aj6   AjA¿ ! )X! A3:   7 A¼Ñ 6   / AàqAÀ\nr;  A6 Aî 6  )7 @   A j½ E\r   (!    (Ð  (ÌkAu6  Aj! AØ j  à "Aj!  (  (kAu!	@@@@@   E\rA A 6¨Í A³     !A (¨Í !A A 6¨Í  AF\r  6P E\r  AÐ jÜ  A A 6¨Í A°  AÐ j   	 A (¨Í !A A 6¨Í @@@ AF\r  (T\r  (Ð"  (ÌG\r AÕ 6 A A 6¨Í  A6 Aö 6A AÙ   A (¨Í !A A 6¨Í  AG\r\n !Ý \n   A|j6ÐA !@  ( "  (F\r  -  AÑ G\r    Aj6 A !A A 6¨Í A±    !A (¨Í !A A 6¨Í  AF\r E\r A6L Aü 6H  )H7@   Aj½ \r @A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r  6@ E\r  AÀ jÜ   (  ( "F\r  -  "AÑ F\r AÅ G\r A !A A 6¨Í A°  AÀ j   	 A (¨Í !A A 6¨Í @@ AF\r   ( "  (F\rA !@ -  "	AÑ G\r    Aj6 A !A A 6¨Í A±    !A (¨Í !A A 6¨Í  AF\r E\r  ( "  (F\r -  !	A ! 	AÿqAÅ G\r   Aj6 A ! A8j  A À   ( "  (F\r -  Aß G\r   Aj6   AjA(¿ ! )P! )@!\n )8! A4:   7   6  \n7  6  7 AØ 6   / AàqAÀ\nr;  !Ý 	 !Ý A ! á    6 !Ý  A64 Aü 60  )07A !   Aj½ E\r A ! AØ j  A À   ( "  (F\r  -  Aß G\r    Aj6   A§ ð ! A j$   !Ý  !Ý   á    6   c   AjA¿ !  ( ! -  ! ( !  A1:    6   :    6  Að 6     / AàqAÀ\nr;   ¾# A k"$ @@@@  ³ "E\r @ - "AG\r   - !A !  A :    A G  - "r: A A 6¨Í A©    !A (¨Í !A A 6¨Í  AF\r  6@ E\r @ E\r  A:     Aj¬ !   :    : A ! A\nK\r@ AG\r  - AqE\r Aj ¸    Ajñ ! A6 Aý 6  )7@   Aj½ E\r    "E\r  AjA¿ "A:   6 AÌê 6   / AàqAÀ\nr; A !  ( "  ("F\r -  Aö G\r   Aj"6   F\r -  APjAÿqA	K\r   Aj6     "6 E\r   Aj¬ ! !Ý    :    :    A ! A j$  A !@@  - \r   A:   (!A A 6¨Í A´    !A (¨Í !A A 6¨Í  AF\r  A :   !Ý   A :    1@  - Av"AF\r  E     ( (   A !@@  - \r   A:   (!A A 6¨Í Aµ    !A (¨Í !A A 6¨Í  AF\r  A :   !Ý   A :    1@  - Aq"AF\r  E     ( (  A !@@  - \r   A:   (!A A 6¨Í A¶    !A (¨Í !A A 6¨Í  AF\r  A :   !Ý   A :    4@  / A\nvAq"AF\r  E     ( (  @  - E\r     A:   ("( (!A A 6¨Í     !A (¨Í !A A 6¨Í @ AF\r   A :   !Ý   A :       Aô @@  - \r   A:   (! ( (!A A 6¨Í     A (¨Í !A A 6¨Í  AF\r  A :  !Ý   A :    @@  - \r   A:   (! ( (!A A 6¨Í     A (¨Í !A A 6¨Í  AF\r  A :  !Ý   A :    ØA !@  (  ( "kAI\r A>!A !@@ " F\r@  jAv"At", ¾ " ,  "N\r  Aj! !  G\r  Aj  A¾ j- À - ÀH"!   ! A ! At"- ¾  -  G\r  A¾ j"-  - G\r    Aj6  ! ú~# A0k"$    (Ñ ! @@ - A\nK\r   ) ! A6$ Aî 6   7(  7  ) 7 Aj AjÐ E\r    ( "Aj"6     ("Axj"6 E\r  -  A G\r    Awj6   A	j6  A0j$  Aú 6 AÑ6 AÕ 6 AÙ    h~@  ÷ "\r A   AjA¿ !  ) !  AÂ :    6   7  AìÂ 6     / Aàq rAÀ\nr;   r~  AjA¿ !  -  ! ( ! ) ! -  !  A?:    :    7   6  AøÇ 6     / Aàq A?qrAÀ\nr;   ¦# AÀ k"$  A6< Aè 68  )87@@   Aj½ E\r   A á ! A64 AÀ 60  )07@   Aj½ E\r    A ! A(j  A À   ( "  (F\r -  Aß G\r   Aj6    A(jÂ ! A6$ A© 6   ) 7A !   Aj½ E\r A ! A(j  A À  (,E\r   ( "  (F\r  -  Að G\r    Aj6    A ! A(j  A À   ( "  (F\r  -  Aß G\r    Aj6    A(jÂ ! AÀ j$      (Ñ °# Ak"$ @@@  ("  ( "F\r   kAI\r  -  AÿqAä G\r @ - "AØ F\r @ Aø F\r  Aé G\r   Aj6     "6 E\r   ¹ "6 E\r A :    Aj Aj AjÃ !   Aj6    ÷ "6 E\r   ¹ "6 E\r A:    Aj Aj AjÃ !   Aj6 A !  ÷ "E\r  ÷ "E\r  ¹ "E\r  AjA¿ "AÒ :   6  6  6 AÞ 6   / AàqAÀ\nr;   ÷ !A ! Aj$  `   AjA¿ !  ( !  A<:   B 7   6  A\n6  Aµ 6  A¨Ë 6     / AàqAÀ\nr;   §# Ak"$ @@  (  ( "F\r @ -  "AÄ F\r  AÔ G\r   û "6 E\r  Aj AjÜ    ø "6 E\r  Aj AjÜ    ! Aj$  # Ak"$     "6@@ \r A !  (  ( "F\r  -  AÉ G\r A !   A ü "6 E\r    Aj Ajý ! Aj$  U   AjA¿ !  ( ! ( !  A:    6   6  Aüç 6     / AàqAÀ\nr;   # A0k"$ @@  (  ( "F\r  ,  APjA	K\r   ¼ ! A6, A 6(  )(7@   Aj½ E\r @@  (  ( "F\r  ,  APjA	K\r   ¼ !  » !@ \r A !  AjA¿ "A2:   6 Aìè 6   / AàqAÀ\nr;  A6$ A 6   ) 7   Aj½ A !   A ¨ "6 E\r @  (  ( "G\r  ! ! -  AÉ G\r A !   A ü "6 E\r    Aj Ajý ! A0j$  G   AjA¿ !  ( !  A.:    6  A¼ë 6     / AàqAÀ\nr;   ¸~# Ak"$  Aj  AÀ A !@ (E\r   ( "  (F\r  -  AÅ G\r    Aj6   AjA¿ ! ) ! )! AÍ :   7  7 AÌ 6   / AàqAÀ\nr;  Aj$  K   AjA¿ !  ( !  AÉ :   AÍ 6    A G:     / AàqAÀ\nr;   J~  AjA¿ !  ) !  AÃ :    7  AÜÚ 6     / AàqAÀ\nr;   d   AjA¿ !  ( ! ( ! -  !  AÑ :    :    6   6  A¬Ý 6     / AàqAÀ\nr;      Aô ô~# Aà k"$ A !@ (\r    )"7P@@ B "BR\r  A6\\ Aø 6X  )X70 AÐ j A0j E\r  )"B !  7P BR\r A6\\ Aà 6X  )X7( AÐ j A(j \r A(Æ A!  ( A  / A?q" AF AGÇ    )"7P@@ BpBR\r  A6\\ A 6X  )X7  AÐ j A j E\r A6L AÓ 6H  )H7  Aj    )"7  7@  Aj ! A6< AÓ 68  )87  Aj !  (   / A?q AFÇ @ E\r  A)È  Aà j$      (Aj6   Ä > @  j  / A?qK\r  A(Æ    Ã  A)È    Ã      (Aj6   Ä    Aô X~# Ak"$    )"7   7   !  (   / A?qA Ç  Aj$    Aô W~# Ak"$   (   / A?qAÇ    )"7   7    Aj$    Aô @   (   / A?qA Ç  AÛ Æ   ( AA Ç  AÝ È    Aô o~# Ak"$   (   / A?qAÇ    )"7   7   !  (   / A?qA Ç  Aj$    A ô È# AÀ k"$ @  - AG\r  A6< Aß 68  )87  Aj  A64 Añ 60  )07  Aj !@  - AG\r  A6, AË 6(  )(7  Aj @  (E\r  A(Æ   Aj Ó  A)È  A6$ AÓ 6   ) 7    !  ( Ã @  (E\r  A(Æ   Aj Ó  A)È  AÀ j$ Õ# Ak"$ A !A!@@   (F\r ("!@ Aq\r  A6 AÆ 6  )7     (!A !  (  Atj(  AA Ç @  (G\r     ( (    6 ! Aj! !  Aj$    Aô Ï# A0k"$ @  - AG\r  A6, Aß 6(  )(7  Aj  A6$ Að 6   ) 7  Aj !@  - \rAG\r  A6 AË 6  )7     A Ä !  ( Ã  A0j$    Aô ^ @  - AG\r  A(Æ   ( Ã @  - AG\r  A)È  A(Æ   Aj Ó  A)È    Aô D  A(Æ   ( Ã  A)È  A(Æ   Aj Ó  A)È    Aô ¬# A k"$   (   / A?qA Ç  A6 A 6  )7  Aj !  ( AA Ç  A6 A± 6  )7    !  ( AAÇ  A j$    Aô ¹~# A0k"$    )"7  7(  Aj "(! A 6 AÇ 6  A6$  ) 7  Aj !  (! ( (!A A 6¨Í     A (¨Í !A A 6¨Í @ AF\r  A6 Aø 6  )7    !  6 A(Æ   ( AA Ç  A)È  A0j$  !Ý   6      Aô ~# A k"$    )"7  7  Aj "A(Æ   ( Ã  A)È    )"7   7    A j$ # Ak"$    6  (Ì! (Ð!  B 7    A4j6    Aj"6   6  B 7  B 7$  B 7,    kAu6   Aj6 AÌj Aj¢  Aj$   Ù# Ak"$ @@  ( "(Ð (Ì"kAu  ("O\r  AÕ 6 A A 6¨Í  A×6 Aµ 6A AÙ   A (¨Í ! A A 6¨Í   AF\r    Atj6Ð  AjÉ  Aj$   A  ! Ý        Aô ~# AÀ k"$ @  (AI\r  A(Æ    )"7  70  Aj A)È @@  (-  Aî G\r  A-Ä !  (!   (Aj6<  Aj68  )87  Aj    )"7  7(  Aj @  (AK\r    )"7   7     AÀ j$    Aô Z# Ak"$  AA  - " 6 Aâ A÷   6  )7     Aj$    Aô # AÀ k"$ @  (AI\r   (! A<j!A ! @@  AF\r APA©   j", "APjA\nI jA A	 ,  "APjA\nI jAtj:   Aj!  Aj!   A<j æ  B 70 B 7( B 7   *<»9  A jAAÛ  Ajå 6  A j6  )7  Aj  AÀ j$    Aô # AÐ k"$ @  (AI\r   (! AÈ j!A ! @@  AF\r APA©   j", "APjA\nI jA A	 ,  "APjA\nI jAtj:   Aj!  Aj!   AÈ j æ  B 78 B 70 B 7( B 7   +H9  A jA A  Ajå 6  A j6  )7  Aj  AÐ j$    Aô # Að k"$ @  (A I\r   (! Aà j!A ! @@  A F\r APA©   j", "APjA\nI jA A	 ,  "APjA\nI jAtj:   Aj!  Aj!   Aà j æ  A0jA A*ü   )`7  )h7  A0jA*A¬  Ajå 6,  A0j6(  )(7  Aj  Að j$    Aô # A k"$  A6 AÆ 6  )7  Aj !  ( Ã  A6 Aà 6  )7     A j$    (   (  þ ¥# Ak"$   ( " Atj" ("Aj6 AjA¿ "A!:   6  6 A¬Ò 6   / AàqAÀ\nr;   6@  (( "E\r   Aj£  Aj$     Aô ~# A0k"$  A6, AÞ 6(  )(7  Aj !   )"7  7   Aj !  A6 Aµ 6  )7      A0j$    Aô ~# AÐ k"$ @@@@@  (  A 6(A! A(j! A¦ 6 A! A j! Aì 6A! Aj!  6  ) 7  Aj @  (" E\r   Aj­! AÐ j"! @  Aj"   B\n"B\n~}§A0r:   B	V! ! \r    60    k64  )07  Aj  AÐ j$    Aô G# Ak"$  A	6 AÉ 6  )7     Aj$    ( Ã    Aô T# Ak"$   ( Ã  A6 AÓ 6  )7     Aj$    ( Ã    Aô s# Ak"$    ( ( (  @  ( ª \r  A6 AÓ 6  )7     Aj$ )   ( Ã    ( ( (     Aô å# A k"$  (! A 6 A	6 Aª 6  )7  Aj !A A 6¨Í A·   Aj  A (¨Í ! A A 6¨Í @  AF\r  A6 AÇ 6  )7      6 A j$  !Ý   6   m# Ak"$   ( Ã @  (E\r  A\n6 Aô 6  )7    !  ( Ã  Aj$    Aô a# Ak"$    ( ( (   A6 AÝ 6  )7     Aj$     ( ( (     A(ô ~# A0k"$  A6, A 6(  )(7  Aj !   ) "7  7   Aj ! A6 Aµ 6  )7        A0j$ Ã# AÐ k"$ @@  (E\r  (! A 6 AÇ 6H A6L  )H7   A j !A A 6¨Í A·   Aj  A (¨Í !A A 6¨Í  AF\r A6D Aø 6@  )@7  Aj   6@  (E\r  A\n6< Aô 68  )87  Aj !  ( Ã  A64 AÓ 60  )07  Aj  A(Æ   Aj Ó  A)È @  (E\r  A\n6, Aô 6(  )(7    !  ( Ã  AÐ j$  !Ý   6      Aô # A k"$  A6 AË 6  )7  Aj !@  (" - A4G\r      A6 A 6  )7     A j$    Aô ¼~# A k"$  A(Æ   ( Ã  A)È @@  (-  Aî G\r  A-Ä !  (!   (Aj6  Aj6  )7  Aj    )"7  7  Aj  A j$    Aô k~# A k"$  A6 AÀ 6  )7  Aj !   )"7   7    A j$    Aô æ~# AÐ k"$    6D  6@ A(Æ   (!@@  - "AG\r  E\r@@ E\r   AAÇ  AÀ j  A6L AÓ 6H  )H78  A8j !   )"70  7H  A0j ! A6L AÓ 6H  )H7(  A(j  A6L AÝ 6H  )H7   A j !@@  - \r   (E\r A6L AÓ 6H  )H7  Aj !   )"7  7H  Aj ! A6L AÓ 6H  )H7  Aj !@  - AG\r  AÀ j   ( AAÇ  A)È  AÐ j$ y# Ak"$   (!  ( A(Æ  (! AÀ\n; 	 A*:   6 A´Ü 6 Aj  ( Ã   ( A)È  Aj$    Aô ä# A k"$  (! (! B7 (!  (!A A 6¨Í Aª    A (¨Í !A A 6¨Í @@ AF\r @@@@ ("Aj  (! ( (!A A 6¨Í      A (¨Í !A A 6¨Í  AF\r  6A!@  F\r A6 AÆ 6  )7    !  6  (!A A 6¨Í Aª    A (¨Í !A A 6¨Í @ AF\r  Aj! !Ý  A6 AÝ 6  )7  Aj   6  6 A j$  !Ý   6  6      Aô Ã# Ak"$ @@  - AG\r  AÛ Ä !  ( Ã  AÝ Ä  A.Ä !  ( Ã @  ("- A¯jAÿqAI\r  A6 A 6  )7      (!  Ã  Aj$    Aô Ñ# A k"$  AÛ Ä !  ( Ã  A6 AÀ 6  )7  Aj !  ( Ã  AÝ Ä !@  ("- A¯jAÿqAI\r  A6 A 6  )7      (!  Ã  A j$    Aô c@@  ("E\r     Aj ( (  \r  ( Ã   Aj Aû Ä " Ó   Aý Ä    Aô D  A(Æ   ( Ã  A)È  A(Æ   ( Ã  A)È    Aô # A0k"$  A6, AÓ 6(  )(7  Aj !@@  - \r   (E\r Aû Æ   ( Ã @@  - \r   (E\r Aý È @  - AG\r  A	6$ AÌ 6   ) 7  Aj   (E\r  A6 A 6  )7    !  ( Ã  A;Ä  A0j$    Aô `# Ak"$  A\n6 AÈ 6  )7    !  ( Ã  A;Ä  Aj$    Aô `# Ak"$  A\n6 Aô 6  )7    !  ( Ã  A;Ä  Aj$    Aô Ü# Ak"$  A6 A 6  )7    !@  (E\r  A Ä "A(Æ   Aj Ó  A)È  A Ä "Aû Æ   ("  (Atj! @@   G\r  A Ä Aý È  Aj$  (  Ã  Aj!    A$ô î# Aà k"$   ( Ã  A6\\ AÃ 6X  )X7   A j !  ( Ã  A6T Aâ 6P  )P7  Aj !@@  (\r  A6L AÁ 6H AÈ j! @  (-  Aî G\r  Aù 6@ A6D  )@7  Aj   (!   (Aj6<  Aj68 A8j!    )70 A0j!    ) 7  Aj !  A6, Aø 6(  )(7      Aà j$    Aô # A k"$  A	6 A× 6  )7    "A(Æ   (!  AÀ\n;  A*:    6 A´Ü 6 Aj   A)È  A j$    Aô    Aj Ó    Aô U# Ak"$  A6 AÑ 6  )7    !  ( Ã  Aj$     (" ( (     Aô b# Ak"$   ( Ã  A6 Aß 6  )7    !  ( Ã  Aj$ G   AjA¿ !  ( !  A:    6  AÔé 6     / AàqAÀ\nr;      Aô `# Ak"$  A6 A 6  )7    "  ( ( (   Aj$    Aô U# Ak"$  A	6 Aÿ 6  )7    !  ( Ã  Aj$    Aô U# Ak"$  A6 AÉ 6  )7    !  ( Ã  Aj$     (" ( (     Aô U# Ak"$  A6 Aß 6  )7    !  ( Ã  Aj$ È~# A0k"$    · @@ (AI\r   ) ! A6$ A 6   7(  7  ) 7 Aj AjÐ E\r    ( Aj6     (Azj6 A0j$  Aµ 6 AÎ\r6 AÕ 6 AÙ        (AtAÌ j( Ñ    Aô x~# A k"$  A6 AÜ 6  )7  Aj ! Aj  ¶   )"7  7     A j$    Aô ¤~# AÀ k"$  A6< AÜ 68  )87(  A(j ! A0j    ( (    )0"78  7   A j !@  (AI\r  A6< A£ 68  )87  Aj !@  (AG\r  A6< AÁ 68  )87  Aj  A6< Aø 68  )87  Aj  AÀ j$     (" ( (     Aô °~# A0k"$    ( ( (   A6, AÉ 6(  )(7  Aj !   )"7  7   Aj ! A6 AÌ 6  )7     A0j$    Aô %  AÛ Æ   Aj Ó  AÝ È    Aô # A k"$ @  - AG\r  A6 A 6  )7  Aj  Aj  ("   ( (    )7     A j$     (" ( (     Aô )   ( Ã  AÀ Ä !  ( Ã     (" ( (     Aô b# Ak"$   ( Ã  A	6 Aë 6  )7    !  ( Ã  Aj$     (" ( (     Aô b# Ak"$   ( Ã  A6 Aß 6  )7    !  ( Ã  Aj$    Aô b# Ak"$   ( Ã  A6 Aß 6  )7    !  ( Ã  Aj$ e@@ (AF\r   (! (!  (!A ! A 6  6A !@  O\r   ( Atj(  ª ! e@@ (AF\r   (! (!  (!A ! A 6  6A !@  O\r   ( Atj(  ¬ ! e@@ (AF\r   (! (!  (!A ! A 6  6A !@  O\r   ( Atj(  ® ! p@@ (AF\r   (! (!  (!A ! A 6  6@  O\r   ( Atj( "    ( (  !      Aô j@@ (AF\r   (! (!  (!A ! A 6  6@  O\r    ( Atj(  ( (  j@@ (AF\r   (! (!  (!A ! A 6  6@  O\r    ( Atj(  ( (     Aô å# A k"$  (! A 6 AÇ 6 A6  )7  Aj !A A 6¨Í A·   Aj  A (¨Í ! A A 6¨Í @  AF\r  A6 Aø 6  )7      6 A j$  !Ý   6       (" ( (     Aô    ( Ã   ( Ã    Aô    Aj Ó    Aô    ( Ã    Aô _# Ak"$  A6 AÏ 6  )7   Aj   " Ó   AÝ Ä  Aj$    Aô U# Ak"$  A6 Aî 6  )7    !  ( Ã  Aj$  A A   A(ô # Ak"$ @  ("E\r    ( (    ( ª \r  A6 AÓ 6  )7      ( Ã  Aj$ Ú# Aà k"$  A(Æ   Aj Ó  A)È @  ("E\r    ( (  @  ( "AqE\r  A6\\ A 6X  )X7(  A(j   ( !@ AqE\r  A	6T A 6P  )P7   A j   ( !@ AqE\r  A	6L A§ 6H  )H7  Aj @@@@  - $Aj  AÐ 6@A! AÀ j! AÌ 68A! A8j!  6  ) 7  Aj @  ("E\r   Ã @  (E\r  A\n64 Aô 60  )07  Aj !  ( Ã  Aà j$    Aô £~# A0k"$   ( Ã  A6, A÷ 6(  )(7  Aj !   )"7  7   Aj !  A6 Aõ 6  )7      A0j$    Aô k# Ak"$  A6 AÍ 6  )7    "A(Æ   ( AA Ç  A)È  Aj$    Aô g# Ak"$  A6 Aâ 6  )7    "A(Æ   Aj Ó  A)È  Aj$  A A   A ô a# Ak"$    ( ( (   A6 AÓ 6  )7     Aj$ # AÐ k"$  A(Æ   Aj Ó  A)È    ( ( (  @  ("AqE\r  A6L A 6H  )H7   A j   (!@ AqE\r  A	6D A 6@  )@7  Aj   (!@ AqE\r  A	6< A§ 68  )87  Aj @@@@  - Aj  AÐ 60A! A0j! AÌ 6(A! A(j!  6  ) 7  Aj @  (E\r  A Ä !  ( Ã  AÐ j$    Aô £~# A0k"$   ( Ã  A6, AÇ 6(  )(7  Aj !   )"7  7   Aj !  A6 Aø 6  )7      A0j$    Aô ~# A k"$   ( Ã  A6 AÓ 6  )7  Aj !   )"7   7   !@  (" E\r    Ã  A j$    ( ª    ( ¬    ( ®    Aô é# A0k"$    ( ( (  @  ("AqE\r  A6, A 6(  )(7  Aj   (!@ AqE\r  A	6$ A 6   ) 7  Aj   (!@ AqE\r  A	6 A§ 6  )7     A0j$     ( ( (     Aô a~# Ak"$    )"7   7   A(Ä !  ( Ã  A)Ä  Aj$    Aô U# Ak"$  A6 A¼ 6  )7    !  ( Ã  Aj$    Aô # A k"$ @  - \r  A	6 Aý 6  )7  Aj  A6 A 6  )7    "A(Æ   ( AA Ç  A)È  A j$    Aô Z~# Ak"$    ( ( (     )"7   7    Aj$    Aô # A k"$  A\r6 AÑ 6  )7  Aj !  ( Ã  A6 AÌ 6  )7     A j$    Aô # A k"$   ( Ã  A6 AÖ 6  )7  Aj !@  (" E\r    Ã  A6 AÌ 6  )7     A j$  A Aä~# A°k"$ A !@  (" - AG\r    )"7  BpBÀ R\r  A6¬ A 6¨  )¨7P A j AÐ j \r   (6¬  6¨ A"Ä ! ( " (Atj!A !	@@@@@  F"\r @ ( "- AÍ F\r  A¨j  ("  (j!\nA !@@   \nF\r@ AJ\r   -  "APjAÿqA	K\r   Aj!  A\nl jAPj! A¨j @ AH\r  A¨j @@@@@@@@@@ 	AqE\r @ APjA\nI\r @ Ayj	\n @ A¤j  A¿jAI\r  A"G\r\n A6¤ Aã 6   ) 7H  AÈ j @ Ayj  A"F\r\n AÜ G\r A6\\ AÎ 6X  )X7@  AÀ j \n A6 A 6  )7    	 A6 Aù 6  )7  Aj  A6 Aß 6  )7  Aj  A6 A 6  )7  Aj  A6| A 6x  )x7   A j  A6t A 6p  )p7(  A(j  A6l Aø 6h  )h70  A0j @@ A H\r  Aÿ G\r AÜ Ä ! @ AH\r   Aø Ä ! AI\r   Av, ð Ä    Aq, ð Ä A!	  ÀÄ  A"Ä  A6d AÝ 6`  )`78  A8j A !	 Aj!  A°j$  1  ( " (  ("  ( (     6   Aô     ( ( (  £# AÀ k"$ @ ("E\r @ ( jAj-  AÝ F\r  A6< AÓ 68  )87   A j  A64 AÝ 60  )07  Aj !@  ("E\r   Ã  A6, AÌ 6(  )(7  Aj "  ( ( (   AÀ j$  Aµ 6 AÈ6 A 6 AÙ       ( ª    Aô ß# A0k"$    ( ( (  @@@  ( ¬ \r   ( ® E\r Aø 6( A(j! AÓ 6  A j! A6  ) 7  Aj !  ( Ã  A6 A° 6  )7  Aj  A0j$ # Ak"$ @@  ( ¬ \r   ( ® E\r A6 Aõ 6  )7       ( ( (   Aj$    Aô V~# Ak"$    )"7   7   A Ä !  ( Ã  Aj$    ( ª    Aô ~# Aà k"$ @@@  ("- AG\r   !  (! \r   ( (  @  ( ¬ E\r  A6\\ AÓ 6X  )X7(  A(j @@  ( ¬ \r   ( ® E\r A6T Aø 6P  )P7   A j  A½ 6H AÈ j!  A6D A´ 6@  )@7  Aj !   )"7  78   Aj  Aø 60 A0j!   A6   ) 7  Aj  Aà j$ ~# A k"$ A !@  (" - AG\r    )"7A ! BpB°R\r  A6 A± 6  )7 Aj Aj E! A j$  ©# Ak"$ @@  ("- AG\r   \r  (!@@  ¬ \r   ( ® E\r A6 Aõ 6  )7       ( ( (   Aj$    ( ª       Aô »# AÀ k"$ @@  - \r   A: A A 6¨Í A¸  A8j    A (¨Í !A A 6¨Í  AF\r@ (<"E\r  ( (!A A 6¨Í     A (¨Í !A A 6¨Í  AF\rA A 6¨Í Aµ    !A (¨Í !A A 6¨Í  AF\r@ E\r  A64 AÓ 60  )07  Aj A A 6¨Í Aµ    !A (¨Í !A A 6¨Í  AF\r@@ \r A A 6¨Í A¶    !A (¨Í !A A 6¨Í  AF\r E\r A6, Aø 6(  )(7  Aj  AA (8"6$ AÍ AÑ  6   ) 7  Aj   A :  AÀ j$  !Ý   A :    ¯# AÀ k"$  (!   ("6 B 7   AÀ j6  A j"6  6 B 7( B 70 B 78@@@@@@@ ( (!A A 6¨Í     !A (¨Í !A A 6¨Í  AF\r - A\rG\r ("   H! (! (!@@ (" (F\r  !  k"	At!@@  G\r  Ê "E\r@  F\r  	E\r    	ü\n    6   Í "6 E\r   	AuAtj6  	j!  Aj"6  6   kAu"AI\r @ AjAv" I\r    6    6 AÕ 6 A A 6¨Í  A6 Aæ 6A AÙ   A (¨Í !A A 6¨Í  AF\r    Atj( G\r   A 6   6  !Ý    6    6 Aj   AÀ j$  !Ý    6    6   6    6«   Aj     # A k"$ @@  - \r   A: A A 6¨Í A¸  Aj    A (¨Í !A A 6¨Í  AF\r@ ("E\r A A 6¨Í Aµ    !A (¨Í !A A 6¨Í  AF\r@@ \r A A 6¨Í A¶    !A (¨Í !A A 6¨Í  AF\r E\r A6 Aõ 6  )7  Aj  ( (!A A 6¨Í     A (¨Í !A A 6¨Í  AF\r  A :  A j$  !Ý   A :     @  ( "  AjF\r  Ì   # Ak"$    6  Alj( "(!  A 6  A A  Aj¼ !@@ (\r  E\r   6  Ì    ´ AjÊ "6    ±  A 6 @Aðµ   AjA (ðµ (  E\r   ("   ( (  " ´ AjÊ "6    ±  Aj$ ú Aäoperator~ {...} operator|| operator|  imaginary Ty nx  complex Dx -+   0X0x -0X+0X 0X-0x+0x 0x tw throw operator new Dw \\v Dv Tu  const const_cast reinterpret_cast static_cast dynamic_cast unsigned short  noexcept __cxa_decrement_exception_refcount unsigned int _BitInt operator co_await struct  restrict objc_object _Sat short _Fract _Sat unsigned short _Fract _Sat _Fract _Sat long _Fract _Sat unsigned long _Fract _Sat unsigned _Fract float _Float std::nullptr_t wchar_t char8_t std::bfloat16_t char16_t char32_t \\t Ut Tt St this gs requires Memory write out of bounds Memory read out of bounds Ts %s:%d: %s nullptr sr operator allocator Unknown error unsigned char \\r rq sp /emsdk/emscripten/system/lib/libcxxabi/src/private_typeinfo.cpp /emsdk/emscripten/system/lib/libcxxabi/src/cxa_exception_emscripten.cpp /emsdk/emscripten/system/lib/libcxxabi/src/cxa_demangle.cpp /emsdk/emscripten/system/lib/libcxxabi/src/fallback_malloc.cpp Stack underflow on pop fp Tp  auto objcproto so Do terminate_handler unexpectedly threw an exception union dn nan \\n Tn Dn enum _Sat short _Accum _Sat unsigned short _Accum _Sat _Accum _Sat long _Accum _Sat unsigned long _Accum _Sat unsigned _Accum basic_iostream basic_ostream basic_istream ul tl bool ull il string literal Ul yptnk Tk pi li Stack overflow on push /emsdk/emscripten/system/lib/libcxxabi/src/demangle/Utility.h /emsdk/emscripten/system/lib/libcxxabi/src/demangle/ItaniumDemangle.h unsigned long long unsigned long basic_string __uuidof inf half %af \\f true operator delete false decltype  volatile long double _block_invoke Te std void terminate_handler unexpectedly returned \'unnamed std::bad_alloc mc \\b Ub 16b \'lambda \\a %a basic_ operator^ operator new[] operator[] operator delete[] \\\\ pixel vector[ sZ ____Z fpT $TT Stack underflow on RET $T rQ sP DO srN _GLOBAL__N NAN $N fL %LaL Stack overflow on CALL Ua9enable_ifI INF RE OE b1E b0E DC catching a class without an object? operator? operator> <char, std::char_traits<char> , std::allocator<char> operator>> operator<=> operator-> operator|= operator= operator^= operator>= operator>>= operator== operator<= operator<<= operator/= operator-= operator+= operator*= operator&= operator%= operator!= operator< template< id< operator<< .< "< [abi:  [enable_if: std:: unsigned __int128 __float128 decimal128 decimal64 decimal32 exception_header->referenceCount > 0 operator/ operator. sizeof... operator- -in- operator-- operator, operator+ operator++ operator* operator->* ::* operator.*  decltype(auto) (null) (anonymous namespace) operator()  ( operator name does not start with \'operator\' \'block-literal\' operator& operator&&  &&  & operator% \\" >" "" Invalid access! Popping empty vector! operator! shrinkToSize() can\'t expand! Pure virtual function called! throw  noexcept   at offset  this   requires  operator  reference temporary for  template parameter object for  typeinfo for  thread-local wrapper routine for  thread-local initialization routine for  typeinfo name for  construction vtable for  guard variable for  VTT for  covariant return thunk to  non-virtual thunk to  invocation function for block in  alignof  sizeof  > typename  initializer for module  ::friend  typeid  unsigned   ?   ->   =  libc++abi:  Unknown opcode:   :  sizeof...   ...  ,  operator""  C++: load_rom called with size %d\n Draw flag set at cycle %d\n First 4 bytes: %02X %02X %02X %02X\n C++: ROM loaded successfully, PC set to 0x%X\n Cycle %d: PC = 0x%X\n ERROR: data is NULL\n ERROR: get_raw_pixels() returned NULL\n           ðð `  pðððððððððððððð @@ððððððððàààððààððððððE                N ë§~ uú ¹,ý·z¼ Ì¢ =I×  *_·úXÙýÊ½áÍÜ@x }gaì å\nÔ Ì>Ov¯  D ® ®` úw!ë+ `A ©£nN                                                        *                    \'9H                                  8R`S  Ê        »Ûë+;PSuccess Illegal byte sequence Domain error Result not representable Not a tty Permission denied Operation not permitted No such file or directory No such process File exists Value too large for defined data type No space left on device Out of memory Resource busy Interrupted system call Resource temporarily unavailable Invalid seek Cross-device link Read-only file system Directory not empty Connection reset by peer Operation timed out Connection refused Host is down Host is unreachable Address in use Broken pipe I/O error No such device or address Block device required No such device Not a directory Is a directory Text file busy Exec format error Invalid argument Argument list too long Symbolic link loop Filename too long Too many open files in system No file descriptors available Bad file descriptor No child process Bad address File too large Too many links No locks available Resource deadlock would occur State not recoverable Owner died Operation canceled Function not implemented No message of desired type Identifier removed Device not a stream No data available Device timeout Out of streams resources Link has been severed Protocol error Bad message File descriptor in bad state Not a socket Destination address required Message too large Protocol wrong type for socket Protocol not available Protocol not supported Socket type not supported Not supported Protocol family not supported Address family not supported by protocol Address not available Network is down Network unreachable Connection reset by network Connection aborted No buffer space available Socket is connected Socket not connected Cannot send after socket shutdown Operation already in progress Operation in progress Stale file handle Remote I/O error Quota exceeded No medium found Wrong medium type Multihop attempted Required key not available Key has expired Key has been revoked Key was rejected by service             	             \n\n\n  	  	                               \r \r   	   	                                               	                                                  	                                                   	                                              	                                                      	                                                   	         0123456789ABCDEF    \n   d   è  \'    @B   áõ Ê;        00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899 ¤ ð N10__cxxabiv116__shim_type_infoE     Ô  N10__cxxabiv117__class_type_infoE      N10__cxxabiv117__pbase_type_infoE    4 ø N10__cxxabiv119__pointer_type_infoE     È                             ¨                          ´ È N10__cxxabiv120__si_class_type_infoE         \r       !   ` ø St9exception      ð St9bad_alloc        L    "   #       Ð    $   %    X ð St11logic_error     |    &   #     L St12length_error        °    \'   #    ¼ L St12out_of_range     Ü ð St13runtime_error   ` ø St9type_info        ( 9   :   ;   <   =   >   ` 0 N12_GLOBAL__N_116itanium_demangle12OutputBufferE         ?   @   A   B   C   D   E   F   G   H      Ð N12_GLOBAL__N_116itanium_demangle11SpecialNameE ` Ø N12_GLOBAL__N_116itanium_demangle4NodeE     Ð ?   @   A   B   C   D   E   I   J   H       ` ?   @   A   B   C   D   E   K   L   H    l Ð N12_GLOBAL__N_116itanium_demangle21CtorVtableSpecialNameE       Ø ?   @   A   B   C   M   E   N   O   H    ä Ð N12_GLOBAL__N_116itanium_demangle8NameTypeE     @ ?   @   A   B   C   D   E   P   Q   H    L Ð N12_GLOBAL__N_116itanium_demangle10ModuleNameE      ¬ R   S   T   U   C   D   E   V   W   X    ¸ Ð N12_GLOBAL__N_116itanium_demangle24ForwardTemplateReferenceE            aN" aS" aaA\n ad 7\n an7\n at6 aw\n  az6 cc  clì	 cm${	 co    cpì	 cvn dV"S da¼ dc°  de 	 dlç ds´	 dtM	 dv"C	 eO" eo eq1 ge gt ix± lS"G le< ls¸ lt  mI"^ mL"t mia	 ml\n	 mmp	 na¢ ne ng a	 nt \n nwh  oR"ú oo  or  pL"i pl	 pm	¤	 pp	 ps 	 ptï qu	  rM" rS"% rc  rm\nS\n rsØ sc¤  ssã st? sz? teu tiu     (! ?   @   A   B   C   D   E   Y   Z   H    4! Ð N12_GLOBAL__N_116itanium_demangle10BinaryExprE      ! ?   @   A   B   C   D   E   [   \\   H     ! Ð N12_GLOBAL__N_116itanium_demangle10PrefixExprE       " ?   @   A   B   C   D   E   ]   ^   H    " Ð N12_GLOBAL__N_116itanium_demangle11PostfixExprE     l" ?   @   A   B   C   D   E   _   `   H    x" Ð N12_GLOBAL__N_116itanium_demangle18ArraySubscriptExprE      à" ?   @   A   B   C   D   E   a   b   H    ì" Ð N12_GLOBAL__N_116itanium_demangle10MemberExprE      L# ?   @   A   B   C   D   E   c   d   H    X# Ð N12_GLOBAL__N_116itanium_demangle7NewExprE      ´# ?   @   A   B   C   D   E   e   f   H    À# Ð N12_GLOBAL__N_116itanium_demangle10DeleteExprE       $ ?   @   A   B   C   D   E   g   h   H    ,$ Ð N12_GLOBAL__N_116itanium_demangle8CallExprE     $ ?   @   A   B   C   D   E   i   j   H    $ Ð N12_GLOBAL__N_116itanium_demangle14ConversionExprE      ø$ ?   @   A   B   C   D   E   k   l   H    % Ð N12_GLOBAL__N_116itanium_demangle15ConditionalExprE     h% ?   @   A   B   C   D   E   m   n   H    t% Ð N12_GLOBAL__N_116itanium_demangle8CastExprE     Ð% ?   @   A   B   C   D   E   o   p   H    Ü% Ð N12_GLOBAL__N_116itanium_demangle13EnclosingExprE       @& ?   @   A   B   C   D   E   q   r   H    L& Ð N12_GLOBAL__N_116itanium_demangle14IntegerLiteralE      °& ?   @   A   B   C   D   E   s   t   H    ¼& Ð N12_GLOBAL__N_116itanium_demangle8BoolExprE     \' ?   @   A   B   C   D   E   u   v   H    $\' Ð N12_GLOBAL__N_116itanium_demangle16FloatLiteralImplIfEE     \' ?   @   A   B   C   D   E   w   x   H    \' Ð N12_GLOBAL__N_116itanium_demangle16FloatLiteralImplIdEE      ( ?   @   A   B   C   D   E   y   z   H    ( Ð N12_GLOBAL__N_116itanium_demangle16FloatLiteralImplIeEE     t( ?   @   A   B   C   D   E   {   |   H    ( Ð N12_GLOBAL__N_116itanium_demangle13StringLiteralE       ä( ?   @   A   B   C   D   E   }   ~   H    ð( Ð N12_GLOBAL__N_116itanium_demangle15UnnamedTypeNameE     T) ?   @   A   B   C   D   E         H    `) Ð N12_GLOBAL__N_116itanium_demangle26SyntheticTemplateParamNameE      Ð) ?   @   A   B   C   D   E             Ü) Ð N12_GLOBAL__N_116itanium_demangle21TypeTemplateParamDeclE       H* ?   @   A   B   C   D   E             T* Ð N12_GLOBAL__N_116itanium_demangle32ConstrainedTypeTemplateParamDeclE        Ì* ?   @   A   B   C   D   E             Ø* Ð N12_GLOBAL__N_116itanium_demangle24NonTypeTemplateParamDeclE        H+ ?   @   A   B   C   D   E             T+ Ð N12_GLOBAL__N_116itanium_demangle25TemplateTemplateParamDeclE       Ä+ ?   @   A   B   C   D   E             Ð+ Ð N12_GLOBAL__N_116itanium_demangle21TemplateParamPackDeclE       <, ?   @   A   B   C   D   E         H    H, Ð N12_GLOBAL__N_116itanium_demangle15ClosureTypeNameE     ¬, ?   @   A   B   C   D   E         H    ¸, Ð N12_GLOBAL__N_116itanium_demangle10LambdaExprE      - ?   @   A   B   C   D   E         H    $- Ð N12_GLOBAL__N_116itanium_demangle11EnumLiteralE     - ?   @   A   B   C   D   E         H    - Ð N12_GLOBAL__N_116itanium_demangle13FunctionParamE       ô- ?   @   A   B   C   D   E         H     . Ð N12_GLOBAL__N_116itanium_demangle8FoldExprE     \\. ?   @   A   B   C   D   E         H    h. Ð N12_GLOBAL__N_116itanium_demangle22ParameterPackExpansionE      Ô. ?   @   A   B   C   D   E         H    à. Ð N12_GLOBAL__N_116itanium_demangle10BracedExprE      @/ ?   @   A   B   C   D   E         H    L/ Ð N12_GLOBAL__N_116itanium_demangle15BracedRangeExprE     °/ ?   @   A   B   C   D   E       ¡   H    ¼/ Ð N12_GLOBAL__N_116itanium_demangle12InitListExprE         0 ?   @   A   B   C   D   E   ¢   £   H    ,0 Ð N12_GLOBAL__N_116itanium_demangle29PointerToMemberConversionExprE        0 ?   @   A   B   C   D   E   ¤   ¥   H    ¬0 Ð N12_GLOBAL__N_116itanium_demangle15ExprRequirementE     1 ?   @   A   B   C   D   E   ¦   §   H    1 Ð N12_GLOBAL__N_116itanium_demangle15TypeRequirementE     1 ?   @   A   B   C   D   E   ¨   ©   H    1 Ð N12_GLOBAL__N_116itanium_demangle17NestedRequirementE       ô1 ?   @   A   B   C   D   E   ª   «   H     2 Ð N12_GLOBAL__N_116itanium_demangle12RequiresExprE        d2 ?   @   A   B   C   D   E   ¬   ­   H    p2 Ð N12_GLOBAL__N_116itanium_demangle13SubobjectExprE       Ô2 ?   @   A   B   C   D   E   ®   ¯   H    à2 Ð N12_GLOBAL__N_116itanium_demangle19SizeofParamPackExprE     H3 ?   @   A   B   C   D   E   °   ±   H    T3 Ð N12_GLOBAL__N_116itanium_demangle13NodeArrayNodeE       ¸3 ?   @   A   B   C   D   E   ²   ³   H    Ä3 Ð N12_GLOBAL__N_116itanium_demangle9ThrowExprE        $4 ?   @   A   B   C   ´   E   µ   ¶   H    04 Ð N12_GLOBAL__N_116itanium_demangle13QualifiedNameE       4 ?   @   A   B   C   D   E   ·   ¸   H     4 Ð N12_GLOBAL__N_116itanium_demangle8DtorNameE     ü4 ?   @   A   B   C   D   E   ¹   º   H    5 Ð N12_GLOBAL__N_116itanium_demangle22ConversionOperatorTypeE      t5 ?   @   A   B   C   D   E   »   ¼   H    5 Ð N12_GLOBAL__N_116itanium_demangle15LiteralOperatorE     ä5 ?   @   A   B   C   ½   E   ¾   ¿   H    ð5 Ð N12_GLOBAL__N_116itanium_demangle19GlobalQualifiedNameE     X6 ?   @   A   B   C   À   E   Á   Â   H    d6 6 N12_GLOBAL__N_116itanium_demangle19SpecialSubstitutionE  ¨6 Ð N12_GLOBAL__N_116itanium_demangle27ExpandedSpecialSubstitutionE     6 ?   @   A   B   C   Ã   E   Ä   Å   H       H7 ?   @   A   B   C   Æ   E   Ç   È   H    T7 Ð N12_GLOBAL__N_116itanium_demangle10AbiTagAttrE      ´7 ?   @   A   B   C   D   E   É   Ê   H    À7 Ð N12_GLOBAL__N_116itanium_demangle21StructuredBindingNameE       ,8 ?   @   A   B   C   D   E   Ë   Ì   H    88 Ð N12_GLOBAL__N_116itanium_demangle12CtorDtorNameE        8 ?   @   A   B   C   Í   E   Î   Ï   H    ¨8 Ð N12_GLOBAL__N_116itanium_demangle12ModuleEntityE        9 ?   @   A   B   C   Ð   E   Ñ   Ò   H    9 Ð N12_GLOBAL__N_116itanium_demangle20MemberLikeFriendNameE        9 ?   @   A   B   C   Ó   E   Ô   Õ   H    9 Ð N12_GLOBAL__N_116itanium_demangle10NestedNameE      ð9 ?   @   A   B   C   D   E   Ö   ×   H    ü9 Ð N12_GLOBAL__N_116itanium_demangle9LocalNameE        \\: Ø   Ù   Ú   Û   C   D   E   Ü   Ý   Þ    h: Ð N12_GLOBAL__N_116itanium_demangle13ParameterPackE       Ì: ?   @   A   B   C   D   E   ß   à   H    Ø: Ð N12_GLOBAL__N_116itanium_demangle12TemplateArgsE        <; ?   @   A   B   C   á   E   â   ã   H    H; Ð N12_GLOBAL__N_116itanium_demangle20NameWithTemplateArgsE        ´; ?   @   A   B   C   D   E   ä   å   H    À; Ð N12_GLOBAL__N_116itanium_demangle20TemplateArgumentPackE        ,< ?   @   A   B   C   D   E   æ   ç   H    8< Ð N12_GLOBAL__N_116itanium_demangle25TemplateParamQualifiedArgE       ¨< ?   @   A   B   C   D   E   è   é   H    ´< Ð N12_GLOBAL__N_116itanium_demangle12EnableIfAttrE        = ?   @   A   B   C   D   E   ê   ë   H    $= Ð N12_GLOBAL__N_116itanium_demangle23ExplicitObjectParameterE     = ì   @   í   B   C   D   E   î   ï   ð    = Ð N12_GLOBAL__N_116itanium_demangle16FunctionEncodingE        > ?   @   A   B   C   D   E   ñ   ò   H    > Ð N12_GLOBAL__N_116itanium_demangle9DotSuffixE        p> ?   @   A   B   C   D   E   ó   ô   H    |> Ð N12_GLOBAL__N_116itanium_demangle12NoexceptSpecE        à> ?   @   A   B   C   D   E   õ   ö   H    ì> Ð N12_GLOBAL__N_116itanium_demangle20DynamicExceptionSpecE        X? ÷   @   ø   B   C   D   E   ù   ú   û    d? Ð N12_GLOBAL__N_116itanium_demangle12FunctionTypeE        È? ?   @   A   B   C   D   E   ü   ý   H    Ô? Ð N12_GLOBAL__N_116itanium_demangle13ObjCProtoNameE       8@ ?   @   A   B   C   D   E   þ   ÿ   H    D@ Ð N12_GLOBAL__N_116itanium_demangle17VendorExtQualTypeE       ¬@        B   C   D   E          ¸@ Ð N12_GLOBAL__N_116itanium_demangle8QualTypeE     A ?   @   A   B   C   D   E       H     A Ð N12_GLOBAL__N_116itanium_demangle15TransformedTypeE     A ?   @   A   B   C   D   E     	  H    A Ð N12_GLOBAL__N_116itanium_demangle12BinaryFPTypeE        ôA ?   @   A   B   C   D   E   \n    H     B Ð N12_GLOBAL__N_116itanium_demangle10BitIntTypeE      `B ?   @   A   B   C   D   E     \r  H    lB Ð N12_GLOBAL__N_116itanium_demangle20PostfixQualifiedTypeE        ØB ?   @   A   B   C   D   E       H    äB Ð N12_GLOBAL__N_116itanium_demangle15PixelVectorTypeE     HC ?   @   A   B   C   D   E       H    TC Ð N12_GLOBAL__N_116itanium_demangle10VectorTypeE      ´C     A   B     D   E          ÀC Ð N12_GLOBAL__N_116itanium_demangle9ArrayTypeE    0123456789ABCDEF        4D   @   A   B   C   D   E          @D Ð N12_GLOBAL__N_116itanium_demangle19PointerToMemberTypeE     ¨D ?   @   A   B   C   D   E       H    ´D Ð N12_GLOBAL__N_116itanium_demangle22ElaboratedTypeSpefTypeE       E   @   A   B   C   D   E        !   ,E Ð N12_GLOBAL__N_116itanium_demangle11PointerTypeE     E "  @   A   B   C   D   E   #  $  %   E Ð N12_GLOBAL__N_116itanium_demangle13ReferenceTypeE   w ¼ ¼ ¿ ± ¢  AèÀ                                                °`                            ÿÿÿÿÿÿÿÿ                                                            ðE                                             ¸`                           ÿÿÿÿ\n                                                               F ` Àh     A¨=$autoResumeAudioContext,$dynCall $stringToUTF8,$UTF8ToString  target_features+bulk-memory+bulk-memory-opt+call-indirect-overlong+\nmultivalue+mutable-globals+nontrapping-fptoint+reference-types+sign-ext');
+}
+
+function getBinarySync(file) {
+  return file;
+}
+
+async function getWasmBinary(binaryFile) {
+
+  // Otherwise, getBinarySync should be able to get it synchronously
+  return getBinarySync(binaryFile);
+}
+
+async function instantiateArrayBuffer(binaryFile, imports) {
   try {
-    if (file == wasmBinaryFile && wasmBinary) {
-      return new Uint8Array(wasmBinary);
+    var binary = await getWasmBinary(binaryFile);
+    var instance = await WebAssembly.instantiate(binary, imports);
+    return instance;
+  } catch (reason) {
+    err(`failed to asynchronously prepare wasm: ${reason}`);
+
+    // Warn on some common problems.
+    if (isFileURI(binaryFile)) {
+      err(`warning: Loading from a file URI (${binaryFile}) is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing`);
     }
-    var binary = tryParseAsDataURI(file);
-    if (binary) {
-      return binary;
-    }
-    if (readBinary) {
-      return readBinary(file);
-    } else {
-      throw "both async and sync fetching of the wasm failed";
-    }
-  }
-  catch (err) {
-    abort(err);
+    abort(reason);
   }
 }
 
-function getBinaryPromise() {
-  // If we don't have the binary yet, try to to load it asynchronously.
-  // Fetch has some additional restrictions over XHR, like it can't be used on a file:// url.
-  // See https://github.com/github/fetch/pull/92#issuecomment-140665932
-  // Cordova or Electron apps are typically loaded from a file:// url.
-  // So use fetch if it is available and the url is not a file, otherwise fall back to XHR.
-  if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER)) {
-    if (typeof fetch == 'function'
-    ) {
-      return fetch(wasmBinaryFile, { credentials: 'same-origin' }).then(function(response) {
-        if (!response['ok']) {
-          throw "failed to load wasm binary file at '" + wasmBinaryFile + "'";
-        }
-        return response['arrayBuffer']();
-      }).catch(function () {
-          return getBinary(wasmBinaryFile);
-      });
-    }
-  }
+async function instantiateAsync(binary, binaryFile, imports) {
+  return instantiateArrayBuffer(binaryFile, imports);
+}
 
-  // Otherwise, getBinary should be able to get it synchronously
-  return Promise.resolve().then(function() { return getBinary(wasmBinaryFile); });
+function getWasmImports() {
+  // prepare imports
+  var imports = {
+    'env': wasmImports,
+    'wasi_snapshot_preview1': wasmImports,
+  };
+  return imports;
 }
 
 // Create the wasm instance.
 // Receives the wasm imports, returns the exports.
-function createWasm() {
-  // prepare imports
-  var info = {
-    'env': asmLibraryArg,
-    'wasi_snapshot_preview1': asmLibraryArg,
-  };
+async function createWasm() {
   // Load the wasm module and create an instance of using native support in the JS engine.
   // handle a generated wasm instance, receiving its exports and
   // performing other necessary setup
   /** @param {WebAssembly.Module=} module*/
   function receiveInstance(instance, module) {
-    var exports = instance.exports;
+    wasmExports = instance.exports;
 
-    Module['asm'] = exports;
+    assignWasmExports(wasmExports);
 
-    wasmMemory = Module['asm']['memory'];
-    assert(wasmMemory, "memory not found in wasm exports");
-    // This assertion doesn't hold when emscripten is run in --post-link
-    // mode.
-    // TODO(sbc): Read INITIAL_MEMORY out of the wasm file in post-link mode.
-    //assert(wasmMemory.buffer.byteLength === 16777216);
-    updateGlobalBufferAndViews(wasmMemory.buffer);
+    updateMemoryViews();
 
-    wasmTable = Module['asm']['__indirect_function_table'];
-    assert(wasmTable, "table not found in wasm exports");
-
-    addOnInit(Module['asm']['__wasm_call_ctors']);
-
-    removeRunDependency('wasm-instantiate');
+    return wasmExports;
   }
-  // we can't run yet (except in a pthread, where we have a custom sync instantiator)
-  addRunDependency('wasm-instantiate');
 
   // Prefer streaming instantiation if available.
   // Async compilation can be confusing when an error on the page overwrites Module
@@ -1673,527 +570,435 @@ function createWasm() {
     assert(Module === trueModule, 'the Module object should not be replaced during async compilation - perhaps the order of HTML elements is wrong?');
     trueModule = null;
     // TODO: Due to Closure regression https://github.com/google/closure-compiler/issues/3193, the above line no longer optimizes out down to the following line.
-    // When the regression is fixed, can restore the above USE_PTHREADS-enabled path.
-    receiveInstance(result['instance']);
+    // When the regression is fixed, can restore the above PTHREADS-enabled path.
+    return receiveInstance(result['instance']);
   }
 
-  function instantiateArrayBuffer(receiver) {
-    return getBinaryPromise().then(function(binary) {
-      return WebAssembly.instantiate(binary, info);
-    }).then(function (instance) {
-      return instance;
-    }).then(receiver, function(reason) {
-      err('failed to asynchronously prepare wasm: ' + reason);
+  var info = getWasmImports();
 
-      // Warn on some common problems.
-      if (isFileURI(wasmBinaryFile)) {
-        err('warning: Loading from a file URI (' + wasmBinaryFile + ') is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing');
+  // User shell pages can write their own Module.instantiateWasm = function(imports, successCallback) callback
+  // to manually instantiate the Wasm module themselves. This allows pages to
+  // run the instantiation parallel to any other async startup actions they are
+  // performing.
+  // Also pthreads and wasm workers initialize the wasm instance through this
+  // path.
+  if (Module['instantiateWasm']) {
+    return new Promise((resolve, reject) => {
+      try {
+        Module['instantiateWasm'](info, (inst, mod) => {
+          resolve(receiveInstance(inst, mod));
+        });
+      } catch(e) {
+        err(`Module.instantiateWasm callback failed with error: ${e}`);
+        reject(e);
       }
-      abort(reason);
     });
   }
 
-  function instantiateAsync() {
-    if (!wasmBinary &&
-        typeof WebAssembly.instantiateStreaming == 'function' &&
-        !isDataURI(wasmBinaryFile) &&
-        typeof fetch == 'function') {
-      return fetch(wasmBinaryFile, { credentials: 'same-origin' }).then(function (response) {
-        // Suppress closure warning here since the upstream definition for
-        // instantiateStreaming only allows Promise<Repsponse> rather than
-        // an actual Response.
-        // TODO(https://github.com/google/closure-compiler/pull/3913): Remove if/when upstream closure is fixed.
-        /** @suppress {checkTypes} */
-        var result = WebAssembly.instantiateStreaming(response, info);
-
-        return result.then(
-          receiveInstantiationResult,
-          function(reason) {
-            // We expect the most common failure cause to be a bad MIME type for the binary,
-            // in which case falling back to ArrayBuffer instantiation should work.
-            err('wasm streaming compile failed: ' + reason);
-            err('falling back to ArrayBuffer instantiation');
-            return instantiateArrayBuffer(receiveInstantiationResult);
-          });
-      });
-    } else {
-      return instantiateArrayBuffer(receiveInstantiationResult);
-    }
-  }
-
-  // User shell pages can write their own Module.instantiateWasm = function(imports, successCallback) callback
-  // to manually instantiate the Wasm module themselves. This allows pages to run the instantiation parallel
-  // to any other async startup actions they are performing.
-  if (Module['instantiateWasm']) {
-    try {
-      var exports = Module['instantiateWasm'](info, receiveInstance);
-      return exports;
-    } catch(e) {
-      err('Module.instantiateWasm callback failed with error: ' + e);
-      return false;
-    }
-  }
-
-  // If instantiation fails, reject the module ready promise.
-  instantiateAsync().catch(readyPromiseReject);
-  return {}; // no exports yet; we'll fill them in later
+  wasmBinaryFile ??= findWasmBinary();
+  var result = await instantiateAsync(wasmBinary, wasmBinaryFile, info);
+  var exports = receiveInstantiationResult(result);
+  return exports;
 }
 
-// Globals used by JS i64 conversions (see makeSetValue)
-var tempDouble;
-var tempI64;
+// end include: preamble.js
 
-// === Body ===
-
-var ASM_CONSTS = {
-  
-};
+// Begin JS library code
 
 
-
-
-
-
-  function listenOnce(object, event, func) {
-      object.addEventListener(event, func, { 'once': true });
-    }
-  /** @param {Object=} elements */
-  function autoResumeAudioContext(ctx, elements) {
-      if (!elements) {
-        elements = [document, document.getElementById('canvas')];
+  class ExitStatus {
+      name = 'ExitStatus';
+      constructor(status) {
+        this.message = `Program terminated with exit(${status})`;
+        this.status = status;
       }
-      ['keydown', 'mousedown', 'touchstart'].forEach(function(event) {
-        elements.forEach(function(element) {
-          if (element) {
-            listenOnce(element, event, function() {
-              if (ctx.state === 'suspended') ctx.resume();
-            });
-          }
-        });
-      });
     }
 
-  function callRuntimeCallbacks(callbacks) {
+  /** @type {!Int16Array} */
+  var HEAP16;
+
+  /** @type {!Int32Array} */
+  var HEAP32;
+
+  /** not-@type {!BigInt64Array} */
+  var HEAP64;
+
+  /** @type {!Int8Array} */
+  var HEAP8;
+
+  /** @type {!Float32Array} */
+  var HEAPF32;
+
+  /** @type {!Float64Array} */
+  var HEAPF64;
+
+  /** @type {!Uint16Array} */
+  var HEAPU16;
+
+  /** @type {!Uint32Array} */
+  var HEAPU32;
+
+  /** not-@type {!BigUint64Array} */
+  var HEAPU64;
+
+  /** @type {!Uint8Array} */
+  var HEAPU8;
+
+  var callRuntimeCallbacks = (callbacks) => {
       while (callbacks.length > 0) {
-        var callback = callbacks.shift();
-        if (typeof callback == 'function') {
-          callback(Module); // Pass the module as the first argument.
-          continue;
-        }
-        var func = callback.func;
-        if (typeof func == 'number') {
-          if (callback.arg === undefined) {
-            getWasmTableEntry(func)();
-          } else {
-            getWasmTableEntry(func)(callback.arg);
-          }
-        } else {
-          func(callback.arg === undefined ? null : callback.arg);
-        }
+        // Pass the module as the first argument.
+        callbacks.shift()(Module);
       }
-    }
+    };
+  var onPostRuns = [];
+  var addOnPostRun = (cb) => onPostRuns.push(cb);
 
-  function withStackSave(f) {
-      var stack = stackSave();
-      var ret = f();
-      stackRestore(stack);
-      return ret;
-    }
-  function demangle(func) {
-      warnOnce('warning: build with  -s DEMANGLE_SUPPORT=1  to link in libcxxabi demangling');
-      return func;
-    }
-
-  function demangleAll(text) {
-      var regex =
-        /\b_Z[\w\d_]+/g;
-      return text.replace(regex,
-        function(x) {
-          var y = demangle(x);
-          return x === y ? x : (y + ' [' + x + ']');
-        });
-    }
-
-  function dynCallLegacy(sig, ptr, args) {
-      assert(('dynCall_' + sig) in Module, 'bad function pointer type - no table for sig \'' + sig + '\'');
-      if (args && args.length) {
-        // j (64-bit integer) must be passed in as two numbers [low 32, high 32].
-        assert(args.length === sig.substring(1).replace(/j/g, '--').length);
-      } else {
-        assert(sig.length == 1);
-      }
-      var f = Module["dynCall_" + sig];
-      return args && args.length ? f.apply(null, [ptr].concat(args)) : f.call(null, ptr);
-    }
-  
-  var wasmTableMirror = [];
-  function getWasmTableEntry(funcPtr) {
-      var func = wasmTableMirror[funcPtr];
-      if (!func) {
-        if (funcPtr >= wasmTableMirror.length) wasmTableMirror.length = funcPtr + 1;
-        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-      }
-      assert(wasmTable.get(funcPtr) == func, "JavaScript-side Wasm function table mirror is out of date!");
-      return func;
-    }
-  /** @param {Object=} args */
-  function dynCall(sig, ptr, args) {
-      // Without WASM_BIGINT support we cannot directly call function with i64 as
-      // part of thier signature, so we rely the dynCall functions generated by
-      // wasm-emscripten-finalize
-      if (sig.includes('j')) {
-        return dynCallLegacy(sig, ptr, args);
-      }
-      assert(getWasmTableEntry(ptr), 'missing table entry in dynCall: ' + ptr);
-      return getWasmTableEntry(ptr).apply(null, args)
-    }
+  var onPreRuns = [];
+  var addOnPreRun = (cb) => onPreRuns.push(cb);
 
 
-  function handleException(e) {
-      // Certain exception types we do not treat as errors since they are used for
-      // internal control flow.
-      // 1. ExitStatus, which is thrown by exit()
-      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-      //    that wish to return to JS event loop.
-      if (e instanceof ExitStatus || e == 'unwind') {
-        return EXITSTATUS;
-      }
-      quit_(1, e);
-    }
-
-  function jsStackTrace() {
-      var error = new Error();
-      if (!error.stack) {
-        // IE10+ special cases: It does have callstack info, but it is only populated if an Error object is thrown,
-        // so try that as a special-case.
-        try {
-          throw new Error();
-        } catch(e) {
-          error = e;
-        }
-        if (!error.stack) {
-          return '(no stack trace available)';
-        }
-      }
-      return error.stack.toString();
-    }
-
-  function setWasmTableEntry(idx, func) {
-      wasmTable.set(idx, func);
-      wasmTableMirror[idx] = func;
-    }
-
-  function stackTrace() {
-      var js = jsStackTrace();
-      if (Module['extraStackTrace']) js += '\n' + Module['extraStackTrace']();
-      return demangleAll(js);
-    }
-
-  function ___cxa_allocate_exception(size) {
-      // Thrown object is prepended by exception metadata block
-      return _malloc(size + 16) + 16;
-    }
-
-  /** @constructor */
-  function ExceptionInfo(excPtr) {
-      this.excPtr = excPtr;
-      this.ptr = excPtr - 16;
-  
-      this.set_type = function(type) {
-        HEAP32[(((this.ptr)+(4))>>2)] = type;
-      };
-  
-      this.get_type = function() {
-        return HEAP32[(((this.ptr)+(4))>>2)];
-      };
-  
-      this.set_destructor = function(destructor) {
-        HEAP32[(((this.ptr)+(8))>>2)] = destructor;
-      };
-  
-      this.get_destructor = function() {
-        return HEAP32[(((this.ptr)+(8))>>2)];
-      };
-  
-      this.set_refcount = function(refcount) {
-        HEAP32[((this.ptr)>>2)] = refcount;
-      };
-  
-      this.set_caught = function (caught) {
-        caught = caught ? 1 : 0;
-        HEAP8[(((this.ptr)+(12))>>0)] = caught;
-      };
-  
-      this.get_caught = function () {
-        return HEAP8[(((this.ptr)+(12))>>0)] != 0;
-      };
-  
-      this.set_rethrown = function (rethrown) {
-        rethrown = rethrown ? 1 : 0;
-        HEAP8[(((this.ptr)+(13))>>0)] = rethrown;
-      };
-  
-      this.get_rethrown = function () {
-        return HEAP8[(((this.ptr)+(13))>>0)] != 0;
-      };
-  
-      // Initialize native structure fields. Should be called once after allocated.
-      this.init = function(type, destructor) {
-        this.set_type(type);
-        this.set_destructor(destructor);
-        this.set_refcount(0);
-        this.set_caught(false);
-        this.set_rethrown(false);
-      }
-  
-      this.add_ref = function() {
-        var value = HEAP32[((this.ptr)>>2)];
-        HEAP32[((this.ptr)>>2)] = value + 1;
-      };
-  
-      // Returns true if last reference released.
-      this.release_ref = function() {
-        var prev = HEAP32[((this.ptr)>>2)];
-        HEAP32[((this.ptr)>>2)] = prev - 1;
-        assert(prev > 0);
-        return prev === 1;
-      };
-    }
   
     /**
-     * @constructor
-     * @param {number=} ptr
-     */
-  function CatchInfo(ptr) {
-  
-      this.free = function() {
-        _free(this.ptr);
-        this.ptr = 0;
-      };
-  
-      this.set_base_ptr = function(basePtr) {
-        HEAP32[((this.ptr)>>2)] = basePtr;
-      };
-  
-      this.get_base_ptr = function() {
-        return HEAP32[((this.ptr)>>2)];
-      };
-  
-      this.set_adjusted_ptr = function(adjustedPtr) {
-        HEAP32[(((this.ptr)+(4))>>2)] = adjustedPtr;
-      };
-  
-      this.get_adjusted_ptr_addr = function() {
-        return this.ptr + 4;
-      }
-  
-      this.get_adjusted_ptr = function() {
-        return HEAP32[(((this.ptr)+(4))>>2)];
-      };
-  
-      // Get pointer which is expected to be received by catch clause in C++ code. It may be adjusted
-      // when the pointer is casted to some of the exception object base classes (e.g. when virtual
-      // inheritance is used). When a pointer is thrown this method should return the thrown pointer
-      // itself.
-      this.get_exception_ptr = function() {
-        // Work around a fastcomp bug, this code is still included for some reason in a build without
-        // exceptions support.
-        var isPointer = ___cxa_is_pointer_type(
-          this.get_exception_info().get_type());
-        if (isPointer) {
-          return HEAP32[((this.get_base_ptr())>>2)];
-        }
-        var adjusted = this.get_adjusted_ptr();
-        if (adjusted !== 0) return adjusted;
-        return this.get_base_ptr();
-      };
-  
-      this.get_exception_info = function() {
-        return new ExceptionInfo(this.get_base_ptr());
-      };
-  
-      if (ptr === undefined) {
-        this.ptr = _malloc(8);
-        this.set_adjusted_ptr(0);
-      } else {
-        this.ptr = ptr;
-      }
+   * @param {number} ptr
+   * @param {string} type
+   */
+  function getValue(ptr, type = 'i8') {
+    if (type.endsWith('*')) type = '*';
+    switch (type) {
+      case 'i1': return HEAP8[ptr];
+      case 'i8': return HEAP8[ptr];
+      case 'i16': return HEAP16[((ptr)>>1)];
+      case 'i32': return HEAP32[((ptr)>>2)];
+      case 'i64': return HEAP64[((ptr)>>3)];
+      case 'float': return HEAPF32[((ptr)>>2)];
+      case 'double': return HEAPF64[((ptr)>>3)];
+      case '*': return HEAPU32[((ptr)>>2)];
+      default: abort(`invalid type for getValue: ${type}`);
     }
+  }
+
+  var noExitRuntime = true;
+
+  function ptrToString(ptr) {
+      assert(typeof ptr === 'number', `ptrToString expects a number, got ${typeof ptr}`);
+      // Convert to 32-bit unsigned value
+      ptr >>>= 0;
+      return '0x' + ptr.toString(16).padStart(8, '0');
+    }
+
   
+    /**
+   * @param {number} ptr
+   * @param {number} value
+   * @param {string} type
+   */
+  function setValue(ptr, value, type = 'i8') {
+    if (type.endsWith('*')) type = '*';
+    switch (type) {
+      case 'i1': HEAP8[ptr] = value; break;
+      case 'i8': HEAP8[ptr] = value; break;
+      case 'i16': HEAP16[((ptr)>>1)] = value; break;
+      case 'i32': HEAP32[((ptr)>>2)] = value; break;
+      case 'i64': HEAP64[((ptr)>>3)] = BigInt(value); break;
+      case 'float': HEAPF32[((ptr)>>2)] = value; break;
+      case 'double': HEAPF64[((ptr)>>3)] = value; break;
+      case '*': HEAPU32[((ptr)>>2)] = value; break;
+      default: abort(`invalid type for setValue: ${type}`);
+    }
+  }
+
+  var stackRestore = (val) => __emscripten_stack_restore(val);
+
+  var stackSave = () => _emscripten_stack_get_current();
+
+  var warnOnce = (text) => {
+      warnOnce.shown ||= {};
+      if (!warnOnce.shown[text]) {
+        warnOnce.shown[text] = 1;
+        err(text);
+      }
+    };
+
+  
+
+  var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
+  
+  var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
+      var maxIdx = idx + maxBytesToRead;
+      if (ignoreNul) return maxIdx;
+      // TextDecoder needs to know the byte length in advance, it doesn't stop on
+      // null terminator by itself.
+      // As a tiny code save trick, compare idx against maxIdx using a negation,
+      // so that maxBytesToRead=undefined/NaN means Infinity.
+      while (heapOrArray[idx] && !(idx >= maxIdx)) ++idx;
+      return idx;
+    };
+  
+  
+    /**
+   * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
+   * array that contains uint8 values, returns a copy of that string as a
+   * Javascript String object.
+   * heapOrArray is either a regular array, or a JavaScript typed array view.
+   * @param {number=} idx
+   * @param {number=} maxBytesToRead
+   * @param {boolean=} ignoreNul - If true, the function will not stop on a NUL character.
+   * @return {string}
+   */
+  var UTF8ArrayToString = (heapOrArray, idx = 0, maxBytesToRead, ignoreNul) => {
+  
+      var endPtr = findStringEnd(heapOrArray, idx, maxBytesToRead, ignoreNul);
+  
+      // When using conditional TextDecoder, skip it for short strings as the overhead of the native call is not worth it.
+      if (endPtr - idx > 16 && heapOrArray.buffer && UTF8Decoder) {
+        return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
+      }
+      var str = '';
+      while (idx < endPtr) {
+        // For UTF8 byte structure, see:
+        // http://en.wikipedia.org/wiki/UTF-8#Description
+        // https://www.ietf.org/rfc/rfc2279.txt
+        // https://tools.ietf.org/html/rfc3629
+        var u0 = heapOrArray[idx++];
+        if (!(u0 & 0x80)) { str += String.fromCharCode(u0); continue; }
+        var u1 = heapOrArray[idx++] & 63;
+        if ((u0 & 0xE0) == 0xC0) { str += String.fromCharCode(((u0 & 31) << 6) | u1); continue; }
+        var u2 = heapOrArray[idx++] & 63;
+        if ((u0 & 0xF0) == 0xE0) {
+          u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
+        } else {
+          if ((u0 & 0xF8) != 0xF0) warnOnce(`Invalid UTF-8 leading byte ${ptrToString(u0)} encountered when deserializing a UTF-8 string in wasm memory to a JS string!`);
+          u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
+        }
+  
+        if (u0 < 0x10000) {
+          str += String.fromCharCode(u0);
+        } else {
+          var ch = u0 - 0x10000;
+          str += String.fromCharCode(0xD800 | (ch >> 10), 0xDC00 | (ch & 0x3FF));
+        }
+      }
+      return str;
+    };
+  
+    /**
+   * Given a pointer 'ptr' to a null-terminated UTF8-encoded string in the
+   * emscripten HEAP, returns a copy of that string as a Javascript String object.
+   *
+   * @param {number} ptr
+   * @param {number=} maxBytesToRead - An optional length that specifies the
+   *   maximum number of bytes to read. You can omit this parameter to scan the
+   *   string until the first 0 byte. If maxBytesToRead is passed, and the string
+   *   at [ptr, ptr+maxBytesToReadr[ contains a null byte in the middle, then the
+   *   string will cut short at that byte index.
+   * @param {boolean=} ignoreNul - If true, the function will not stop on a NUL character.
+   * @return {string}
+   */
+  var UTF8ToString = (ptr, maxBytesToRead, ignoreNul) => {
+      assert(typeof ptr == 'number', `UTF8ToString expects a number (got ${typeof ptr})`);
+      return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead, ignoreNul) : '';
+    };
+  var ___assert_fail = (condition, filename, line, func) =>
+      abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
+
   var exceptionCaught =  [];
   
-  function exception_addRef(info) {
-      info.add_ref();
-    }
   
   var uncaughtExceptionCount = 0;
-  function ___cxa_begin_catch(ptr) {
-      var catchInfo = new CatchInfo(ptr);
-      var info = catchInfo.get_exception_info();
+  var ___cxa_begin_catch = (ptr) => {
+      var info = new ExceptionInfo(ptr);
       if (!info.get_caught()) {
         info.set_caught(true);
         uncaughtExceptionCount--;
       }
       info.set_rethrown(false);
-      exceptionCaught.push(catchInfo);
-      exception_addRef(info);
-      return catchInfo.get_exception_ptr();
-    }
+      exceptionCaught.push(info);
+      return ___cxa_get_exception_ptr(ptr);
+    };
 
-  var exceptionLast = 0;
+  var exceptionLast = null;
   
-  function ___cxa_free_exception(ptr) {
-      try {
-        return _free(new ExceptionInfo(ptr).ptr);
-      } catch(e) {
-        err('exception during cxa_free_exception: ' + e);
+  class ExceptionInfo {
+      // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
+      constructor(excPtr) {
+        this.excPtr = excPtr;
+        this.ptr = excPtr - 24;
+      }
+  
+      set_type(type) {
+        HEAPU32[(((this.ptr)+(4))>>2)] = type;
+      }
+  
+      get_type() {
+        return HEAPU32[(((this.ptr)+(4))>>2)];
+      }
+  
+      set_destructor(destructor) {
+        HEAPU32[(((this.ptr)+(8))>>2)] = destructor;
+      }
+  
+      get_destructor() {
+        return HEAPU32[(((this.ptr)+(8))>>2)];
+      }
+  
+      set_caught(caught) {
+        caught = caught ? 1 : 0;
+        HEAP8[(this.ptr)+(12)] = caught;
+      }
+  
+      get_caught() {
+        return HEAP8[(this.ptr)+(12)] != 0;
+      }
+  
+      set_rethrown(rethrown) {
+        rethrown = rethrown ? 1 : 0;
+        HEAP8[(this.ptr)+(13)] = rethrown;
+      }
+  
+      get_rethrown() {
+        return HEAP8[(this.ptr)+(13)] != 0;
+      }
+  
+      // Initialize native structure fields. Should be called once after allocated.
+      init(type, destructor) {
+        this.set_adjusted_ptr(0);
+        this.set_type(type);
+        this.set_destructor(destructor);
+      }
+  
+      set_adjusted_ptr(adjustedPtr) {
+        HEAPU32[(((this.ptr)+(16))>>2)] = adjustedPtr;
+      }
+  
+      get_adjusted_ptr() {
+        return HEAPU32[(((this.ptr)+(16))>>2)];
       }
     }
-  function exception_decRef(info) {
-      // A rethrown exception can reach refcount 0; it must not be discarded
-      // Its next handler will clear the rethrown flag and addRef it, prior to
-      // final decRef and destruction here
-      if (info.release_ref() && !info.get_rethrown()) {
-        var destructor = info.get_destructor();
-        if (destructor) {
-          // In Wasm, destructors return 'this' as in ARM
-          getWasmTableEntry(destructor)(info.excPtr);
-        }
-        ___cxa_free_exception(info.excPtr);
-      }
-    }
-  function ___cxa_end_catch() {
-      // Clear state flag.
-      _setThrew(0);
-      assert(exceptionCaught.length > 0);
-      // Call destructor if one is registered then clear it.
-      var catchInfo = exceptionCaught.pop();
   
-      exception_decRef(catchInfo.get_exception_info());
-      catchInfo.free();
-      exceptionLast = 0; // XXX in decRef?
-    }
-
-  function ___resumeException(catchInfoPtr) {
-      var catchInfo = new CatchInfo(catchInfoPtr);
-      var ptr = catchInfo.get_base_ptr();
-      if (!exceptionLast) { exceptionLast = ptr; }
-      catchInfo.free();
-      throw ptr;
-    }
-  function ___cxa_find_matching_catch_2() {
-      var thrown = exceptionLast;
+  
+  var setTempRet0 = (val) => __emscripten_tempret_set(val);
+  var findMatchingCatch = (args) => {
+      var thrown = exceptionLast?.excPtr;
       if (!thrown) {
         // just pass through the null ptr
-        setTempRet0(0); return ((0)|0);
+        setTempRet0(0);
+        return 0;
       }
       var info = new ExceptionInfo(thrown);
+      info.set_adjusted_ptr(thrown);
       var thrownType = info.get_type();
-      var catchInfo = new CatchInfo();
-      catchInfo.set_base_ptr(thrown);
-      catchInfo.set_adjusted_ptr(thrown);
       if (!thrownType) {
         // just pass through the thrown ptr
-        setTempRet0(0); return ((catchInfo.ptr)|0);
+        setTempRet0(0);
+        return thrown;
       }
-      var typeArray = Array.prototype.slice.call(arguments);
   
       // can_catch receives a **, add indirection
       // The different catch blocks are denoted by different types.
       // Due to inheritance, those types may not precisely match the
       // type of the thrown object. Find one which matches, and
       // return the type of the catch block which should be called.
-      for (var i = 0; i < typeArray.length; i++) {
-        var caughtType = typeArray[i];
+      for (var caughtType of args) {
         if (caughtType === 0 || caughtType === thrownType) {
           // Catch all clause matched or exactly the same type is caught
           break;
         }
-        if (___cxa_can_catch(caughtType, thrownType, catchInfo.get_adjusted_ptr_addr())) {
-          setTempRet0(caughtType); return ((catchInfo.ptr)|0);
+        var adjusted_ptr_addr = info.ptr + 16;
+        if (___cxa_can_catch(caughtType, thrownType, adjusted_ptr_addr)) {
+          setTempRet0(caughtType);
+          return thrown;
         }
       }
-      setTempRet0(thrownType); return ((catchInfo.ptr)|0);
-    }
+      setTempRet0(thrownType);
+      return thrown;
+    };
+  var ___cxa_find_matching_catch_2 = () => findMatchingCatch([]);
 
-  function ___cxa_find_matching_catch_3() {
-      var thrown = exceptionLast;
-      if (!thrown) {
-        // just pass through the null ptr
-        setTempRet0(0); return ((0)|0);
-      }
-      var info = new ExceptionInfo(thrown);
-      var thrownType = info.get_type();
-      var catchInfo = new CatchInfo();
-      catchInfo.set_base_ptr(thrown);
-      catchInfo.set_adjusted_ptr(thrown);
-      if (!thrownType) {
-        // just pass through the thrown ptr
-        setTempRet0(0); return ((catchInfo.ptr)|0);
-      }
-      var typeArray = Array.prototype.slice.call(arguments);
+  var ___cxa_find_matching_catch_3 = (arg0) => findMatchingCatch([arg0]);
+
   
-      // can_catch receives a **, add indirection
-      // The different catch blocks are denoted by different types.
-      // Due to inheritance, those types may not precisely match the
-      // type of the thrown object. Find one which matches, and
-      // return the type of the catch block which should be called.
-      for (var i = 0; i < typeArray.length; i++) {
-        var caughtType = typeArray[i];
-        if (caughtType === 0 || caughtType === thrownType) {
-          // Catch all clause matched or exactly the same type is caught
-          break;
-        }
-        if (___cxa_can_catch(caughtType, thrownType, catchInfo.get_adjusted_ptr_addr())) {
-          setTempRet0(caughtType); return ((catchInfo.ptr)|0);
-        }
+  
+  
+  
+  
+  
+  
+  
+  var stackAlloc = (sz) => __emscripten_stack_alloc(sz);
+  
+  var getExceptionMessageCommon = (ptr) => {
+      var sp = stackSave();
+      var type_addr_addr = stackAlloc(4);
+      var message_addr_addr = stackAlloc(4);
+      ___get_exception_message(ptr, type_addr_addr, message_addr_addr);
+      var type_addr = HEAPU32[((type_addr_addr)>>2)];
+      var message_addr = HEAPU32[((message_addr_addr)>>2)];
+      var type = UTF8ToString(type_addr);
+      _free(type_addr);
+      var message;
+      if (message_addr) {
+        message = UTF8ToString(message_addr);
+        _free(message_addr);
       }
-      setTempRet0(thrownType); return ((catchInfo.ptr)|0);
-    }
-
-
-  function ___cxa_throw(ptr, type, destructor) {
+      stackRestore(sp);
+      return [type, message];
+    };
+  var getExceptionMessage = (exn) => getExceptionMessageCommon(exn.excPtr);
+  
+  var decrementExceptionRefcount = (exn) => ___cxa_decrement_exception_refcount(exn.excPtr);
+  
+  var incrementExceptionRefcount = (exn) => ___cxa_increment_exception_refcount(exn.excPtr);
+  var ___cxa_throw = (ptr, type, destructor) => {
       var info = new ExceptionInfo(ptr);
       // Initialize ExceptionInfo content after it was allocated in __cxa_allocate_exception.
       info.init(type, destructor);
-      exceptionLast = ptr;
+      ___cxa_increment_exception_refcount(ptr);
+      exceptionLast = new CppException(ptr);
       uncaughtExceptionCount++;
-      throw ptr;
-    }
+      throw exceptionLast;
+    };
 
+  var ___resumeException = (ptr) => {
+      if (!exceptionLast) {
+        exceptionLast = new CppException(ptr);
+      }
+      throw exceptionLast;
+    };
 
-  function _abort() {
+  var __abort_js = () =>
       abort('native code called abort()');
-    }
 
-  function _emscripten_memcpy_big(dest, src, num) {
-      HEAPU8.copyWithin(dest, src, src + num);
-    }
-
-  function _emscripten_get_heap_max() {
+  var getHeapMax = () =>
       // Stay one Wasm page short of 4GB: while e.g. Chrome is able to allocate
       // full 4GB Wasm memories, the size will wrap back to 0 bytes in Wasm side
       // for any code that deals with heap sizes, which would require special
       // casing all heap size related code to treat 0 specially.
-      return 2147483648;
-    }
+      2147483648;
   
-  function emscripten_realloc_buffer(size) {
+  var alignMemory = (size, alignment) => {
+      assert(alignment, "alignment argument is required");
+      return Math.ceil(size / alignment) * alignment;
+    };
+  
+  var growMemory = (size) => {
+      var oldHeapSize = wasmMemory.buffer.byteLength;
+      var pages = ((size - oldHeapSize + 65535) / 65536) | 0;
       try {
         // round size grow request up to wasm page size (fixed 64KB per spec)
-        wasmMemory.grow((size - buffer.byteLength + 65535) >>> 16); // .grow() takes a delta compared to the previous size
-        updateGlobalBufferAndViews(wasmMemory.buffer);
+        wasmMemory.grow(pages); // .grow() takes a delta compared to the previous size
+        updateMemoryViews();
         return 1 /*success*/;
       } catch(e) {
-        err('emscripten_realloc_buffer: Attempted to grow heap from ' + buffer.byteLength  + ' bytes to ' + size + ' bytes, but got error: ' + e);
+        err(`growMemory: Attempted to grow heap from ${oldHeapSize} bytes to ${size} bytes, but got error: ${e}`);
       }
       // implicit 0 return to save code size (caller will cast "undefined" into 0
       // anyhow)
-    }
-  function _emscripten_resize_heap(requestedSize) {
+    };
+  var _emscripten_resize_heap = (requestedSize) => {
       var oldSize = HEAPU8.length;
-      requestedSize = requestedSize >>> 0;
-      // With pthreads, races can happen (another thread might increase the size
+      // With CAN_ADDRESS_2GB or MEMORY64, pointers are already unsigned.
+      requestedSize >>>= 0;
+      // With multithreaded builds, races can happen (another thread might increase the size
       // in between), so return a failure, and let the caller retry.
       assert(requestedSize > oldSize);
   
@@ -2216,9 +1021,9 @@ var ASM_CONSTS = {
   
       // A limit is set for how much we can grow. We should not exceed that
       // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
-      var maxHeapSize = _emscripten_get_heap_max();
+      var maxHeapSize = getHeapMax();
       if (requestedSize > maxHeapSize) {
-        err('Cannot enlarge memory, asked to go up to ' + requestedSize + ' bytes, but the limit is ' + maxHeapSize + ' bytes!');
+        err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
         return false;
       }
   
@@ -2230,2757 +1035,1134 @@ var ASM_CONSTS = {
         // but limit overreserving (default to capping at +96MB overgrowth at most)
         overGrownHeapSize = Math.min(overGrownHeapSize, requestedSize + 100663296 );
   
-        var newSize = Math.min(maxHeapSize, alignUp(Math.max(requestedSize, overGrownHeapSize), 65536));
+        var newSize = Math.min(maxHeapSize, alignMemory(Math.max(requestedSize, overGrownHeapSize), 65536));
   
-        var replacement = emscripten_realloc_buffer(newSize);
+        var replacement = growMemory(newSize);
         if (replacement) {
   
           return true;
         }
       }
-      err('Failed to grow the heap from ' + oldSize + ' bytes to ' + newSize + ' bytes, not enough memory!');
+      err(`Failed to grow the heap from ${oldSize} bytes to ${newSize} bytes, not enough memory!`);
       return false;
-    }
+    };
 
-  var PATH = {splitPath:function(filename) {
-        var splitPathRe = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-        return splitPathRe.exec(filename).slice(1);
-      },normalizeArray:function(parts, allowAboveRoot) {
-        // if the path tries to go above the root, `up` ends up > 0
-        var up = 0;
-        for (var i = parts.length - 1; i >= 0; i--) {
-          var last = parts[i];
-          if (last === '.') {
-            parts.splice(i, 1);
-          } else if (last === '..') {
-            parts.splice(i, 1);
-            up++;
-          } else if (up) {
-            parts.splice(i, 1);
-            up--;
-          }
-        }
-        // if the path is allowed to go above the root, restore leading ..s
-        if (allowAboveRoot) {
-          for (; up; up--) {
-            parts.unshift('..');
-          }
-        }
-        return parts;
-      },normalize:function(path) {
-        var isAbsolute = path.charAt(0) === '/',
-            trailingSlash = path.substr(-1) === '/';
-        // Normalize the path
-        path = PATH.normalizeArray(path.split('/').filter(function(p) {
-          return !!p;
-        }), !isAbsolute).join('/');
-        if (!path && !isAbsolute) {
-          path = '.';
-        }
-        if (path && trailingSlash) {
-          path += '/';
-        }
-        return (isAbsolute ? '/' : '') + path;
-      },dirname:function(path) {
-        var result = PATH.splitPath(path),
-            root = result[0],
-            dir = result[1];
-        if (!root && !dir) {
-          // No dirname whatsoever
-          return '.';
-        }
-        if (dir) {
-          // It has a dirname, strip trailing slash
-          dir = dir.substr(0, dir.length - 1);
-        }
-        return root + dir;
-      },basename:function(path) {
-        // EMSCRIPTEN return '/'' for '/', not an empty string
-        if (path === '/') return '/';
-        path = PATH.normalize(path);
-        path = path.replace(/\/$/, "");
-        var lastSlash = path.lastIndexOf('/');
-        if (lastSlash === -1) return path;
-        return path.substr(lastSlash+1);
-      },extname:function(path) {
-        return PATH.splitPath(path)[3];
-      },join:function() {
-        var paths = Array.prototype.slice.call(arguments, 0);
-        return PATH.normalize(paths.join('/'));
-      },join2:function(l, r) {
-        return PATH.normalize(l + '/' + r);
-      }};
-  
-  function getRandomDevice() {
-      if (typeof crypto == 'object' && typeof crypto['getRandomValues'] == 'function') {
-        // for modern web browsers
-        var randomBuffer = new Uint8Array(1);
-        return function() { crypto.getRandomValues(randomBuffer); return randomBuffer[0]; };
-      } else
-      // we couldn't find a proper implementation, as Math.random() is not suitable for /dev/random, see emscripten-core/emscripten/pull/7096
-      return function() { abort("no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: function(array) { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };"); };
-    }
-  
-  var PATH_FS = {resolve:function() {
-        var resolvedPath = '',
-          resolvedAbsolute = false;
-        for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-          var path = (i >= 0) ? arguments[i] : FS.cwd();
-          // Skip empty and invalid entries
-          if (typeof path != 'string') {
-            throw new TypeError('Arguments to path.resolve must be strings');
-          } else if (!path) {
-            return ''; // an invalid portion invalidates the whole thing
-          }
-          resolvedPath = path + '/' + resolvedPath;
-          resolvedAbsolute = path.charAt(0) === '/';
-        }
-        // At this point the path should be resolved to a full absolute path, but
-        // handle relative paths to be safe (might happen when process.cwd() fails)
-        resolvedPath = PATH.normalizeArray(resolvedPath.split('/').filter(function(p) {
-          return !!p;
-        }), !resolvedAbsolute).join('/');
-        return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-      },relative:function(from, to) {
-        from = PATH_FS.resolve(from).substr(1);
-        to = PATH_FS.resolve(to).substr(1);
-        function trim(arr) {
-          var start = 0;
-          for (; start < arr.length; start++) {
-            if (arr[start] !== '') break;
-          }
-          var end = arr.length - 1;
-          for (; end >= 0; end--) {
-            if (arr[end] !== '') break;
-          }
-          if (start > end) return [];
-          return arr.slice(start, end - start + 1);
-        }
-        var fromParts = trim(from.split('/'));
-        var toParts = trim(to.split('/'));
-        var length = Math.min(fromParts.length, toParts.length);
-        var samePartsLength = length;
-        for (var i = 0; i < length; i++) {
-          if (fromParts[i] !== toParts[i]) {
-            samePartsLength = i;
-            break;
-          }
-        }
-        var outputParts = [];
-        for (var i = samePartsLength; i < fromParts.length; i++) {
-          outputParts.push('..');
-        }
-        outputParts = outputParts.concat(toParts.slice(samePartsLength));
-        return outputParts.join('/');
-      }};
-  
-  var TTY = {ttys:[],init:function () {
-        // https://github.com/emscripten-core/emscripten/pull/1555
-        // if (ENVIRONMENT_IS_NODE) {
-        //   // currently, FS.init does not distinguish if process.stdin is a file or TTY
-        //   // device, it always assumes it's a TTY device. because of this, we're forcing
-        //   // process.stdin to UTF8 encoding to at least make stdin reading compatible
-        //   // with text files until FS.init can be refactored.
-        //   process['stdin']['setEncoding']('utf8');
-        // }
-      },shutdown:function() {
-        // https://github.com/emscripten-core/emscripten/pull/1555
-        // if (ENVIRONMENT_IS_NODE) {
-        //   // inolen: any idea as to why node -e 'process.stdin.read()' wouldn't exit immediately (with process.stdin being a tty)?
-        //   // isaacs: because now it's reading from the stream, you've expressed interest in it, so that read() kicks off a _read() which creates a ReadReq operation
-        //   // inolen: I thought read() in that case was a synchronous operation that just grabbed some amount of buffered data if it exists?
-        //   // isaacs: it is. but it also triggers a _read() call, which calls readStart() on the handle
-        //   // isaacs: do process.stdin.pause() and i'd think it'd probably close the pending call
-        //   process['stdin']['pause']();
-        // }
-      },register:function(dev, ops) {
-        TTY.ttys[dev] = { input: [], output: [], ops: ops };
-        FS.registerDevice(dev, TTY.stream_ops);
-      },stream_ops:{open:function(stream) {
-          var tty = TTY.ttys[stream.node.rdev];
-          if (!tty) {
-            throw new FS.ErrnoError(43);
-          }
-          stream.tty = tty;
-          stream.seekable = false;
-        },close:function(stream) {
-          // flush any pending line data
-          stream.tty.ops.flush(stream.tty);
-        },flush:function(stream) {
-          stream.tty.ops.flush(stream.tty);
-        },read:function(stream, buffer, offset, length, pos /* ignored */) {
-          if (!stream.tty || !stream.tty.ops.get_char) {
-            throw new FS.ErrnoError(60);
-          }
-          var bytesRead = 0;
-          for (var i = 0; i < length; i++) {
-            var result;
-            try {
-              result = stream.tty.ops.get_char(stream.tty);
-            } catch (e) {
-              throw new FS.ErrnoError(29);
-            }
-            if (result === undefined && bytesRead === 0) {
-              throw new FS.ErrnoError(6);
-            }
-            if (result === null || result === undefined) break;
-            bytesRead++;
-            buffer[offset+i] = result;
-          }
-          if (bytesRead) {
-            stream.node.timestamp = Date.now();
-          }
-          return bytesRead;
-        },write:function(stream, buffer, offset, length, pos) {
-          if (!stream.tty || !stream.tty.ops.put_char) {
-            throw new FS.ErrnoError(60);
-          }
-          try {
-            for (var i = 0; i < length; i++) {
-              stream.tty.ops.put_char(stream.tty, buffer[offset+i]);
-            }
-          } catch (e) {
-            throw new FS.ErrnoError(29);
-          }
-          if (length) {
-            stream.node.timestamp = Date.now();
-          }
-          return i;
-        }},default_tty_ops:{get_char:function(tty) {
-          if (!tty.input.length) {
-            var result = null;
-            if (typeof window != 'undefined' &&
-              typeof window.prompt == 'function') {
-              // Browser.
-              result = window.prompt('Input: ');  // returns null on cancel
-              if (result !== null) {
-                result += '\n';
-              }
-            } else if (typeof readline == 'function') {
-              // Command line.
-              result = readline();
-              if (result !== null) {
-                result += '\n';
-              }
-            }
-            if (!result) {
-              return null;
-            }
-            tty.input = intArrayFromString(result, true);
-          }
-          return tty.input.shift();
-        },put_char:function(tty, val) {
-          if (val === null || val === 10) {
-            out(UTF8ArrayToString(tty.output, 0));
-            tty.output = [];
-          } else {
-            if (val != 0) tty.output.push(val); // val == 0 would cut text output off in the middle.
-          }
-        },flush:function(tty) {
-          if (tty.output && tty.output.length > 0) {
-            out(UTF8ArrayToString(tty.output, 0));
-            tty.output = [];
-          }
-        }},default_tty1_ops:{put_char:function(tty, val) {
-          if (val === null || val === 10) {
-            err(UTF8ArrayToString(tty.output, 0));
-            tty.output = [];
-          } else {
-            if (val != 0) tty.output.push(val);
-          }
-        },flush:function(tty) {
-          if (tty.output && tty.output.length > 0) {
-            err(UTF8ArrayToString(tty.output, 0));
-            tty.output = [];
-          }
-        }}};
-  
-  function zeroMemory(address, size) {
-      HEAPU8.fill(0, address, address + size);
-    }
-  
-  function alignMemory(size, alignment) {
-      assert(alignment, "alignment argument is required");
-      return Math.ceil(size / alignment) * alignment;
-    }
-  function mmapAlloc(size) {
-      abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
-    }
-  var MEMFS = {ops_table:null,mount:function(mount) {
-        return MEMFS.createNode(null, '/', 16384 | 511 /* 0777 */, 0);
-      },createNode:function(parent, name, mode, dev) {
-        if (FS.isBlkdev(mode) || FS.isFIFO(mode)) {
-          // no supported
-          throw new FS.ErrnoError(63);
-        }
-        if (!MEMFS.ops_table) {
-          MEMFS.ops_table = {
-            dir: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr,
-                lookup: MEMFS.node_ops.lookup,
-                mknod: MEMFS.node_ops.mknod,
-                rename: MEMFS.node_ops.rename,
-                unlink: MEMFS.node_ops.unlink,
-                rmdir: MEMFS.node_ops.rmdir,
-                readdir: MEMFS.node_ops.readdir,
-                symlink: MEMFS.node_ops.symlink
-              },
-              stream: {
-                llseek: MEMFS.stream_ops.llseek
-              }
-            },
-            file: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr
-              },
-              stream: {
-                llseek: MEMFS.stream_ops.llseek,
-                read: MEMFS.stream_ops.read,
-                write: MEMFS.stream_ops.write,
-                allocate: MEMFS.stream_ops.allocate,
-                mmap: MEMFS.stream_ops.mmap,
-                msync: MEMFS.stream_ops.msync
-              }
-            },
-            link: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr,
-                readlink: MEMFS.node_ops.readlink
-              },
-              stream: {}
-            },
-            chrdev: {
-              node: {
-                getattr: MEMFS.node_ops.getattr,
-                setattr: MEMFS.node_ops.setattr
-              },
-              stream: FS.chrdev_stream_ops
-            }
-          };
-        }
-        var node = FS.createNode(parent, name, mode, dev);
-        if (FS.isDir(node.mode)) {
-          node.node_ops = MEMFS.ops_table.dir.node;
-          node.stream_ops = MEMFS.ops_table.dir.stream;
-          node.contents = {};
-        } else if (FS.isFile(node.mode)) {
-          node.node_ops = MEMFS.ops_table.file.node;
-          node.stream_ops = MEMFS.ops_table.file.stream;
-          node.usedBytes = 0; // The actual number of bytes used in the typed array, as opposed to contents.length which gives the whole capacity.
-          // When the byte data of the file is populated, this will point to either a typed array, or a normal JS array. Typed arrays are preferred
-          // for performance, and used by default. However, typed arrays are not resizable like normal JS arrays are, so there is a small disk size
-          // penalty involved for appending file writes that continuously grow a file similar to std::vector capacity vs used -scheme.
-          node.contents = null; 
-        } else if (FS.isLink(node.mode)) {
-          node.node_ops = MEMFS.ops_table.link.node;
-          node.stream_ops = MEMFS.ops_table.link.stream;
-        } else if (FS.isChrdev(node.mode)) {
-          node.node_ops = MEMFS.ops_table.chrdev.node;
-          node.stream_ops = MEMFS.ops_table.chrdev.stream;
-        }
-        node.timestamp = Date.now();
-        // add the new node to the parent
-        if (parent) {
-          parent.contents[name] = node;
-          parent.timestamp = node.timestamp;
-        }
-        return node;
-      },getFileDataAsTypedArray:function(node) {
-        if (!node.contents) return new Uint8Array(0);
-        if (node.contents.subarray) return node.contents.subarray(0, node.usedBytes); // Make sure to not return excess unused bytes.
-        return new Uint8Array(node.contents);
-      },expandFileStorage:function(node, newCapacity) {
-        var prevCapacity = node.contents ? node.contents.length : 0;
-        if (prevCapacity >= newCapacity) return; // No need to expand, the storage was already large enough.
-        // Don't expand strictly to the given requested limit if it's only a very small increase, but instead geometrically grow capacity.
-        // For small filesizes (<1MB), perform size*2 geometric increase, but for large sizes, do a much more conservative size*1.125 increase to
-        // avoid overshooting the allocation cap by a very large margin.
-        var CAPACITY_DOUBLING_MAX = 1024 * 1024;
-        newCapacity = Math.max(newCapacity, (prevCapacity * (prevCapacity < CAPACITY_DOUBLING_MAX ? 2.0 : 1.125)) >>> 0);
-        if (prevCapacity != 0) newCapacity = Math.max(newCapacity, 256); // At minimum allocate 256b for each file when expanding.
-        var oldContents = node.contents;
-        node.contents = new Uint8Array(newCapacity); // Allocate new storage.
-        if (node.usedBytes > 0) node.contents.set(oldContents.subarray(0, node.usedBytes), 0); // Copy old data over to the new storage.
-      },resizeFileStorage:function(node, newSize) {
-        if (node.usedBytes == newSize) return;
-        if (newSize == 0) {
-          node.contents = null; // Fully decommit when requesting a resize to zero.
-          node.usedBytes = 0;
-        } else {
-          var oldContents = node.contents;
-          node.contents = new Uint8Array(newSize); // Allocate new storage.
-          if (oldContents) {
-            node.contents.set(oldContents.subarray(0, Math.min(newSize, node.usedBytes))); // Copy old data over to the new storage.
-          }
-          node.usedBytes = newSize;
-        }
-      },node_ops:{getattr:function(node) {
-          var attr = {};
-          // device numbers reuse inode numbers.
-          attr.dev = FS.isChrdev(node.mode) ? node.id : 1;
-          attr.ino = node.id;
-          attr.mode = node.mode;
-          attr.nlink = 1;
-          attr.uid = 0;
-          attr.gid = 0;
-          attr.rdev = node.rdev;
-          if (FS.isDir(node.mode)) {
-            attr.size = 4096;
-          } else if (FS.isFile(node.mode)) {
-            attr.size = node.usedBytes;
-          } else if (FS.isLink(node.mode)) {
-            attr.size = node.link.length;
-          } else {
-            attr.size = 0;
-          }
-          attr.atime = new Date(node.timestamp);
-          attr.mtime = new Date(node.timestamp);
-          attr.ctime = new Date(node.timestamp);
-          // NOTE: In our implementation, st_blocks = Math.ceil(st_size/st_blksize),
-          //       but this is not required by the standard.
-          attr.blksize = 4096;
-          attr.blocks = Math.ceil(attr.size / attr.blksize);
-          return attr;
-        },setattr:function(node, attr) {
-          if (attr.mode !== undefined) {
-            node.mode = attr.mode;
-          }
-          if (attr.timestamp !== undefined) {
-            node.timestamp = attr.timestamp;
-          }
-          if (attr.size !== undefined) {
-            MEMFS.resizeFileStorage(node, attr.size);
-          }
-        },lookup:function(parent, name) {
-          throw FS.genericErrors[44];
-        },mknod:function(parent, name, mode, dev) {
-          return MEMFS.createNode(parent, name, mode, dev);
-        },rename:function(old_node, new_dir, new_name) {
-          // if we're overwriting a directory at new_name, make sure it's empty.
-          if (FS.isDir(old_node.mode)) {
-            var new_node;
-            try {
-              new_node = FS.lookupNode(new_dir, new_name);
-            } catch (e) {
-            }
-            if (new_node) {
-              for (var i in new_node.contents) {
-                throw new FS.ErrnoError(55);
-              }
-            }
-          }
-          // do the internal rewiring
-          delete old_node.parent.contents[old_node.name];
-          old_node.parent.timestamp = Date.now()
-          old_node.name = new_name;
-          new_dir.contents[new_name] = old_node;
-          new_dir.timestamp = old_node.parent.timestamp;
-          old_node.parent = new_dir;
-        },unlink:function(parent, name) {
-          delete parent.contents[name];
-          parent.timestamp = Date.now();
-        },rmdir:function(parent, name) {
-          var node = FS.lookupNode(parent, name);
-          for (var i in node.contents) {
-            throw new FS.ErrnoError(55);
-          }
-          delete parent.contents[name];
-          parent.timestamp = Date.now();
-        },readdir:function(node) {
-          var entries = ['.', '..'];
-          for (var key in node.contents) {
-            if (!node.contents.hasOwnProperty(key)) {
-              continue;
-            }
-            entries.push(key);
-          }
-          return entries;
-        },symlink:function(parent, newname, oldpath) {
-          var node = MEMFS.createNode(parent, newname, 511 /* 0777 */ | 40960, 0);
-          node.link = oldpath;
-          return node;
-        },readlink:function(node) {
-          if (!FS.isLink(node.mode)) {
-            throw new FS.ErrnoError(28);
-          }
-          return node.link;
-        }},stream_ops:{read:function(stream, buffer, offset, length, position) {
-          var contents = stream.node.contents;
-          if (position >= stream.node.usedBytes) return 0;
-          var size = Math.min(stream.node.usedBytes - position, length);
-          assert(size >= 0);
-          if (size > 8 && contents.subarray) { // non-trivial, and typed array
-            buffer.set(contents.subarray(position, position + size), offset);
-          } else {
-            for (var i = 0; i < size; i++) buffer[offset + i] = contents[position + i];
-          }
-          return size;
-        },write:function(stream, buffer, offset, length, position, canOwn) {
-          // The data buffer should be a typed array view
-          assert(!(buffer instanceof ArrayBuffer));
-          // If the buffer is located in main memory (HEAP), and if
-          // memory can grow, we can't hold on to references of the
-          // memory buffer, as they may get invalidated. That means we
-          // need to do copy its contents.
-          if (buffer.buffer === HEAP8.buffer) {
-            canOwn = false;
-          }
-  
-          if (!length) return 0;
-          var node = stream.node;
-          node.timestamp = Date.now();
-  
-          if (buffer.subarray && (!node.contents || node.contents.subarray)) { // This write is from a typed array to a typed array?
-            if (canOwn) {
-              assert(position === 0, 'canOwn must imply no weird position inside the file');
-              node.contents = buffer.subarray(offset, offset + length);
-              node.usedBytes = length;
-              return length;
-            } else if (node.usedBytes === 0 && position === 0) { // If this is a simple first write to an empty file, do a fast set since we don't need to care about old data.
-              node.contents = buffer.slice(offset, offset + length);
-              node.usedBytes = length;
-              return length;
-            } else if (position + length <= node.usedBytes) { // Writing to an already allocated and used subrange of the file?
-              node.contents.set(buffer.subarray(offset, offset + length), position);
-              return length;
-            }
-          }
-  
-          // Appending to an existing file and we need to reallocate, or source data did not come as a typed array.
-          MEMFS.expandFileStorage(node, position+length);
-          if (node.contents.subarray && buffer.subarray) {
-            // Use typed array write which is available.
-            node.contents.set(buffer.subarray(offset, offset + length), position);
-          } else {
-            for (var i = 0; i < length; i++) {
-             node.contents[position + i] = buffer[offset + i]; // Or fall back to manual write if not.
-            }
-          }
-          node.usedBytes = Math.max(node.usedBytes, position + length);
-          return length;
-        },llseek:function(stream, offset, whence) {
-          var position = offset;
-          if (whence === 1) {
-            position += stream.position;
-          } else if (whence === 2) {
-            if (FS.isFile(stream.node.mode)) {
-              position += stream.node.usedBytes;
-            }
-          }
-          if (position < 0) {
-            throw new FS.ErrnoError(28);
-          }
-          return position;
-        },allocate:function(stream, offset, length) {
-          MEMFS.expandFileStorage(stream.node, offset + length);
-          stream.node.usedBytes = Math.max(stream.node.usedBytes, offset + length);
-        },mmap:function(stream, address, length, position, prot, flags) {
-          if (address !== 0) {
-            // We don't currently support location hints for the address of the mapping
-            throw new FS.ErrnoError(28);
-          }
-          if (!FS.isFile(stream.node.mode)) {
-            throw new FS.ErrnoError(43);
-          }
-          var ptr;
-          var allocated;
-          var contents = stream.node.contents;
-          // Only make a new copy when MAP_PRIVATE is specified.
-          if (!(flags & 2) && contents.buffer === buffer) {
-            // We can't emulate MAP_SHARED when the file is not backed by the buffer
-            // we're mapping to (e.g. the HEAP buffer).
-            allocated = false;
-            ptr = contents.byteOffset;
-          } else {
-            // Try to avoid unnecessary slices.
-            if (position > 0 || position + length < contents.length) {
-              if (contents.subarray) {
-                contents = contents.subarray(position, position + length);
-              } else {
-                contents = Array.prototype.slice.call(contents, position, position + length);
-              }
-            }
-            allocated = true;
-            ptr = mmapAlloc(length);
-            if (!ptr) {
-              throw new FS.ErrnoError(48);
-            }
-            HEAP8.set(contents, ptr);
-          }
-          return { ptr: ptr, allocated: allocated };
-        },msync:function(stream, buffer, offset, length, mmapFlags) {
-          if (!FS.isFile(stream.node.mode)) {
-            throw new FS.ErrnoError(43);
-          }
-          if (mmapFlags & 2) {
-            // MAP_PRIVATE calls need not to be synced back to underlying fs
-            return 0;
-          }
-  
-          var bytesWritten = MEMFS.stream_ops.write(stream, buffer, 0, length, offset, false);
-          // should we check if bytesWritten and length are the same?
-          return 0;
-        }}};
-  
-  /** @param {boolean=} noRunDep */
-  function asyncLoad(url, onload, onerror, noRunDep) {
-      var dep = !noRunDep ? getUniqueRunDependency('al ' + url) : '';
-      readAsync(url, function(arrayBuffer) {
-        assert(arrayBuffer, 'Loading data file "' + url + '" failed (no arrayBuffer).');
-        onload(new Uint8Array(arrayBuffer));
-        if (dep) removeRunDependency(dep);
-      }, function(event) {
-        if (onerror) {
-          onerror();
-        } else {
-          throw 'Loading data file "' + url + '" failed.';
-        }
-      });
-      if (dep) addRunDependency(dep);
-    }
-  
-  var ERRNO_MESSAGES = {0:"Success",1:"Arg list too long",2:"Permission denied",3:"Address already in use",4:"Address not available",5:"Address family not supported by protocol family",6:"No more processes",7:"Socket already connected",8:"Bad file number",9:"Trying to read unreadable message",10:"Mount device busy",11:"Operation canceled",12:"No children",13:"Connection aborted",14:"Connection refused",15:"Connection reset by peer",16:"File locking deadlock error",17:"Destination address required",18:"Math arg out of domain of func",19:"Quota exceeded",20:"File exists",21:"Bad address",22:"File too large",23:"Host is unreachable",24:"Identifier removed",25:"Illegal byte sequence",26:"Connection already in progress",27:"Interrupted system call",28:"Invalid argument",29:"I/O error",30:"Socket is already connected",31:"Is a directory",32:"Too many symbolic links",33:"Too many open files",34:"Too many links",35:"Message too long",36:"Multihop attempted",37:"File or path name too long",38:"Network interface is not configured",39:"Connection reset by network",40:"Network is unreachable",41:"Too many open files in system",42:"No buffer space available",43:"No such device",44:"No such file or directory",45:"Exec format error",46:"No record locks available",47:"The link has been severed",48:"Not enough core",49:"No message of desired type",50:"Protocol not available",51:"No space left on device",52:"Function not implemented",53:"Socket is not connected",54:"Not a directory",55:"Directory not empty",56:"State not recoverable",57:"Socket operation on non-socket",59:"Not a typewriter",60:"No such device or address",61:"Value too large for defined data type",62:"Previous owner died",63:"Not super-user",64:"Broken pipe",65:"Protocol error",66:"Unknown protocol",67:"Protocol wrong type for socket",68:"Math result not representable",69:"Read only file system",70:"Illegal seek",71:"No such process",72:"Stale file handle",73:"Connection timed out",74:"Text file busy",75:"Cross-device link",100:"Device not a stream",101:"Bad font file fmt",102:"Invalid slot",103:"Invalid request code",104:"No anode",105:"Block device required",106:"Channel number out of range",107:"Level 3 halted",108:"Level 3 reset",109:"Link number out of range",110:"Protocol driver not attached",111:"No CSI structure available",112:"Level 2 halted",113:"Invalid exchange",114:"Invalid request descriptor",115:"Exchange full",116:"No data (for no delay io)",117:"Timer expired",118:"Out of streams resources",119:"Machine is not on the network",120:"Package not installed",121:"The object is remote",122:"Advertise error",123:"Srmount error",124:"Communication error on send",125:"Cross mount point (not really error)",126:"Given log. name not unique",127:"f.d. invalid for this operation",128:"Remote address changed",129:"Can   access a needed shared lib",130:"Accessing a corrupted shared lib",131:".lib section in a.out corrupted",132:"Attempting to link in too many libs",133:"Attempting to exec a shared library",135:"Streams pipe error",136:"Too many users",137:"Socket type not supported",138:"Not supported",139:"Protocol family not supported",140:"Can't send after socket shutdown",141:"Too many references",142:"Host is down",148:"No medium (in tape drive)",156:"Level 2 not synchronized"};
-  
-  var ERRNO_CODES = {};
-  var FS = {root:null,mounts:[],devices:{},streams:[],nextInode:1,nameTable:null,currentPath:"/",initialized:false,ignorePermissions:true,ErrnoError:null,genericErrors:{},filesystems:null,syncFSRequests:0,lookupPath:(path, opts = {}) => {
-        path = PATH_FS.resolve(FS.cwd(), path);
-  
-        if (!path) return { path: '', node: null };
-  
-        var defaults = {
-          follow_mount: true,
-          recurse_count: 0
-        };
-        for (var key in defaults) {
-          if (opts[key] === undefined) {
-            opts[key] = defaults[key];
-          }
-        }
-  
-        if (opts.recurse_count > 8) {  // max recursive lookup of 8
-          throw new FS.ErrnoError(32);
-        }
-  
-        // split the path
-        var parts = PATH.normalizeArray(path.split('/').filter((p) => !!p), false);
-  
-        // start at the root
-        var current = FS.root;
-        var current_path = '/';
-  
-        for (var i = 0; i < parts.length; i++) {
-          var islast = (i === parts.length-1);
-          if (islast && opts.parent) {
-            // stop resolving
-            break;
-          }
-  
-          current = FS.lookupNode(current, parts[i]);
-          current_path = PATH.join2(current_path, parts[i]);
-  
-          // jump to the mount's root node if this is a mountpoint
-          if (FS.isMountpoint(current)) {
-            if (!islast || (islast && opts.follow_mount)) {
-              current = current.mounted.root;
-            }
-          }
-  
-          // by default, lookupPath will not follow a symlink if it is the final path component.
-          // setting opts.follow = true will override this behavior.
-          if (!islast || opts.follow) {
-            var count = 0;
-            while (FS.isLink(current.mode)) {
-              var link = FS.readlink(current_path);
-              current_path = PATH_FS.resolve(PATH.dirname(current_path), link);
-  
-              var lookup = FS.lookupPath(current_path, { recurse_count: opts.recurse_count });
-              current = lookup.node;
-  
-              if (count++ > 40) {  // limit max consecutive symlinks to 40 (SYMLOOP_MAX).
-                throw new FS.ErrnoError(32);
-              }
-            }
-          }
-        }
-  
-        return { path: current_path, node: current };
-      },getPath:(node) => {
-        var path;
-        while (true) {
-          if (FS.isRoot(node)) {
-            var mount = node.mount.mountpoint;
-            if (!path) return mount;
-            return mount[mount.length-1] !== '/' ? mount + '/' + path : mount + path;
-          }
-          path = path ? node.name + '/' + path : node.name;
-          node = node.parent;
-        }
-      },hashName:(parentid, name) => {
-        var hash = 0;
-  
-        for (var i = 0; i < name.length; i++) {
-          hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
-        }
-        return ((parentid + hash) >>> 0) % FS.nameTable.length;
-      },hashAddNode:(node) => {
-        var hash = FS.hashName(node.parent.id, node.name);
-        node.name_next = FS.nameTable[hash];
-        FS.nameTable[hash] = node;
-      },hashRemoveNode:(node) => {
-        var hash = FS.hashName(node.parent.id, node.name);
-        if (FS.nameTable[hash] === node) {
-          FS.nameTable[hash] = node.name_next;
-        } else {
-          var current = FS.nameTable[hash];
-          while (current) {
-            if (current.name_next === node) {
-              current.name_next = node.name_next;
-              break;
-            }
-            current = current.name_next;
-          }
-        }
-      },lookupNode:(parent, name) => {
-        var errCode = FS.mayLookup(parent);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode, parent);
-        }
-        var hash = FS.hashName(parent.id, name);
-        for (var node = FS.nameTable[hash]; node; node = node.name_next) {
-          var nodeName = node.name;
-          if (node.parent.id === parent.id && nodeName === name) {
-            return node;
-          }
-        }
-        // if we failed to find it in the cache, call into the VFS
-        return FS.lookup(parent, name);
-      },createNode:(parent, name, mode, rdev) => {
-        assert(typeof parent == 'object')
-        var node = new FS.FSNode(parent, name, mode, rdev);
-  
-        FS.hashAddNode(node);
-  
-        return node;
-      },destroyNode:(node) => {
-        FS.hashRemoveNode(node);
-      },isRoot:(node) => {
-        return node === node.parent;
-      },isMountpoint:(node) => {
-        return !!node.mounted;
-      },isFile:(mode) => {
-        return (mode & 61440) === 32768;
-      },isDir:(mode) => {
-        return (mode & 61440) === 16384;
-      },isLink:(mode) => {
-        return (mode & 61440) === 40960;
-      },isChrdev:(mode) => {
-        return (mode & 61440) === 8192;
-      },isBlkdev:(mode) => {
-        return (mode & 61440) === 24576;
-      },isFIFO:(mode) => {
-        return (mode & 61440) === 4096;
-      },isSocket:(mode) => {
-        return (mode & 49152) === 49152;
-      },flagModes:{"r":0,"r+":2,"w":577,"w+":578,"a":1089,"a+":1090},modeStringToFlags:(str) => {
-        var flags = FS.flagModes[str];
-        if (typeof flags == 'undefined') {
-          throw new Error('Unknown file open mode: ' + str);
-        }
-        return flags;
-      },flagsToPermissionString:(flag) => {
-        var perms = ['r', 'w', 'rw'][flag & 3];
-        if ((flag & 512)) {
-          perms += 'w';
-        }
-        return perms;
-      },nodePermissions:(node, perms) => {
-        if (FS.ignorePermissions) {
-          return 0;
-        }
-        // return 0 if any user, group or owner bits are set.
-        if (perms.includes('r') && !(node.mode & 292)) {
-          return 2;
-        } else if (perms.includes('w') && !(node.mode & 146)) {
-          return 2;
-        } else if (perms.includes('x') && !(node.mode & 73)) {
-          return 2;
-        }
-        return 0;
-      },mayLookup:(dir) => {
-        var errCode = FS.nodePermissions(dir, 'x');
-        if (errCode) return errCode;
-        if (!dir.node_ops.lookup) return 2;
-        return 0;
-      },mayCreate:(dir, name) => {
-        try {
-          var node = FS.lookupNode(dir, name);
-          return 20;
-        } catch (e) {
-        }
-        return FS.nodePermissions(dir, 'wx');
-      },mayDelete:(dir, name, isdir) => {
-        var node;
-        try {
-          node = FS.lookupNode(dir, name);
-        } catch (e) {
-          return e.errno;
-        }
-        var errCode = FS.nodePermissions(dir, 'wx');
-        if (errCode) {
-          return errCode;
-        }
-        if (isdir) {
-          if (!FS.isDir(node.mode)) {
-            return 54;
-          }
-          if (FS.isRoot(node) || FS.getPath(node) === FS.cwd()) {
-            return 10;
-          }
-        } else {
-          if (FS.isDir(node.mode)) {
-            return 31;
-          }
-        }
-        return 0;
-      },mayOpen:(node, flags) => {
-        if (!node) {
-          return 44;
-        }
-        if (FS.isLink(node.mode)) {
-          return 32;
-        } else if (FS.isDir(node.mode)) {
-          if (FS.flagsToPermissionString(flags) !== 'r' || // opening for write
-              (flags & 512)) { // TODO: check for O_SEARCH? (== search for dir only)
-            return 31;
-          }
-        }
-        return FS.nodePermissions(node, FS.flagsToPermissionString(flags));
-      },MAX_OPEN_FDS:4096,nextfd:(fd_start = 0, fd_end = FS.MAX_OPEN_FDS) => {
-        for (var fd = fd_start; fd <= fd_end; fd++) {
-          if (!FS.streams[fd]) {
-            return fd;
-          }
-        }
-        throw new FS.ErrnoError(33);
-      },getStream:(fd) => FS.streams[fd],createStream:(stream, fd_start, fd_end) => {
-        if (!FS.FSStream) {
-          FS.FSStream = /** @constructor */ function(){};
-          FS.FSStream.prototype = {
-            object: {
-              get: function() { return this.node; },
-              set: function(val) { this.node = val; }
-            },
-            isRead: {
-              get: function() { return (this.flags & 2097155) !== 1; }
-            },
-            isWrite: {
-              get: function() { return (this.flags & 2097155) !== 0; }
-            },
-            isAppend: {
-              get: function() { return (this.flags & 1024); }
-            }
-          };
-        }
-        // clone it, so we can return an instance of FSStream
-        stream = Object.assign(new FS.FSStream(), stream);
-        var fd = FS.nextfd(fd_start, fd_end);
-        stream.fd = fd;
-        FS.streams[fd] = stream;
-        return stream;
-      },closeStream:(fd) => {
-        FS.streams[fd] = null;
-      },chrdev_stream_ops:{open:(stream) => {
-          var device = FS.getDevice(stream.node.rdev);
-          // override node's stream ops with the device's
-          stream.stream_ops = device.stream_ops;
-          // forward the open call
-          if (stream.stream_ops.open) {
-            stream.stream_ops.open(stream);
-          }
-        },llseek:() => {
-          throw new FS.ErrnoError(70);
-        }},major:(dev) => ((dev) >> 8),minor:(dev) => ((dev) & 0xff),makedev:(ma, mi) => ((ma) << 8 | (mi)),registerDevice:(dev, ops) => {
-        FS.devices[dev] = { stream_ops: ops };
-      },getDevice:(dev) => FS.devices[dev],getMounts:(mount) => {
-        var mounts = [];
-        var check = [mount];
-  
-        while (check.length) {
-          var m = check.pop();
-  
-          mounts.push(m);
-  
-          check.push.apply(check, m.mounts);
-        }
-  
-        return mounts;
-      },syncfs:(populate, callback) => {
-        if (typeof populate == 'function') {
-          callback = populate;
-          populate = false;
-        }
-  
-        FS.syncFSRequests++;
-  
-        if (FS.syncFSRequests > 1) {
-          err('warning: ' + FS.syncFSRequests + ' FS.syncfs operations in flight at once, probably just doing extra work');
-        }
-  
-        var mounts = FS.getMounts(FS.root.mount);
-        var completed = 0;
-  
-        function doCallback(errCode) {
-          assert(FS.syncFSRequests > 0);
-          FS.syncFSRequests--;
-          return callback(errCode);
-        }
-  
-        function done(errCode) {
-          if (errCode) {
-            if (!done.errored) {
-              done.errored = true;
-              return doCallback(errCode);
-            }
-            return;
-          }
-          if (++completed >= mounts.length) {
-            doCallback(null);
-          }
-        };
-  
-        // sync all mounts
-        mounts.forEach((mount) => {
-          if (!mount.type.syncfs) {
-            return done(null);
-          }
-          mount.type.syncfs(mount, populate, done);
-        });
-      },mount:(type, opts, mountpoint) => {
-        if (typeof type == 'string') {
-          // The filesystem was not included, and instead we have an error
-          // message stored in the variable.
-          throw type;
-        }
-        var root = mountpoint === '/';
-        var pseudo = !mountpoint;
-        var node;
-  
-        if (root && FS.root) {
-          throw new FS.ErrnoError(10);
-        } else if (!root && !pseudo) {
-          var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
-          mountpoint = lookup.path;  // use the absolute path
-          node = lookup.node;
-  
-          if (FS.isMountpoint(node)) {
-            throw new FS.ErrnoError(10);
-          }
-  
-          if (!FS.isDir(node.mode)) {
-            throw new FS.ErrnoError(54);
-          }
-        }
-  
-        var mount = {
-          type: type,
-          opts: opts,
-          mountpoint: mountpoint,
-          mounts: []
-        };
-  
-        // create a root node for the fs
-        var mountRoot = type.mount(mount);
-        mountRoot.mount = mount;
-        mount.root = mountRoot;
-  
-        if (root) {
-          FS.root = mountRoot;
-        } else if (node) {
-          // set as a mountpoint
-          node.mounted = mount;
-  
-          // add the new mount to the current mount's children
-          if (node.mount) {
-            node.mount.mounts.push(mount);
-          }
-        }
-  
-        return mountRoot;
-      },unmount:(mountpoint) => {
-        var lookup = FS.lookupPath(mountpoint, { follow_mount: false });
-  
-        if (!FS.isMountpoint(lookup.node)) {
-          throw new FS.ErrnoError(28);
-        }
-  
-        // destroy the nodes for this mount, and all its child mounts
-        var node = lookup.node;
-        var mount = node.mounted;
-        var mounts = FS.getMounts(mount);
-  
-        Object.keys(FS.nameTable).forEach((hash) => {
-          var current = FS.nameTable[hash];
-  
-          while (current) {
-            var next = current.name_next;
-  
-            if (mounts.includes(current.mount)) {
-              FS.destroyNode(current);
-            }
-  
-            current = next;
-          }
-        });
-  
-        // no longer a mountpoint
-        node.mounted = null;
-  
-        // remove this mount from the child mounts
-        var idx = node.mount.mounts.indexOf(mount);
-        assert(idx !== -1);
-        node.mount.mounts.splice(idx, 1);
-      },lookup:(parent, name) => {
-        return parent.node_ops.lookup(parent, name);
-      },mknod:(path, mode, dev) => {
-        var lookup = FS.lookupPath(path, { parent: true });
-        var parent = lookup.node;
-        var name = PATH.basename(path);
-        if (!name || name === '.' || name === '..') {
-          throw new FS.ErrnoError(28);
-        }
-        var errCode = FS.mayCreate(parent, name);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        if (!parent.node_ops.mknod) {
-          throw new FS.ErrnoError(63);
-        }
-        return parent.node_ops.mknod(parent, name, mode, dev);
-      },create:(path, mode) => {
-        mode = mode !== undefined ? mode : 438 /* 0666 */;
-        mode &= 4095;
-        mode |= 32768;
-        return FS.mknod(path, mode, 0);
-      },mkdir:(path, mode) => {
-        mode = mode !== undefined ? mode : 511 /* 0777 */;
-        mode &= 511 | 512;
-        mode |= 16384;
-        return FS.mknod(path, mode, 0);
-      },mkdirTree:(path, mode) => {
-        var dirs = path.split('/');
-        var d = '';
-        for (var i = 0; i < dirs.length; ++i) {
-          if (!dirs[i]) continue;
-          d += '/' + dirs[i];
-          try {
-            FS.mkdir(d, mode);
-          } catch(e) {
-            if (e.errno != 20) throw e;
-          }
-        }
-      },mkdev:(path, mode, dev) => {
-        if (typeof dev == 'undefined') {
-          dev = mode;
-          mode = 438 /* 0666 */;
-        }
-        mode |= 8192;
-        return FS.mknod(path, mode, dev);
-      },symlink:(oldpath, newpath) => {
-        if (!PATH_FS.resolve(oldpath)) {
-          throw new FS.ErrnoError(44);
-        }
-        var lookup = FS.lookupPath(newpath, { parent: true });
-        var parent = lookup.node;
-        if (!parent) {
-          throw new FS.ErrnoError(44);
-        }
-        var newname = PATH.basename(newpath);
-        var errCode = FS.mayCreate(parent, newname);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        if (!parent.node_ops.symlink) {
-          throw new FS.ErrnoError(63);
-        }
-        return parent.node_ops.symlink(parent, newname, oldpath);
-      },rename:(old_path, new_path) => {
-        var old_dirname = PATH.dirname(old_path);
-        var new_dirname = PATH.dirname(new_path);
-        var old_name = PATH.basename(old_path);
-        var new_name = PATH.basename(new_path);
-        // parents must exist
-        var lookup, old_dir, new_dir;
-  
-        // let the errors from non existant directories percolate up
-        lookup = FS.lookupPath(old_path, { parent: true });
-        old_dir = lookup.node;
-        lookup = FS.lookupPath(new_path, { parent: true });
-        new_dir = lookup.node;
-  
-        if (!old_dir || !new_dir) throw new FS.ErrnoError(44);
-        // need to be part of the same mount
-        if (old_dir.mount !== new_dir.mount) {
-          throw new FS.ErrnoError(75);
-        }
-        // source must exist
-        var old_node = FS.lookupNode(old_dir, old_name);
-        // old path should not be an ancestor of the new path
-        var relative = PATH_FS.relative(old_path, new_dirname);
-        if (relative.charAt(0) !== '.') {
-          throw new FS.ErrnoError(28);
-        }
-        // new path should not be an ancestor of the old path
-        relative = PATH_FS.relative(new_path, old_dirname);
-        if (relative.charAt(0) !== '.') {
-          throw new FS.ErrnoError(55);
-        }
-        // see if the new path already exists
-        var new_node;
-        try {
-          new_node = FS.lookupNode(new_dir, new_name);
-        } catch (e) {
-          // not fatal
-        }
-        // early out if nothing needs to change
-        if (old_node === new_node) {
-          return;
-        }
-        // we'll need to delete the old entry
-        var isdir = FS.isDir(old_node.mode);
-        var errCode = FS.mayDelete(old_dir, old_name, isdir);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        // need delete permissions if we'll be overwriting.
-        // need create permissions if new doesn't already exist.
-        errCode = new_node ?
-          FS.mayDelete(new_dir, new_name, isdir) :
-          FS.mayCreate(new_dir, new_name);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        if (!old_dir.node_ops.rename) {
-          throw new FS.ErrnoError(63);
-        }
-        if (FS.isMountpoint(old_node) || (new_node && FS.isMountpoint(new_node))) {
-          throw new FS.ErrnoError(10);
-        }
-        // if we are going to change the parent, check write permissions
-        if (new_dir !== old_dir) {
-          errCode = FS.nodePermissions(old_dir, 'w');
-          if (errCode) {
-            throw new FS.ErrnoError(errCode);
-          }
-        }
-        // remove the node from the lookup hash
-        FS.hashRemoveNode(old_node);
-        // do the underlying fs rename
-        try {
-          old_dir.node_ops.rename(old_node, new_dir, new_name);
-        } catch (e) {
-          throw e;
-        } finally {
-          // add the node back to the hash (in case node_ops.rename
-          // changed its name)
-          FS.hashAddNode(old_node);
-        }
-      },rmdir:(path) => {
-        var lookup = FS.lookupPath(path, { parent: true });
-        var parent = lookup.node;
-        var name = PATH.basename(path);
-        var node = FS.lookupNode(parent, name);
-        var errCode = FS.mayDelete(parent, name, true);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        if (!parent.node_ops.rmdir) {
-          throw new FS.ErrnoError(63);
-        }
-        if (FS.isMountpoint(node)) {
-          throw new FS.ErrnoError(10);
-        }
-        parent.node_ops.rmdir(parent, name);
-        FS.destroyNode(node);
-      },readdir:(path) => {
-        var lookup = FS.lookupPath(path, { follow: true });
-        var node = lookup.node;
-        if (!node.node_ops.readdir) {
-          throw new FS.ErrnoError(54);
-        }
-        return node.node_ops.readdir(node);
-      },unlink:(path) => {
-        var lookup = FS.lookupPath(path, { parent: true });
-        var parent = lookup.node;
-        if (!parent) {
-          throw new FS.ErrnoError(44);
-        }
-        var name = PATH.basename(path);
-        var node = FS.lookupNode(parent, name);
-        var errCode = FS.mayDelete(parent, name, false);
-        if (errCode) {
-          // According to POSIX, we should map EISDIR to EPERM, but
-          // we instead do what Linux does (and we must, as we use
-          // the musl linux libc).
-          throw new FS.ErrnoError(errCode);
-        }
-        if (!parent.node_ops.unlink) {
-          throw new FS.ErrnoError(63);
-        }
-        if (FS.isMountpoint(node)) {
-          throw new FS.ErrnoError(10);
-        }
-        parent.node_ops.unlink(parent, name);
-        FS.destroyNode(node);
-      },readlink:(path) => {
-        var lookup = FS.lookupPath(path);
-        var link = lookup.node;
-        if (!link) {
-          throw new FS.ErrnoError(44);
-        }
-        if (!link.node_ops.readlink) {
-          throw new FS.ErrnoError(28);
-        }
-        return PATH_FS.resolve(FS.getPath(link.parent), link.node_ops.readlink(link));
-      },stat:(path, dontFollow) => {
-        var lookup = FS.lookupPath(path, { follow: !dontFollow });
-        var node = lookup.node;
-        if (!node) {
-          throw new FS.ErrnoError(44);
-        }
-        if (!node.node_ops.getattr) {
-          throw new FS.ErrnoError(63);
-        }
-        return node.node_ops.getattr(node);
-      },lstat:(path) => {
-        return FS.stat(path, true);
-      },chmod:(path, mode, dontFollow) => {
-        var node;
-        if (typeof path == 'string') {
-          var lookup = FS.lookupPath(path, { follow: !dontFollow });
-          node = lookup.node;
-        } else {
-          node = path;
-        }
-        if (!node.node_ops.setattr) {
-          throw new FS.ErrnoError(63);
-        }
-        node.node_ops.setattr(node, {
-          mode: (mode & 4095) | (node.mode & ~4095),
-          timestamp: Date.now()
-        });
-      },lchmod:(path, mode) => {
-        FS.chmod(path, mode, true);
-      },fchmod:(fd, mode) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
-        FS.chmod(stream.node, mode);
-      },chown:(path, uid, gid, dontFollow) => {
-        var node;
-        if (typeof path == 'string') {
-          var lookup = FS.lookupPath(path, { follow: !dontFollow });
-          node = lookup.node;
-        } else {
-          node = path;
-        }
-        if (!node.node_ops.setattr) {
-          throw new FS.ErrnoError(63);
-        }
-        node.node_ops.setattr(node, {
-          timestamp: Date.now()
-          // we ignore the uid / gid for now
-        });
-      },lchown:(path, uid, gid) => {
-        FS.chown(path, uid, gid, true);
-      },fchown:(fd, uid, gid) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
-        FS.chown(stream.node, uid, gid);
-      },truncate:(path, len) => {
-        if (len < 0) {
-          throw new FS.ErrnoError(28);
-        }
-        var node;
-        if (typeof path == 'string') {
-          var lookup = FS.lookupPath(path, { follow: true });
-          node = lookup.node;
-        } else {
-          node = path;
-        }
-        if (!node.node_ops.setattr) {
-          throw new FS.ErrnoError(63);
-        }
-        if (FS.isDir(node.mode)) {
-          throw new FS.ErrnoError(31);
-        }
-        if (!FS.isFile(node.mode)) {
-          throw new FS.ErrnoError(28);
-        }
-        var errCode = FS.nodePermissions(node, 'w');
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        node.node_ops.setattr(node, {
-          size: len,
-          timestamp: Date.now()
-        });
-      },ftruncate:(fd, len) => {
-        var stream = FS.getStream(fd);
-        if (!stream) {
-          throw new FS.ErrnoError(8);
-        }
-        if ((stream.flags & 2097155) === 0) {
-          throw new FS.ErrnoError(28);
-        }
-        FS.truncate(stream.node, len);
-      },utime:(path, atime, mtime) => {
-        var lookup = FS.lookupPath(path, { follow: true });
-        var node = lookup.node;
-        node.node_ops.setattr(node, {
-          timestamp: Math.max(atime, mtime)
-        });
-      },open:(path, flags, mode, fd_start, fd_end) => {
-        if (path === "") {
-          throw new FS.ErrnoError(44);
-        }
-        flags = typeof flags == 'string' ? FS.modeStringToFlags(flags) : flags;
-        mode = typeof mode == 'undefined' ? 438 /* 0666 */ : mode;
-        if ((flags & 64)) {
-          mode = (mode & 4095) | 32768;
-        } else {
-          mode = 0;
-        }
-        var node;
-        if (typeof path == 'object') {
-          node = path;
-        } else {
-          path = PATH.normalize(path);
-          try {
-            var lookup = FS.lookupPath(path, {
-              follow: !(flags & 131072)
-            });
-            node = lookup.node;
-          } catch (e) {
-            // ignore
-          }
-        }
-        // perhaps we need to create the node
-        var created = false;
-        if ((flags & 64)) {
-          if (node) {
-            // if O_CREAT and O_EXCL are set, error out if the node already exists
-            if ((flags & 128)) {
-              throw new FS.ErrnoError(20);
-            }
-          } else {
-            // node doesn't exist, try to create it
-            node = FS.mknod(path, mode, 0);
-            created = true;
-          }
-        }
-        if (!node) {
-          throw new FS.ErrnoError(44);
-        }
-        // can't truncate a device
-        if (FS.isChrdev(node.mode)) {
-          flags &= ~512;
-        }
-        // if asked only for a directory, then this must be one
-        if ((flags & 65536) && !FS.isDir(node.mode)) {
-          throw new FS.ErrnoError(54);
-        }
-        // check permissions, if this is not a file we just created now (it is ok to
-        // create and write to a file with read-only permissions; it is read-only
-        // for later use)
-        if (!created) {
-          var errCode = FS.mayOpen(node, flags);
-          if (errCode) {
-            throw new FS.ErrnoError(errCode);
-          }
-        }
-        // do truncation if necessary
-        if ((flags & 512)) {
-          FS.truncate(node, 0);
-        }
-        // we've already handled these, don't pass down to the underlying vfs
-        flags &= ~(128 | 512 | 131072);
-  
-        // register the stream with the filesystem
-        var stream = FS.createStream({
-          node: node,
-          path: FS.getPath(node),  // we want the absolute path to the node
-          flags: flags,
-          seekable: true,
-          position: 0,
-          stream_ops: node.stream_ops,
-          // used by the file family libc calls (fopen, fwrite, ferror, etc.)
-          ungotten: [],
-          error: false
-        }, fd_start, fd_end);
-        // call the new stream's open function
-        if (stream.stream_ops.open) {
-          stream.stream_ops.open(stream);
-        }
-        if (Module['logReadFiles'] && !(flags & 1)) {
-          if (!FS.readFiles) FS.readFiles = {};
-          if (!(path in FS.readFiles)) {
-            FS.readFiles[path] = 1;
-          }
-        }
-        return stream;
-      },close:(stream) => {
-        if (FS.isClosed(stream)) {
-          throw new FS.ErrnoError(8);
-        }
-        if (stream.getdents) stream.getdents = null; // free readdir state
-        try {
-          if (stream.stream_ops.close) {
-            stream.stream_ops.close(stream);
-          }
-        } catch (e) {
-          throw e;
-        } finally {
-          FS.closeStream(stream.fd);
-        }
-        stream.fd = null;
-      },isClosed:(stream) => {
-        return stream.fd === null;
-      },llseek:(stream, offset, whence) => {
-        if (FS.isClosed(stream)) {
-          throw new FS.ErrnoError(8);
-        }
-        if (!stream.seekable || !stream.stream_ops.llseek) {
-          throw new FS.ErrnoError(70);
-        }
-        if (whence != 0 && whence != 1 && whence != 2) {
-          throw new FS.ErrnoError(28);
-        }
-        stream.position = stream.stream_ops.llseek(stream, offset, whence);
-        stream.ungotten = [];
-        return stream.position;
-      },read:(stream, buffer, offset, length, position) => {
-        if (length < 0 || position < 0) {
-          throw new FS.ErrnoError(28);
-        }
-        if (FS.isClosed(stream)) {
-          throw new FS.ErrnoError(8);
-        }
-        if ((stream.flags & 2097155) === 1) {
-          throw new FS.ErrnoError(8);
-        }
-        if (FS.isDir(stream.node.mode)) {
-          throw new FS.ErrnoError(31);
-        }
-        if (!stream.stream_ops.read) {
-          throw new FS.ErrnoError(28);
-        }
-        var seeking = typeof position != 'undefined';
-        if (!seeking) {
-          position = stream.position;
-        } else if (!stream.seekable) {
-          throw new FS.ErrnoError(70);
-        }
-        var bytesRead = stream.stream_ops.read(stream, buffer, offset, length, position);
-        if (!seeking) stream.position += bytesRead;
-        return bytesRead;
-      },write:(stream, buffer, offset, length, position, canOwn) => {
-        if (length < 0 || position < 0) {
-          throw new FS.ErrnoError(28);
-        }
-        if (FS.isClosed(stream)) {
-          throw new FS.ErrnoError(8);
-        }
-        if ((stream.flags & 2097155) === 0) {
-          throw new FS.ErrnoError(8);
-        }
-        if (FS.isDir(stream.node.mode)) {
-          throw new FS.ErrnoError(31);
-        }
-        if (!stream.stream_ops.write) {
-          throw new FS.ErrnoError(28);
-        }
-        if (stream.seekable && stream.flags & 1024) {
-          // seek to the end before writing in append mode
-          FS.llseek(stream, 0, 2);
-        }
-        var seeking = typeof position != 'undefined';
-        if (!seeking) {
-          position = stream.position;
-        } else if (!stream.seekable) {
-          throw new FS.ErrnoError(70);
-        }
-        var bytesWritten = stream.stream_ops.write(stream, buffer, offset, length, position, canOwn);
-        if (!seeking) stream.position += bytesWritten;
-        return bytesWritten;
-      },allocate:(stream, offset, length) => {
-        if (FS.isClosed(stream)) {
-          throw new FS.ErrnoError(8);
-        }
-        if (offset < 0 || length <= 0) {
-          throw new FS.ErrnoError(28);
-        }
-        if ((stream.flags & 2097155) === 0) {
-          throw new FS.ErrnoError(8);
-        }
-        if (!FS.isFile(stream.node.mode) && !FS.isDir(stream.node.mode)) {
-          throw new FS.ErrnoError(43);
-        }
-        if (!stream.stream_ops.allocate) {
-          throw new FS.ErrnoError(138);
-        }
-        stream.stream_ops.allocate(stream, offset, length);
-      },mmap:(stream, address, length, position, prot, flags) => {
-        // User requests writing to file (prot & PROT_WRITE != 0).
-        // Checking if we have permissions to write to the file unless
-        // MAP_PRIVATE flag is set. According to POSIX spec it is possible
-        // to write to file opened in read-only mode with MAP_PRIVATE flag,
-        // as all modifications will be visible only in the memory of
-        // the current process.
-        if ((prot & 2) !== 0
-            && (flags & 2) === 0
-            && (stream.flags & 2097155) !== 2) {
-          throw new FS.ErrnoError(2);
-        }
-        if ((stream.flags & 2097155) === 1) {
-          throw new FS.ErrnoError(2);
-        }
-        if (!stream.stream_ops.mmap) {
-          throw new FS.ErrnoError(43);
-        }
-        return stream.stream_ops.mmap(stream, address, length, position, prot, flags);
-      },msync:(stream, buffer, offset, length, mmapFlags) => {
-        if (!stream || !stream.stream_ops.msync) {
-          return 0;
-        }
-        return stream.stream_ops.msync(stream, buffer, offset, length, mmapFlags);
-      },munmap:(stream) => 0,ioctl:(stream, cmd, arg) => {
-        if (!stream.stream_ops.ioctl) {
-          throw new FS.ErrnoError(59);
-        }
-        return stream.stream_ops.ioctl(stream, cmd, arg);
-      },readFile:(path, opts = {}) => {
-        opts.flags = opts.flags || 0;
-        opts.encoding = opts.encoding || 'binary';
-        if (opts.encoding !== 'utf8' && opts.encoding !== 'binary') {
-          throw new Error('Invalid encoding type "' + opts.encoding + '"');
-        }
-        var ret;
-        var stream = FS.open(path, opts.flags);
-        var stat = FS.stat(path);
-        var length = stat.size;
-        var buf = new Uint8Array(length);
-        FS.read(stream, buf, 0, length, 0);
-        if (opts.encoding === 'utf8') {
-          ret = UTF8ArrayToString(buf, 0);
-        } else if (opts.encoding === 'binary') {
-          ret = buf;
-        }
-        FS.close(stream);
-        return ret;
-      },writeFile:(path, data, opts = {}) => {
-        opts.flags = opts.flags || 577;
-        var stream = FS.open(path, opts.flags, opts.mode);
-        if (typeof data == 'string') {
-          var buf = new Uint8Array(lengthBytesUTF8(data)+1);
-          var actualNumBytes = stringToUTF8Array(data, buf, 0, buf.length);
-          FS.write(stream, buf, 0, actualNumBytes, undefined, opts.canOwn);
-        } else if (ArrayBuffer.isView(data)) {
-          FS.write(stream, data, 0, data.byteLength, undefined, opts.canOwn);
-        } else {
-          throw new Error('Unsupported data type');
-        }
-        FS.close(stream);
-      },cwd:() => FS.currentPath,chdir:(path) => {
-        var lookup = FS.lookupPath(path, { follow: true });
-        if (lookup.node === null) {
-          throw new FS.ErrnoError(44);
-        }
-        if (!FS.isDir(lookup.node.mode)) {
-          throw new FS.ErrnoError(54);
-        }
-        var errCode = FS.nodePermissions(lookup.node, 'x');
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        FS.currentPath = lookup.path;
-      },createDefaultDirectories:() => {
-        FS.mkdir('/tmp');
-        FS.mkdir('/home');
-        FS.mkdir('/home/web_user');
-      },createDefaultDevices:() => {
-        // create /dev
-        FS.mkdir('/dev');
-        // setup /dev/null
-        FS.registerDevice(FS.makedev(1, 3), {
-          read: () => 0,
-          write: (stream, buffer, offset, length, pos) => length,
-        });
-        FS.mkdev('/dev/null', FS.makedev(1, 3));
-        // setup /dev/tty and /dev/tty1
-        // stderr needs to print output using err() rather than out()
-        // so we register a second tty just for it.
-        TTY.register(FS.makedev(5, 0), TTY.default_tty_ops);
-        TTY.register(FS.makedev(6, 0), TTY.default_tty1_ops);
-        FS.mkdev('/dev/tty', FS.makedev(5, 0));
-        FS.mkdev('/dev/tty1', FS.makedev(6, 0));
-        // setup /dev/[u]random
-        var random_device = getRandomDevice();
-        FS.createDevice('/dev', 'random', random_device);
-        FS.createDevice('/dev', 'urandom', random_device);
-        // we're not going to emulate the actual shm device,
-        // just create the tmp dirs that reside in it commonly
-        FS.mkdir('/dev/shm');
-        FS.mkdir('/dev/shm/tmp');
-      },createSpecialDirectories:() => {
-        // create /proc/self/fd which allows /proc/self/fd/6 => readlink gives the
-        // name of the stream for fd 6 (see test_unistd_ttyname)
-        FS.mkdir('/proc');
-        var proc_self = FS.mkdir('/proc/self');
-        FS.mkdir('/proc/self/fd');
-        FS.mount({
-          mount: () => {
-            var node = FS.createNode(proc_self, 'fd', 16384 | 511 /* 0777 */, 73);
-            node.node_ops = {
-              lookup: (parent, name) => {
-                var fd = +name;
-                var stream = FS.getStream(fd);
-                if (!stream) throw new FS.ErrnoError(8);
-                var ret = {
-                  parent: null,
-                  mount: { mountpoint: 'fake' },
-                  node_ops: { readlink: () => stream.path },
-                };
-                ret.parent = ret; // make it look like a simple root node
-                return ret;
-              }
-            };
-            return node;
-          }
-        }, {}, '/proc/self/fd');
-      },createStandardStreams:() => {
-        // TODO deprecate the old functionality of a single
-        // input / output callback and that utilizes FS.createDevice
-        // and instead require a unique set of stream ops
-  
-        // by default, we symlink the standard streams to the
-        // default tty devices. however, if the standard streams
-        // have been overwritten we create a unique device for
-        // them instead.
-        if (Module['stdin']) {
-          FS.createDevice('/dev', 'stdin', Module['stdin']);
-        } else {
-          FS.symlink('/dev/tty', '/dev/stdin');
-        }
-        if (Module['stdout']) {
-          FS.createDevice('/dev', 'stdout', null, Module['stdout']);
-        } else {
-          FS.symlink('/dev/tty', '/dev/stdout');
-        }
-        if (Module['stderr']) {
-          FS.createDevice('/dev', 'stderr', null, Module['stderr']);
-        } else {
-          FS.symlink('/dev/tty1', '/dev/stderr');
-        }
-  
-        // open default streams for the stdin, stdout and stderr devices
-        var stdin = FS.open('/dev/stdin', 0);
-        var stdout = FS.open('/dev/stdout', 1);
-        var stderr = FS.open('/dev/stderr', 1);
-        assert(stdin.fd === 0, 'invalid handle for stdin (' + stdin.fd + ')');
-        assert(stdout.fd === 1, 'invalid handle for stdout (' + stdout.fd + ')');
-        assert(stderr.fd === 2, 'invalid handle for stderr (' + stderr.fd + ')');
-      },ensureErrnoError:() => {
-        if (FS.ErrnoError) return;
-        FS.ErrnoError = /** @this{Object} */ function ErrnoError(errno, node) {
-          this.node = node;
-          this.setErrno = /** @this{Object} */ function(errno) {
-            this.errno = errno;
-            for (var key in ERRNO_CODES) {
-              if (ERRNO_CODES[key] === errno) {
-                this.code = key;
-                break;
-              }
-            }
-          };
-          this.setErrno(errno);
-          this.message = ERRNO_MESSAGES[errno];
-  
-          // Try to get a maximally helpful stack trace. On Node.js, getting Error.stack
-          // now ensures it shows what we want.
-          if (this.stack) {
-            // Define the stack property for Node.js 4, which otherwise errors on the next line.
-            Object.defineProperty(this, "stack", { value: (new Error).stack, writable: true });
-            this.stack = demangleAll(this.stack);
-          }
-        };
-        FS.ErrnoError.prototype = new Error();
-        FS.ErrnoError.prototype.constructor = FS.ErrnoError;
-        // Some errors may happen quite a bit, to avoid overhead we reuse them (and suffer a lack of stack info)
-        [44].forEach((code) => {
-          FS.genericErrors[code] = new FS.ErrnoError(code);
-          FS.genericErrors[code].stack = '<generic error, no stack>';
-        });
-      },staticInit:() => {
-        FS.ensureErrnoError();
-  
-        FS.nameTable = new Array(4096);
-  
-        FS.mount(MEMFS, {}, '/');
-  
-        FS.createDefaultDirectories();
-        FS.createDefaultDevices();
-        FS.createSpecialDirectories();
-  
-        FS.filesystems = {
-          'MEMFS': MEMFS,
-        };
-      },init:(input, output, error) => {
-        assert(!FS.init.initialized, 'FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)');
-        FS.init.initialized = true;
-  
-        FS.ensureErrnoError();
-  
-        // Allow Module.stdin etc. to provide defaults, if none explicitly passed to us here
-        Module['stdin'] = input || Module['stdin'];
-        Module['stdout'] = output || Module['stdout'];
-        Module['stderr'] = error || Module['stderr'];
-  
-        FS.createStandardStreams();
-      },quit:() => {
-        FS.init.initialized = false;
-        // Call musl-internal function to close all stdio streams, so nothing is
-        // left in internal buffers.
-        ___stdio_exit();
-        // close all of our streams
-        for (var i = 0; i < FS.streams.length; i++) {
-          var stream = FS.streams[i];
-          if (!stream) {
-            continue;
-          }
-          FS.close(stream);
-        }
-      },getMode:(canRead, canWrite) => {
-        var mode = 0;
-        if (canRead) mode |= 292 | 73;
-        if (canWrite) mode |= 146;
-        return mode;
-      },findObject:(path, dontResolveLastLink) => {
-        var ret = FS.analyzePath(path, dontResolveLastLink);
-        if (ret.exists) {
-          return ret.object;
-        } else {
-          return null;
-        }
-      },analyzePath:(path, dontResolveLastLink) => {
-        // operate from within the context of the symlink's target
-        try {
-          var lookup = FS.lookupPath(path, { follow: !dontResolveLastLink });
-          path = lookup.path;
-        } catch (e) {
-        }
-        var ret = {
-          isRoot: false, exists: false, error: 0, name: null, path: null, object: null,
-          parentExists: false, parentPath: null, parentObject: null
-        };
-        try {
-          var lookup = FS.lookupPath(path, { parent: true });
-          ret.parentExists = true;
-          ret.parentPath = lookup.path;
-          ret.parentObject = lookup.node;
-          ret.name = PATH.basename(path);
-          lookup = FS.lookupPath(path, { follow: !dontResolveLastLink });
-          ret.exists = true;
-          ret.path = lookup.path;
-          ret.object = lookup.node;
-          ret.name = lookup.node.name;
-          ret.isRoot = lookup.path === '/';
-        } catch (e) {
-          ret.error = e.errno;
-        };
-        return ret;
-      },createPath:(parent, path, canRead, canWrite) => {
-        parent = typeof parent == 'string' ? parent : FS.getPath(parent);
-        var parts = path.split('/').reverse();
-        while (parts.length) {
-          var part = parts.pop();
-          if (!part) continue;
-          var current = PATH.join2(parent, part);
-          try {
-            FS.mkdir(current);
-          } catch (e) {
-            // ignore EEXIST
-          }
-          parent = current;
-        }
-        return current;
-      },createFile:(parent, name, properties, canRead, canWrite) => {
-        var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
-        var mode = FS.getMode(canRead, canWrite);
-        return FS.create(path, mode);
-      },createDataFile:(parent, name, data, canRead, canWrite, canOwn) => {
-        var path = name;
-        if (parent) {
-          parent = typeof parent == 'string' ? parent : FS.getPath(parent);
-          path = name ? PATH.join2(parent, name) : parent;
-        }
-        var mode = FS.getMode(canRead, canWrite);
-        var node = FS.create(path, mode);
-        if (data) {
-          if (typeof data == 'string') {
-            var arr = new Array(data.length);
-            for (var i = 0, len = data.length; i < len; ++i) arr[i] = data.charCodeAt(i);
-            data = arr;
-          }
-          // make sure we can write to the file
-          FS.chmod(node, mode | 146);
-          var stream = FS.open(node, 577);
-          FS.write(stream, data, 0, data.length, 0, canOwn);
-          FS.close(stream);
-          FS.chmod(node, mode);
-        }
-        return node;
-      },createDevice:(parent, name, input, output) => {
-        var path = PATH.join2(typeof parent == 'string' ? parent : FS.getPath(parent), name);
-        var mode = FS.getMode(!!input, !!output);
-        if (!FS.createDevice.major) FS.createDevice.major = 64;
-        var dev = FS.makedev(FS.createDevice.major++, 0);
-        // Create a fake device that a set of stream ops to emulate
-        // the old behavior.
-        FS.registerDevice(dev, {
-          open: (stream) => {
-            stream.seekable = false;
-          },
-          close: (stream) => {
-            // flush any pending line data
-            if (output && output.buffer && output.buffer.length) {
-              output(10);
-            }
-          },
-          read: (stream, buffer, offset, length, pos /* ignored */) => {
-            var bytesRead = 0;
-            for (var i = 0; i < length; i++) {
-              var result;
-              try {
-                result = input();
-              } catch (e) {
-                throw new FS.ErrnoError(29);
-              }
-              if (result === undefined && bytesRead === 0) {
-                throw new FS.ErrnoError(6);
-              }
-              if (result === null || result === undefined) break;
-              bytesRead++;
-              buffer[offset+i] = result;
-            }
-            if (bytesRead) {
-              stream.node.timestamp = Date.now();
-            }
-            return bytesRead;
-          },
-          write: (stream, buffer, offset, length, pos) => {
-            for (var i = 0; i < length; i++) {
-              try {
-                output(buffer[offset+i]);
-              } catch (e) {
-                throw new FS.ErrnoError(29);
-              }
-            }
-            if (length) {
-              stream.node.timestamp = Date.now();
-            }
-            return i;
-          }
-        });
-        return FS.mkdev(path, mode, dev);
-      },forceLoadFile:(obj) => {
-        if (obj.isDevice || obj.isFolder || obj.link || obj.contents) return true;
-        if (typeof XMLHttpRequest != 'undefined') {
-          throw new Error("Lazy loading should have been performed (contents set) in createLazyFile, but it was not. Lazy loading only works in web workers. Use --embed-file or --preload-file in emcc on the main thread.");
-        } else if (read_) {
-          // Command-line.
-          try {
-            // WARNING: Can't read binary files in V8's d8 or tracemonkey's js, as
-            //          read() will try to parse UTF8.
-            obj.contents = intArrayFromString(read_(obj.url), true);
-            obj.usedBytes = obj.contents.length;
-          } catch (e) {
-            throw new FS.ErrnoError(29);
-          }
-        } else {
-          throw new Error('Cannot load without read() or XMLHttpRequest.');
-        }
-      },createLazyFile:(parent, name, url, canRead, canWrite) => {
-        // Lazy chunked Uint8Array (implements get and length from Uint8Array). Actual getting is abstracted away for eventual reuse.
-        /** @constructor */
-        function LazyUint8Array() {
-          this.lengthKnown = false;
-          this.chunks = []; // Loaded chunks. Index is the chunk number
-        }
-        LazyUint8Array.prototype.get = /** @this{Object} */ function LazyUint8Array_get(idx) {
-          if (idx > this.length-1 || idx < 0) {
-            return undefined;
-          }
-          var chunkOffset = idx % this.chunkSize;
-          var chunkNum = (idx / this.chunkSize)|0;
-          return this.getter(chunkNum)[chunkOffset];
-        };
-        LazyUint8Array.prototype.setDataGetter = function LazyUint8Array_setDataGetter(getter) {
-          this.getter = getter;
-        };
-        LazyUint8Array.prototype.cacheLength = function LazyUint8Array_cacheLength() {
-          // Find length
-          var xhr = new XMLHttpRequest();
-          xhr.open('HEAD', url, false);
-          xhr.send(null);
-          if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
-          var datalength = Number(xhr.getResponseHeader("Content-length"));
-          var header;
-          var hasByteServing = (header = xhr.getResponseHeader("Accept-Ranges")) && header === "bytes";
-          var usesGzip = (header = xhr.getResponseHeader("Content-Encoding")) && header === "gzip";
-  
-          var chunkSize = 1024*1024; // Chunk size in bytes
-  
-          if (!hasByteServing) chunkSize = datalength;
-  
-          // Function to get a range from the remote URL.
-          var doXHR = (from, to) => {
-            if (from > to) throw new Error("invalid range (" + from + ", " + to + ") or no bytes requested!");
-            if (to > datalength-1) throw new Error("only " + datalength + " bytes available! programmer error!");
-  
-            // TODO: Use mozResponseArrayBuffer, responseStream, etc. if available.
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, false);
-            if (datalength !== chunkSize) xhr.setRequestHeader("Range", "bytes=" + from + "-" + to);
-  
-            // Some hints to the browser that we want binary data.
-            xhr.responseType = 'arraybuffer';
-            if (xhr.overrideMimeType) {
-              xhr.overrideMimeType('text/plain; charset=x-user-defined');
-            }
-  
-            xhr.send(null);
-            if (!(xhr.status >= 200 && xhr.status < 300 || xhr.status === 304)) throw new Error("Couldn't load " + url + ". Status: " + xhr.status);
-            if (xhr.response !== undefined) {
-              return new Uint8Array(/** @type{Array<number>} */(xhr.response || []));
-            } else {
-              return intArrayFromString(xhr.responseText || '', true);
-            }
-          };
-          var lazyArray = this;
-          lazyArray.setDataGetter((chunkNum) => {
-            var start = chunkNum * chunkSize;
-            var end = (chunkNum+1) * chunkSize - 1; // including this byte
-            end = Math.min(end, datalength-1); // if datalength-1 is selected, this is the last block
-            if (typeof lazyArray.chunks[chunkNum] == 'undefined') {
-              lazyArray.chunks[chunkNum] = doXHR(start, end);
-            }
-            if (typeof lazyArray.chunks[chunkNum] == 'undefined') throw new Error('doXHR failed!');
-            return lazyArray.chunks[chunkNum];
-          });
-  
-          if (usesGzip || !datalength) {
-            // if the server uses gzip or doesn't supply the length, we have to download the whole file to get the (uncompressed) length
-            chunkSize = datalength = 1; // this will force getter(0)/doXHR do download the whole file
-            datalength = this.getter(0).length;
-            chunkSize = datalength;
-            out("LazyFiles on gzip forces download of the whole file when length is accessed");
-          }
-  
-          this._length = datalength;
-          this._chunkSize = chunkSize;
-          this.lengthKnown = true;
-        };
-        if (typeof XMLHttpRequest != 'undefined') {
-          if (!ENVIRONMENT_IS_WORKER) throw 'Cannot do synchronous binary XHRs outside webworkers in modern browsers. Use --embed-file or --preload-file in emcc';
-          var lazyArray = new LazyUint8Array();
-          Object.defineProperties(lazyArray, {
-            length: {
-              get: /** @this{Object} */ function() {
-                if (!this.lengthKnown) {
-                  this.cacheLength();
-                }
-                return this._length;
-              }
-            },
-            chunkSize: {
-              get: /** @this{Object} */ function() {
-                if (!this.lengthKnown) {
-                  this.cacheLength();
-                }
-                return this._chunkSize;
-              }
-            }
-          });
-  
-          var properties = { isDevice: false, contents: lazyArray };
-        } else {
-          var properties = { isDevice: false, url: url };
-        }
-  
-        var node = FS.createFile(parent, name, properties, canRead, canWrite);
-        // This is a total hack, but I want to get this lazy file code out of the
-        // core of MEMFS. If we want to keep this lazy file concept I feel it should
-        // be its own thin LAZYFS proxying calls to MEMFS.
-        if (properties.contents) {
-          node.contents = properties.contents;
-        } else if (properties.url) {
-          node.contents = null;
-          node.url = properties.url;
-        }
-        // Add a function that defers querying the file size until it is asked the first time.
-        Object.defineProperties(node, {
-          usedBytes: {
-            get: /** @this {FSNode} */ function() { return this.contents.length; }
-          }
-        });
-        // override each stream op with one that tries to force load the lazy file first
-        var stream_ops = {};
-        var keys = Object.keys(node.stream_ops);
-        keys.forEach((key) => {
-          var fn = node.stream_ops[key];
-          stream_ops[key] = function forceLoadLazyFile() {
-            FS.forceLoadFile(node);
-            return fn.apply(null, arguments);
-          };
-        });
-        // use a custom read function
-        stream_ops.read = (stream, buffer, offset, length, position) => {
-          FS.forceLoadFile(node);
-          var contents = stream.node.contents;
-          if (position >= contents.length)
-            return 0;
-          var size = Math.min(contents.length - position, length);
-          assert(size >= 0);
-          if (contents.slice) { // normal array
-            for (var i = 0; i < size; i++) {
-              buffer[offset + i] = contents[position + i];
-            }
-          } else {
-            for (var i = 0; i < size; i++) { // LazyUint8Array from sync binary XHR
-              buffer[offset + i] = contents.get(position + i);
-            }
-          }
-          return size;
-        };
-        node.stream_ops = stream_ops;
-        return node;
-      },createPreloadedFile:(parent, name, url, canRead, canWrite, onload, onerror, dontCreateFile, canOwn, preFinish) => {
-        // TODO we should allow people to just pass in a complete filename instead
-        // of parent and name being that we just join them anyways
-        var fullname = name ? PATH_FS.resolve(PATH.join2(parent, name)) : parent;
-        var dep = getUniqueRunDependency('cp ' + fullname); // might have several active requests for the same fullname
-        function processData(byteArray) {
-          function finish(byteArray) {
-            if (preFinish) preFinish();
-            if (!dontCreateFile) {
-              FS.createDataFile(parent, name, byteArray, canRead, canWrite, canOwn);
-            }
-            if (onload) onload();
-            removeRunDependency(dep);
-          }
-          if (Browser.handledByPreloadPlugin(byteArray, fullname, finish, () => {
-            if (onerror) onerror();
-            removeRunDependency(dep);
-          })) {
-            return;
-          }
-          finish(byteArray);
-        }
-        addRunDependency(dep);
-        if (typeof url == 'string') {
-          asyncLoad(url, (byteArray) => processData(byteArray), onerror);
-        } else {
-          processData(url);
-        }
-      },indexedDB:() => {
-        return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-      },DB_NAME:() => {
-        return 'EM_FS_' + window.location.pathname;
-      },DB_VERSION:20,DB_STORE_NAME:"FILE_DATA",saveFilesToDB:(paths, onload, onerror) => {
-        onload = onload || (() => {});
-        onerror = onerror || (() => {});
-        var indexedDB = FS.indexedDB();
-        try {
-          var openRequest = indexedDB.open(FS.DB_NAME(), FS.DB_VERSION);
-        } catch (e) {
-          return onerror(e);
-        }
-        openRequest.onupgradeneeded = () => {
-          out('creating db');
-          var db = openRequest.result;
-          db.createObjectStore(FS.DB_STORE_NAME);
-        };
-        openRequest.onsuccess = () => {
-          var db = openRequest.result;
-          var transaction = db.transaction([FS.DB_STORE_NAME], 'readwrite');
-          var files = transaction.objectStore(FS.DB_STORE_NAME);
-          var ok = 0, fail = 0, total = paths.length;
-          function finish() {
-            if (fail == 0) onload(); else onerror();
-          }
-          paths.forEach((path) => {
-            var putRequest = files.put(FS.analyzePath(path).object.contents, path);
-            putRequest.onsuccess = () => { ok++; if (ok + fail == total) finish() };
-            putRequest.onerror = () => { fail++; if (ok + fail == total) finish() };
-          });
-          transaction.onerror = onerror;
-        };
-        openRequest.onerror = onerror;
-      },loadFilesFromDB:(paths, onload, onerror) => {
-        onload = onload || (() => {});
-        onerror = onerror || (() => {});
-        var indexedDB = FS.indexedDB();
-        try {
-          var openRequest = indexedDB.open(FS.DB_NAME(), FS.DB_VERSION);
-        } catch (e) {
-          return onerror(e);
-        }
-        openRequest.onupgradeneeded = onerror; // no database to load from
-        openRequest.onsuccess = () => {
-          var db = openRequest.result;
-          try {
-            var transaction = db.transaction([FS.DB_STORE_NAME], 'readonly');
-          } catch(e) {
-            onerror(e);
-            return;
-          }
-          var files = transaction.objectStore(FS.DB_STORE_NAME);
-          var ok = 0, fail = 0, total = paths.length;
-          function finish() {
-            if (fail == 0) onload(); else onerror();
-          }
-          paths.forEach((path) => {
-            var getRequest = files.get(path);
-            getRequest.onsuccess = () => {
-              if (FS.analyzePath(path).exists) {
-                FS.unlink(path);
-              }
-              FS.createDataFile(PATH.dirname(path), PATH.basename(path), getRequest.result, true, true, true);
-              ok++;
-              if (ok + fail == total) finish();
-            };
-            getRequest.onerror = () => { fail++; if (ok + fail == total) finish() };
-          });
-          transaction.onerror = onerror;
-        };
-        openRequest.onerror = onerror;
-      },absolutePath:() => {
-        abort('FS.absolutePath has been removed; use PATH_FS.resolve instead');
-      },createFolder:() => {
-        abort('FS.createFolder has been removed; use FS.mkdir instead');
-      },createLink:() => {
-        abort('FS.createLink has been removed; use FS.symlink instead');
-      },joinPath:() => {
-        abort('FS.joinPath has been removed; use PATH.join instead');
-      },mmapAlloc:() => {
-        abort('FS.mmapAlloc has been replaced by the top level function mmapAlloc');
-      },standardizePath:() => {
-        abort('FS.standardizePath has been removed; use PATH.normalize instead');
-      }};
-  var SYSCALLS = {DEFAULT_POLLMASK:5,calculateAt:function(dirfd, path, allowEmpty) {
-        if (path[0] === '/') {
-          return path;
-        }
-        // relative path
-        var dir;
-        if (dirfd === -100) {
-          dir = FS.cwd();
-        } else {
-          var dirstream = FS.getStream(dirfd);
-          if (!dirstream) throw new FS.ErrnoError(8);
-          dir = dirstream.path;
-        }
-        if (path.length == 0) {
-          if (!allowEmpty) {
-            throw new FS.ErrnoError(44);;
-          }
-          return dir;
-        }
-        return PATH.join2(dir, path);
-      },doStat:function(func, path, buf) {
-        try {
-          var stat = func(path);
-        } catch (e) {
-          if (e && e.node && PATH.normalize(path) !== PATH.normalize(FS.getPath(e.node))) {
-            // an error occurred while trying to look up the path; we should just report ENOTDIR
-            return -54;
-          }
-          throw e;
-        }
-        HEAP32[((buf)>>2)] = stat.dev;
-        HEAP32[(((buf)+(4))>>2)] = 0;
-        HEAP32[(((buf)+(8))>>2)] = stat.ino;
-        HEAP32[(((buf)+(12))>>2)] = stat.mode;
-        HEAP32[(((buf)+(16))>>2)] = stat.nlink;
-        HEAP32[(((buf)+(20))>>2)] = stat.uid;
-        HEAP32[(((buf)+(24))>>2)] = stat.gid;
-        HEAP32[(((buf)+(28))>>2)] = stat.rdev;
-        HEAP32[(((buf)+(32))>>2)] = 0;
-        (tempI64 = [stat.size>>>0,(tempDouble=stat.size,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math.min((+(Math.floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[(((buf)+(40))>>2)] = tempI64[0],HEAP32[(((buf)+(44))>>2)] = tempI64[1]);
-        HEAP32[(((buf)+(48))>>2)] = 4096;
-        HEAP32[(((buf)+(52))>>2)] = stat.blocks;
-        HEAP32[(((buf)+(56))>>2)] = (stat.atime.getTime() / 1000)|0;
-        HEAP32[(((buf)+(60))>>2)] = 0;
-        HEAP32[(((buf)+(64))>>2)] = (stat.mtime.getTime() / 1000)|0;
-        HEAP32[(((buf)+(68))>>2)] = 0;
-        HEAP32[(((buf)+(72))>>2)] = (stat.ctime.getTime() / 1000)|0;
-        HEAP32[(((buf)+(76))>>2)] = 0;
-        (tempI64 = [stat.ino>>>0,(tempDouble=stat.ino,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math.min((+(Math.floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[(((buf)+(80))>>2)] = tempI64[0],HEAP32[(((buf)+(84))>>2)] = tempI64[1]);
-        return 0;
-      },doMsync:function(addr, stream, len, flags, offset) {
-        var buffer = HEAPU8.slice(addr, addr + len);
-        FS.msync(stream, buffer, offset, len, flags);
-      },doMkdir:function(path, mode) {
-        // remove a trailing slash, if one - /a/b/ has basename of '', but
-        // we want to create b in the context of this function
-        path = PATH.normalize(path);
-        if (path[path.length-1] === '/') path = path.substr(0, path.length-1);
-        FS.mkdir(path, mode, 0);
-        return 0;
-      },doMknod:function(path, mode, dev) {
-        // we don't want this in the JS API as it uses mknod to create all nodes.
-        switch (mode & 61440) {
-          case 32768:
-          case 8192:
-          case 24576:
-          case 4096:
-          case 49152:
-            break;
-          default: return -28;
-        }
-        FS.mknod(path, mode, dev);
-        return 0;
-      },doReadlink:function(path, buf, bufsize) {
-        if (bufsize <= 0) return -28;
-        var ret = FS.readlink(path);
-  
-        var len = Math.min(bufsize, lengthBytesUTF8(ret));
-        var endChar = HEAP8[buf+len];
-        stringToUTF8(ret, buf, bufsize+1);
-        // readlink is one of the rare functions that write out a C string, but does never append a null to the output buffer(!)
-        // stringToUTF8() always appends a null byte, so restore the character under the null byte after the write.
-        HEAP8[buf+len] = endChar;
-  
-        return len;
-      },doAccess:function(path, amode) {
-        if (amode & ~7) {
-          // need a valid mode
-          return -28;
-        }
-        var lookup = FS.lookupPath(path, { follow: true });
-        var node = lookup.node;
-        if (!node) {
-          return -44;
-        }
-        var perms = '';
-        if (amode & 4) perms += 'r';
-        if (amode & 2) perms += 'w';
-        if (amode & 1) perms += 'x';
-        if (perms /* otherwise, they've just passed F_OK */ && FS.nodePermissions(node, perms)) {
-          return -2;
-        }
-        return 0;
-      },doDup:function(path, flags, suggestFD) {
-        var suggest = FS.getStream(suggestFD);
-        if (suggest) FS.close(suggest);
-        return FS.open(path, flags, 0, suggestFD, suggestFD).fd;
-      },doReadv:function(stream, iov, iovcnt, offset) {
-        var ret = 0;
-        for (var i = 0; i < iovcnt; i++) {
-          var ptr = HEAP32[(((iov)+(i*8))>>2)];
-          var len = HEAP32[(((iov)+(i*8 + 4))>>2)];
-          var curr = FS.read(stream, HEAP8,ptr, len, offset);
-          if (curr < 0) return -1;
-          ret += curr;
-          if (curr < len) break; // nothing more to read
-        }
-        return ret;
-      },doWritev:function(stream, iov, iovcnt, offset) {
-        var ret = 0;
-        for (var i = 0; i < iovcnt; i++) {
-          var ptr = HEAP32[(((iov)+(i*8))>>2)];
-          var len = HEAP32[(((iov)+(i*8 + 4))>>2)];
-          var curr = FS.write(stream, HEAP8,ptr, len, offset);
-          if (curr < 0) return -1;
-          ret += curr;
-        }
-        return ret;
-      },varargs:undefined,get:function() {
-        assert(SYSCALLS.varargs != undefined);
-        SYSCALLS.varargs += 4;
-        var ret = HEAP32[(((SYSCALLS.varargs)-(4))>>2)];
-        return ret;
-      },getStr:function(ptr) {
+  var SYSCALLS = {
+  varargs:undefined,
+  getStr(ptr) {
         var ret = UTF8ToString(ptr);
         return ret;
-      },getStreamFromFD:function(fd) {
-        var stream = FS.getStream(fd);
-        if (!stream) throw new FS.ErrnoError(8);
-        return stream;
-      },get64:function(low, high) {
-        if (low >= 0) assert(high === 0);
-        else assert(high === -1);
-        return low;
-      }};
-  function _fd_close(fd) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      FS.close(stream);
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e instanceof FS.ErrnoError)) throw e;
-    return e.errno;
-  }
-  }
-
-  function _fd_read(fd, iov, iovcnt, pnum) {
-  try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var num = SYSCALLS.doReadv(stream, iov, iovcnt);
-      HEAP32[((pnum)>>2)] = num;
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e instanceof FS.ErrnoError)) throw e;
-    return e.errno;
-  }
-  }
-
-  function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {
-  try {
-  
-      
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var HIGH_OFFSET = 0x100000000; // 2^32
-      // use an unsigned operator on low and shift high by 32-bits
-      var offset = offset_high * HIGH_OFFSET + (offset_low >>> 0);
-  
-      var DOUBLE_LIMIT = 0x20000000000000; // 2^53
-      // we also check for equality since DOUBLE_LIMIT + 1 == DOUBLE_LIMIT
-      if (offset <= -DOUBLE_LIMIT || offset >= DOUBLE_LIMIT) {
-        return -61;
-      }
-  
-      FS.llseek(stream, offset, whence);
-      (tempI64 = [stream.position>>>0,(tempDouble=stream.position,(+(Math.abs(tempDouble))) >= 1.0 ? (tempDouble > 0.0 ? ((Math.min((+(Math.floor((tempDouble)/4294967296.0))), 4294967295.0))|0)>>>0 : (~~((+(Math.ceil((tempDouble - +(((~~(tempDouble)))>>>0))/4294967296.0)))))>>>0) : 0)],HEAP32[((newOffset)>>2)] = tempI64[0],HEAP32[(((newOffset)+(4))>>2)] = tempI64[1]);
-      if (stream.getdents && offset === 0 && whence === 0) stream.getdents = null; // reset readdir state
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e instanceof FS.ErrnoError)) throw e;
-    return e.errno;
-  }
-  }
-
-  function _fd_write(fd, iov, iovcnt, pnum) {
-  try {
-  
-      ;
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var num = SYSCALLS.doWritev(stream, iov, iovcnt);
-      HEAP32[((pnum)>>2)] = num;
-      return 0;
-    } catch (e) {
-    if (typeof FS == 'undefined' || !(e instanceof FS.ErrnoError)) throw e;
-    return e.errno;
-  }
-  }
-
-  function _getTempRet0() {
-      return getTempRet0();
-    }
-
-  function _setTempRet0(val) {
-      setTempRet0(val);
-    }
-
-  var FSNode = /** @constructor */ function(parent, name, mode, rdev) {
-    if (!parent) {
-      parent = this;  // root node sets parent to itself
-    }
-    this.parent = parent;
-    this.mount = parent.mount;
-    this.mounted = null;
-    this.id = FS.nextInode++;
-    this.name = name;
-    this.mode = mode;
-    this.node_ops = {};
-    this.stream_ops = {};
-    this.rdev = rdev;
+      },
   };
-  var readMode = 292/*292*/ | 73/*73*/;
-  var writeMode = 146/*146*/;
-  Object.defineProperties(FSNode.prototype, {
-   read: {
-    get: /** @this{FSNode} */function() {
-     return (this.mode & readMode) === readMode;
-    },
-    set: /** @this{FSNode} */function(val) {
-     val ? this.mode |= readMode : this.mode &= ~readMode;
-    }
-   },
-   write: {
-    get: /** @this{FSNode} */function() {
-     return (this.mode & writeMode) === writeMode;
-    },
-    set: /** @this{FSNode} */function(val) {
-     val ? this.mode |= writeMode : this.mode &= ~writeMode;
-    }
-   },
-   isFolder: {
-    get: /** @this{FSNode} */function() {
-     return FS.isDir(this.mode);
-    }
-   },
-   isDevice: {
-    get: /** @this{FSNode} */function() {
-     return FS.isChrdev(this.mode);
-    }
-   }
-  });
-  FS.FSNode = FSNode;
-  FS.staticInit();;
-ERRNO_CODES = {
-      'EPERM': 63,
-      'ENOENT': 44,
-      'ESRCH': 71,
-      'EINTR': 27,
-      'EIO': 29,
-      'ENXIO': 60,
-      'E2BIG': 1,
-      'ENOEXEC': 45,
-      'EBADF': 8,
-      'ECHILD': 12,
-      'EAGAIN': 6,
-      'EWOULDBLOCK': 6,
-      'ENOMEM': 48,
-      'EACCES': 2,
-      'EFAULT': 21,
-      'ENOTBLK': 105,
-      'EBUSY': 10,
-      'EEXIST': 20,
-      'EXDEV': 75,
-      'ENODEV': 43,
-      'ENOTDIR': 54,
-      'EISDIR': 31,
-      'EINVAL': 28,
-      'ENFILE': 41,
-      'EMFILE': 33,
-      'ENOTTY': 59,
-      'ETXTBSY': 74,
-      'EFBIG': 22,
-      'ENOSPC': 51,
-      'ESPIPE': 70,
-      'EROFS': 69,
-      'EMLINK': 34,
-      'EPIPE': 64,
-      'EDOM': 18,
-      'ERANGE': 68,
-      'ENOMSG': 49,
-      'EIDRM': 24,
-      'ECHRNG': 106,
-      'EL2NSYNC': 156,
-      'EL3HLT': 107,
-      'EL3RST': 108,
-      'ELNRNG': 109,
-      'EUNATCH': 110,
-      'ENOCSI': 111,
-      'EL2HLT': 112,
-      'EDEADLK': 16,
-      'ENOLCK': 46,
-      'EBADE': 113,
-      'EBADR': 114,
-      'EXFULL': 115,
-      'ENOANO': 104,
-      'EBADRQC': 103,
-      'EBADSLT': 102,
-      'EDEADLOCK': 16,
-      'EBFONT': 101,
-      'ENOSTR': 100,
-      'ENODATA': 116,
-      'ETIME': 117,
-      'ENOSR': 118,
-      'ENONET': 119,
-      'ENOPKG': 120,
-      'EREMOTE': 121,
-      'ENOLINK': 47,
-      'EADV': 122,
-      'ESRMNT': 123,
-      'ECOMM': 124,
-      'EPROTO': 65,
-      'EMULTIHOP': 36,
-      'EDOTDOT': 125,
-      'EBADMSG': 9,
-      'ENOTUNIQ': 126,
-      'EBADFD': 127,
-      'EREMCHG': 128,
-      'ELIBACC': 129,
-      'ELIBBAD': 130,
-      'ELIBSCN': 131,
-      'ELIBMAX': 132,
-      'ELIBEXEC': 133,
-      'ENOSYS': 52,
-      'ENOTEMPTY': 55,
-      'ENAMETOOLONG': 37,
-      'ELOOP': 32,
-      'EOPNOTSUPP': 138,
-      'EPFNOSUPPORT': 139,
-      'ECONNRESET': 15,
-      'ENOBUFS': 42,
-      'EAFNOSUPPORT': 5,
-      'EPROTOTYPE': 67,
-      'ENOTSOCK': 57,
-      'ENOPROTOOPT': 50,
-      'ESHUTDOWN': 140,
-      'ECONNREFUSED': 14,
-      'EADDRINUSE': 3,
-      'ECONNABORTED': 13,
-      'ENETUNREACH': 40,
-      'ENETDOWN': 38,
-      'ETIMEDOUT': 73,
-      'EHOSTDOWN': 142,
-      'EHOSTUNREACH': 23,
-      'EINPROGRESS': 26,
-      'EALREADY': 7,
-      'EDESTADDRREQ': 17,
-      'EMSGSIZE': 35,
-      'EPROTONOSUPPORT': 66,
-      'ESOCKTNOSUPPORT': 137,
-      'EADDRNOTAVAIL': 4,
-      'ENETRESET': 39,
-      'EISCONN': 30,
-      'ENOTCONN': 53,
-      'ETOOMANYREFS': 141,
-      'EUSERS': 136,
-      'EDQUOT': 19,
-      'ESTALE': 72,
-      'ENOTSUP': 138,
-      'ENOMEDIUM': 148,
-      'EILSEQ': 25,
-      'EOVERFLOW': 61,
-      'ECANCELED': 11,
-      'ENOTRECOVERABLE': 56,
-      'EOWNERDEAD': 62,
-      'ESTRPIPE': 135,
-    };;
-var ASSERTIONS = true;
+  var _fd_close = (fd) => {
+      abort('fd_close called without SYSCALLS_REQUIRE_FILESYSTEM');
+    };
 
+  var INT53_MAX = 9007199254740992;
+  
+  var INT53_MIN = -9007199254740992;
+  var bigintToI53Checked = (num) => (num < INT53_MIN || num > INT53_MAX) ? NaN : Number(num);
+  function _fd_seek(fd, offset, whence, newOffset) {
+    offset = bigintToI53Checked(offset);
+  
+  
+      return 70;
+    ;
+  }
 
-
-/** @type {function(string, boolean=, number=)} */
-function intArrayFromString(stringy, dontAddNull, length) {
-  var len = length > 0 ? length : lengthBytesUTF8(stringy)+1;
-  var u8array = new Array(len);
-  var numBytesWritten = stringToUTF8Array(stringy, u8array, 0, u8array.length);
-  if (dontAddNull) u8array.length = numBytesWritten;
-  return u8array;
-}
-
-function intArrayToString(array) {
-  var ret = [];
-  for (var i = 0; i < array.length; i++) {
-    var chr = array[i];
-    if (chr > 0xFF) {
-      if (ASSERTIONS) {
-        assert(false, 'Character code ' + chr + ' (' + String.fromCharCode(chr) + ')  at offset ' + i + ' not in 0x00-0xFF.');
+  var printCharBuffers = [null,[],[]];
+  
+  var printChar = (stream, curr) => {
+      var buffer = printCharBuffers[stream];
+      assert(buffer);
+      if (curr === 0 || curr === 10) {
+        (stream === 1 ? out : err)(UTF8ArrayToString(buffer));
+        buffer.length = 0;
+      } else {
+        buffer.push(curr);
       }
-      chr &= 0xFF;
+    };
+  
+  var flush_NO_FILESYSTEM = () => {
+      // flush anything remaining in the buffers during shutdown
+      _fflush(0);
+      if (printCharBuffers[1].length) printChar(1, 10);
+      if (printCharBuffers[2].length) printChar(2, 10);
+    };
+  
+  
+  var _fd_write = (fd, iov, iovcnt, pnum) => {
+      // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
+      var num = 0;
+      for (var i = 0; i < iovcnt; i++) {
+        var ptr = HEAPU32[((iov)>>2)];
+        var len = HEAPU32[(((iov)+(4))>>2)];
+        iov += 8;
+        for (var j = 0; j < len; j++) {
+          printChar(fd, HEAPU8[ptr+j]);
+        }
+        num += len;
+      }
+      HEAPU32[((pnum)>>2)] = num;
+      return 0;
+    };
+
+  var autoResumeAudioContext = (ctx) => {
+      for (var event of ['keydown', 'mousedown', 'touchstart']) {
+        for (var element of [document, document.getElementById('canvas')]) {
+          element?.addEventListener(event, () => {
+            if (ctx.state === 'suspended') ctx.resume();
+          }, { 'once': true });
+        }
+      }
+    };
+
+  var wasmTableMirror = [];
+  
+  
+  var getWasmTableEntry = (funcPtr) => {
+      var func = wasmTableMirror[funcPtr];
+      if (!func) {
+        /** @suppress {checkTypes} */
+        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
+      }
+      /** @suppress {checkTypes} */
+      assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
+      return func;
+    };
+  var dynCall = (sig, ptr, args = [], promising = false) => {
+      assert(ptr, `null function pointer in dynCall`);
+      assert(!promising, 'async dynCall is not supported in this mode')
+      assert(getWasmTableEntry(ptr), `missing table entry in dynCall: ${ptr}`);
+      var func = getWasmTableEntry(ptr);
+      var rtn = func(...args);
+  
+      function convert(rtn) {
+        return rtn;
+      }
+  
+      return convert(rtn);
+    };
+
+  var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+      assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
+      // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
+      // undefined and false each don't write out any bytes.
+      if (!(maxBytesToWrite > 0))
+        return 0;
+  
+      var startIdx = outIdx;
+      var endIdx = outIdx + maxBytesToWrite - 1; // -1 for string null terminator.
+      for (var i = 0; i < str.length; ++i) {
+        // For UTF8 byte structure, see http://en.wikipedia.org/wiki/UTF-8#Description
+        // and https://www.ietf.org/rfc/rfc2279.txt
+        // and https://tools.ietf.org/html/rfc3629
+        var u = str.codePointAt(i);
+        if (u <= 0x7F) {
+          if (outIdx >= endIdx) break;
+          heap[outIdx++] = u;
+        } else if (u <= 0x7FF) {
+          if (outIdx + 1 >= endIdx) break;
+          heap[outIdx++] = 0xC0 | (u >> 6);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else if (u <= 0xFFFF) {
+          if (outIdx + 2 >= endIdx) break;
+          heap[outIdx++] = 0xE0 | (u >> 12);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+        } else {
+          if (outIdx + 3 >= endIdx) break;
+          if (u > 0x10FFFF) warnOnce(`Invalid Unicode code point ${ptrToString(u)} encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).`);
+          heap[outIdx++] = 0xF0 | (u >> 18);
+          heap[outIdx++] = 0x80 | ((u >> 12) & 63);
+          heap[outIdx++] = 0x80 | ((u >> 6) & 63);
+          heap[outIdx++] = 0x80 | (u & 63);
+          // Gotcha: if codePoint is over 0xFFFF, it is represented as a surrogate pair in UTF-16.
+          // We need to manually skip over the second code unit for correct iteration.
+          i++;
+        }
+      }
+      // Null-terminate the pointer to the buffer.
+      heap[outIdx] = 0;
+      return outIdx - startIdx;
+    };
+  var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
+    };
+
+
+
+  var getCFunc = (ident) => {
+      var func = Module['_' + ident]; // closure exported function
+      assert(func, `Cannot call unknown function ${ident}, make sure it is exported`);
+      return func;
+    };
+  
+  var writeArrayToMemory = (array, buffer) => {
+      assert(array.length >= 0, 'writeArrayToMemory array must have a length (should be an array or typed array)')
+      HEAP8.set(array, buffer);
+    };
+  
+  var lengthBytesUTF8 = (str) => {
+      var len = 0;
+      for (var i = 0; i < str.length; ++i) {
+        // Gotcha: charCodeAt returns a 16-bit word that is a UTF-16 encoded code
+        // unit, not a Unicode code point of the character! So decode
+        // UTF16->UTF32->UTF8.
+        // See http://unicode.org/faq/utf_bom.html#utf16-3
+        var c = str.charCodeAt(i); // possibly a lead surrogate
+        if (c <= 0x7F) {
+          len++;
+        } else if (c <= 0x7FF) {
+          len += 2;
+        } else if (c >= 0xD800 && c <= 0xDFFF) {
+          len += 4; ++i;
+        } else {
+          len += 3;
+        }
+      }
+      return len;
+    };
+  
+  
+  var stringToUTF8OnStack = (str) => {
+      var size = lengthBytesUTF8(str) + 1;
+      var ret = stackAlloc(size);
+      stringToUTF8(str, ret, size);
+      return ret;
+    };
+  
+  
+  
+  
+  
+    /**
+   * @param {string|null=} returnType
+   * @param {Array=} argTypes
+   * @param {Array=} args
+   * @param {Object=} opts
+   */
+  var ccall = (ident, returnType, argTypes, args, opts) => {
+      // For fast lookup of conversion functions
+      var toC = {
+        'string': (str) => {
+          var ret = 0;
+          if (str !== null && str !== undefined && str !== 0) { // null string
+            ret = stringToUTF8OnStack(str);
+          }
+          return ret;
+        },
+        'array': (arr) => {
+          var ret = stackAlloc(arr.length);
+          writeArrayToMemory(arr, ret);
+          return ret;
+        }
+      };
+  
+      function convertReturnValue(ret) {
+        if (returnType === 'string') {
+          return UTF8ToString(ret);
+        }
+        if (returnType === 'boolean') return Boolean(ret);
+        return ret;
+      }
+  
+      var func = getCFunc(ident);
+      var cArgs = [];
+      var stack = 0;
+      assert(returnType !== 'array', 'Return type should not be "array".');
+      if (args) {
+        for (var i = 0; i < args.length; i++) {
+          var converter = toC[argTypes[i]];
+          if (converter) {
+            if (stack === 0) stack = stackSave();
+            cArgs[i] = converter(args[i]);
+          } else {
+            cArgs[i] = args[i];
+          }
+        }
+      }
+      var ret = func(...cArgs);
+      function onDone(ret) {
+        if (stack !== 0) stackRestore(stack);
+        return convertReturnValue(ret);
+      }
+  
+      ret = onDone(ret);
+      return ret;
+    };
+
+  
+    /**
+   * @param {string=} returnType
+   * @param {Array=} argTypes
+   * @param {Object=} opts
+   */
+  var cwrap = (ident, returnType, argTypes, opts) => {
+      return (...args) => ccall(ident, returnType, argTypes, args, opts);
+    };
+
+  var handleException = (e) => {
+      // Certain exception types we do not treat as errors since they are used for
+      // internal control flow.
+      // 1. ExitStatus, which is thrown by exit()
+      // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
+      //    that wish to return to JS event loop.
+      if (e instanceof ExitStatus || e == 'unwind') {
+        return EXITSTATUS;
+      }
+      checkStackCookie();
+      if (e instanceof WebAssembly.RuntimeError) {
+        if (_emscripten_stack_get_current() <= 0) {
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
+        }
+      }
+      quit_(1, e);
+    };
+  
+  
+  var runtimeKeepaliveCounter = 0;
+  var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+  var _proc_exit = (code) => {
+      EXITSTATUS = code;
+      if (!keepRuntimeAlive()) {
+        Module['onExit']?.(code);
+        ABORT = true;
+      }
+      quit_(code, new ExitStatus(code));
+    };
+  
+  
+  /** @param {boolean|number=} implicit */
+  var exitJS = (status, implicit) => {
+      EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        readyPromiseReject?.(msg);
+        err(msg);
+      }
+  
+      _proc_exit(status);
+    };
+  var _exit = exitJS;
+  
+  
+  var maybeExit = () => {
+      if (!keepRuntimeAlive()) {
+        try {
+          _exit(EXITSTATUS);
+        } catch (e) {
+          handleException(e);
+        }
+      }
+    };
+  var callUserCallback = (func) => {
+      if (ABORT) {
+        err('user callback triggered after runtime exited or application aborted.  Ignoring.');
+        return;
+      }
+      try {
+        return func();
+      } catch (e) {
+        handleException(e);
+      } finally {
+        maybeExit();
+      }
+    };
+  
+  function getFullscreenElement() {
+      return document.fullscreenElement || document.mozFullScreenElement ||
+             document.webkitFullscreenElement || document.webkitCurrentFullScreenElement ||
+             document.msFullscreenElement;
     }
-    ret.push(String.fromCharCode(chr));
+  
+  /** @param {number=} timeout */
+  var safeSetTimeout = (func, timeout) => {
+      
+      return setTimeout(() => {
+        
+        callUserCallback(func);
+      }, timeout);
+    };
+  
+  
+  var preloadPlugins = [];
+  
+  var Browser = {
+  useWebGL:false,
+  isFullscreen:false,
+  pointerLock:false,
+  moduleContextCreatedCallbacks:[],
+  workers:[],
+  preloadedImages:{
+  },
+  preloadedAudios:{
+  },
+  getCanvas:() => Module['canvas'],
+  init() {
+        if (Browser.initted) return;
+        Browser.initted = true;
+  
+        // Support for plugins that can process preloaded files. You can add more of these to
+        // your app by creating and appending to preloadPlugins.
+        //
+        // Each plugin is asked if it can handle a file based on the file's name. If it can,
+        // it is given the file's raw data. When it is done, it calls a callback with the file's
+        // (possibly modified) data. For example, a plugin might decompress a file, or it
+        // might create some side data structure for use later (like an Image element, etc.).
+  
+        var imagePlugin = {};
+        imagePlugin['canHandle'] = (name) => {
+          return !Module['noImageDecoding'] && /\.(jpg|jpeg|png|bmp|webp)$/i.test(name);
+        };
+        imagePlugin['handle'] = async (byteArray, name) => {
+          var b = new Blob([byteArray], { type: Browser.getMimetype(name) });
+          if (b.size !== byteArray.length) { // Safari bug #118630
+            // Safari's Blob can only take an ArrayBuffer
+            b = new Blob([(new Uint8Array(byteArray)).buffer], { type: Browser.getMimetype(name) });
+          }
+          var url = URL.createObjectURL(b);
+          return new Promise((resolve, reject) => {
+            var img = new Image();
+            img.onload = () => {
+              assert(img.complete, `Image ${name} could not be decoded`);
+              var canvas = /** @type {!HTMLCanvasElement} */ (document.createElement('canvas'));
+              canvas.width = img.width;
+              canvas.height = img.height;
+              var ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              Browser.preloadedImages[name] = canvas;
+              URL.revokeObjectURL(url);
+              resolve(byteArray);
+            };
+            img.onerror = (event) => {
+              err(`Image ${url} could not be decoded`);
+              reject();
+            };
+            img.src = url;
+          });
+        };
+        preloadPlugins.push(imagePlugin);
+  
+        var audioPlugin = {};
+        audioPlugin['canHandle'] = (name) => {
+          return !Module['noAudioDecoding'] && name.slice(-4) in { '.ogg': 1, '.wav': 1, '.mp3': 1 };
+        };
+        audioPlugin['handle'] = async (byteArray, name) => {
+          return new Promise((resolve, reject) => {
+            var done = false;
+            function finish(audio) {
+              if (done) return;
+              done = true;
+              Browser.preloadedAudios[name] = audio;
+              resolve(byteArray);
+            }
+            var b = new Blob([byteArray], { type: Browser.getMimetype(name) });
+            var url = URL.createObjectURL(b); // XXX we never revoke this!
+            var audio = new Audio();
+            audio.addEventListener('canplaythrough', () => finish(audio), false); // use addEventListener due to chromium bug 124926
+            audio.onerror = (event) => {
+              if (done) return;
+              err(`warning: browser could not fully decode audio ${name}, trying slower base64 approach`);
+              function encode64(data) {
+                var BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+                var PAD = '=';
+                var ret = '';
+                var leftchar = 0;
+                var leftbits = 0;
+                for (var i = 0; i < data.length; i++) {
+                  leftchar = (leftchar << 8) | data[i];
+                  leftbits += 8;
+                  while (leftbits >= 6) {
+                    var curr = (leftchar >> (leftbits-6)) & 0x3f;
+                    leftbits -= 6;
+                    ret += BASE[curr];
+                  }
+                }
+                if (leftbits == 2) {
+                  ret += BASE[(leftchar&3) << 4];
+                  ret += PAD + PAD;
+                } else if (leftbits == 4) {
+                  ret += BASE[(leftchar&0xf) << 2];
+                  ret += PAD;
+                }
+                return ret;
+              }
+              audio.src = 'data:audio/x-' + name.slice(-3) + ';base64,' + encode64(byteArray);
+              finish(audio); // we don't wait for confirmation this worked - but it's worth trying
+            };
+            audio.src = url;
+            // workaround for chrome bug 124926 - we do not always get oncanplaythrough or onerror
+            safeSetTimeout(() => {
+              finish(audio); // try to use it even though it is not necessarily ready to play
+            }, 10000);
+          });
+        };
+        preloadPlugins.push(audioPlugin);
+  
+        // Canvas event setup
+  
+        function pointerLockChange() {
+          var canvas = Browser.getCanvas();
+          Browser.pointerLock = document.pointerLockElement === canvas;
+        }
+        var canvas = Browser.getCanvas();
+        if (canvas) {
+          // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
+          // Module['forcedAspectRatio'] = 4 / 3;
+  
+          document.addEventListener('pointerlockchange', pointerLockChange, false);
+  
+          if (Module['elementPointerLock']) {
+            canvas.addEventListener("click", (ev) => {
+              if (!Browser.pointerLock && Browser.getCanvas().requestPointerLock) {
+                Browser.getCanvas().requestPointerLock();
+                ev.preventDefault();
+              }
+            }, false);
+          }
+        }
+      },
+  createContext(/** @type {HTMLCanvasElement} */ canvas, useWebGL, setInModule, webGLContextAttributes) {
+        if (useWebGL && Module['ctx'] && canvas == Browser.getCanvas()) return Module['ctx']; // no need to recreate GL context if it's already been created for this canvas.
+  
+        var ctx;
+        var contextHandle;
+        if (useWebGL) {
+          // For GLES2/desktop GL compatibility, adjust a few defaults to be different to WebGL defaults, so that they align better with the desktop defaults.
+          var contextAttributes = {
+            antialias: false,
+            alpha: false,
+            majorVersion: 1,
+          };
+  
+          if (webGLContextAttributes) {
+            for (var attribute in webGLContextAttributes) {
+              contextAttributes[attribute] = webGLContextAttributes[attribute];
+            }
+          }
+  
+          // This check of existence of GL is here to satisfy Closure compiler, which yells if variable GL is referenced below but GL object is not
+          // actually compiled in because application is not doing any GL operations. TODO: Ideally if GL is not being used, this function
+          // Browser.createContext() should not even be emitted.
+          if (typeof GL != 'undefined') {
+            contextHandle = GL.createContext(canvas, contextAttributes);
+            if (contextHandle) {
+              ctx = GL.getContext(contextHandle).GLctx;
+            }
+          }
+        } else {
+          ctx = canvas.getContext('2d');
+        }
+  
+        if (!ctx) return null;
+  
+        if (setInModule) {
+          if (!useWebGL) assert(typeof GLctx == 'undefined', 'cannot set in module if GLctx is used, but we are a non-GL context that would replace it');
+          Module['ctx'] = ctx;
+          if (useWebGL) GL.makeContextCurrent(contextHandle);
+          Browser.useWebGL = useWebGL;
+          Browser.moduleContextCreatedCallbacks.forEach((callback) => callback());
+          Browser.init();
+        }
+        return ctx;
+      },
+  fullscreenHandlersInstalled:false,
+  lockPointer:undefined,
+  resizeCanvas:undefined,
+  requestFullscreen(lockPointer, resizeCanvas) {
+        Browser.lockPointer = lockPointer;
+        Browser.resizeCanvas = resizeCanvas;
+        if (typeof Browser.lockPointer == 'undefined') Browser.lockPointer = true;
+        if (typeof Browser.resizeCanvas == 'undefined') Browser.resizeCanvas = false;
+  
+        var canvas = Browser.getCanvas();
+        function fullscreenChange() {
+          Browser.isFullscreen = false;
+          var canvasContainer = canvas.parentNode;
+          if (getFullscreenElement() === canvasContainer) {
+            canvas.exitFullscreen = Browser.exitFullscreen;
+            if (Browser.lockPointer) canvas.requestPointerLock();
+            Browser.isFullscreen = true;
+            if (Browser.resizeCanvas) {
+              Browser.setFullscreenCanvasSize();
+            } else {
+              Browser.updateCanvasDimensions(canvas);
+            }
+          } else {
+            // remove the full screen specific parent of the canvas again to restore the HTML structure from before going full screen
+            canvasContainer.parentNode.insertBefore(canvas, canvasContainer);
+            canvasContainer.parentNode.removeChild(canvasContainer);
+  
+            if (Browser.resizeCanvas) {
+              Browser.setWindowedCanvasSize();
+            } else {
+              Browser.updateCanvasDimensions(canvas);
+            }
+          }
+          Module['onFullScreen']?.(Browser.isFullscreen);
+          Module['onFullscreen']?.(Browser.isFullscreen);
+        }
+  
+        if (!Browser.fullscreenHandlersInstalled) {
+          Browser.fullscreenHandlersInstalled = true;
+          document.addEventListener('fullscreenchange', fullscreenChange, false);
+          document.addEventListener('mozfullscreenchange', fullscreenChange, false);
+          document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
+          document.addEventListener('MSFullscreenChange', fullscreenChange, false);
+        }
+  
+        // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
+        var canvasContainer = document.createElement("div");
+        canvas.parentNode.insertBefore(canvasContainer, canvas);
+        canvasContainer.appendChild(canvas);
+  
+        // use parent of canvas as full screen root to allow aspect ratio correction (Firefox stretches the root to screen size)
+        canvasContainer.requestFullscreen = canvasContainer['requestFullscreen'] ||
+                                            canvasContainer['mozRequestFullScreen'] ||
+                                            canvasContainer['msRequestFullscreen'] ||
+                                           (canvasContainer['webkitRequestFullscreen'] ? () => canvasContainer['webkitRequestFullscreen'](Element['ALLOW_KEYBOARD_INPUT']) : null) ||
+                                           (canvasContainer['webkitRequestFullScreen'] ? () => canvasContainer['webkitRequestFullScreen'](Element['ALLOW_KEYBOARD_INPUT']) : null);
+  
+        canvasContainer.requestFullscreen();
+      },
+  requestFullScreen() {
+        abort('Module.requestFullScreen has been replaced by Module.requestFullscreen (without a capital S)');
+      },
+  exitFullscreen() {
+        // This is workaround for chrome. Trying to exit from fullscreen
+        // not in fullscreen state will cause "TypeError: Document not active"
+        // in chrome. See https://github.com/emscripten-core/emscripten/pull/8236
+        if (!Browser.isFullscreen) {
+          return false;
+        }
+  
+        var CFS = document['exitFullscreen'] ||
+                  document['cancelFullScreen'] ||
+                  document['mozCancelFullScreen'] ||
+                  document['msExitFullscreen'] ||
+                  document['webkitCancelFullScreen'] ||
+            (() => {});
+        CFS.apply(document, []);
+        return true;
+      },
+  safeSetTimeout(func, timeout) {
+        // Legacy function, this is used by the SDL2 port so we need to keep it
+        // around at least until that is updated.
+        // See https://github.com/libsdl-org/SDL/pull/6304
+        return safeSetTimeout(func, timeout);
+      },
+  getMimetype(name) {
+        return {
+          'jpg': 'image/jpeg',
+          'jpeg': 'image/jpeg',
+          'png': 'image/png',
+          'bmp': 'image/bmp',
+          'ogg': 'audio/ogg',
+          'wav': 'audio/wav',
+          'mp3': 'audio/mpeg'
+        }[name.slice(name.lastIndexOf('.')+1)];
+      },
+  getUserMedia(func) {
+        window.getUserMedia ||= navigator['getUserMedia'] ||
+                                navigator['mozGetUserMedia'];
+        window.getUserMedia(func);
+      },
+  getMovementX(event) {
+        return event['movementX'] ||
+               event['mozMovementX'] ||
+               event['webkitMovementX'] ||
+               0;
+      },
+  getMovementY(event) {
+        return event['movementY'] ||
+               event['mozMovementY'] ||
+               event['webkitMovementY'] ||
+               0;
+      },
+  getMouseWheelDelta(event) {
+        var delta = 0;
+        switch (event.type) {
+          case 'DOMMouseScroll':
+            // 3 lines make up a step
+            delta = event.detail / 3;
+            break;
+          case 'mousewheel':
+            // 120 units make up a step
+            delta = event.wheelDelta / 120;
+            break;
+          case 'wheel':
+            delta = event.deltaY
+            switch (event.deltaMode) {
+              case 0:
+                // DOM_DELTA_PIXEL: 100 pixels make up a step
+                delta /= 100;
+                break;
+              case 1:
+                // DOM_DELTA_LINE: 3 lines make up a step
+                delta /= 3;
+                break;
+              case 2:
+                // DOM_DELTA_PAGE: A page makes up 80 steps
+                delta *= 80;
+                break;
+              default:
+                abort('unrecognized mouse wheel delta mode: ' + event.deltaMode);
+            }
+            break;
+          default:
+            abort('unrecognized mouse wheel event: ' + event.type);
+        }
+        return delta;
+      },
+  mouseX:0,
+  mouseY:0,
+  mouseMovementX:0,
+  mouseMovementY:0,
+  touches:{
+  },
+  lastTouches:{
+  },
+  calculateMouseCoords(pageX, pageY) {
+        // Calculate the movement based on the changes
+        // in the coordinates.
+        var canvas = Browser.getCanvas();
+        var rect = canvas.getBoundingClientRect();
+  
+        // Neither .scrollX or .pageXOffset are defined in a spec, but
+        // we prefer .scrollX because it is currently in a spec draft.
+        // (see: http://www.w3.org/TR/2013/WD-cssom-view-20131217/)
+        var scrollX = ((typeof window.scrollX != 'undefined') ? window.scrollX : window.pageXOffset);
+        var scrollY = ((typeof window.scrollY != 'undefined') ? window.scrollY : window.pageYOffset);
+        // If this assert lands, it's likely because the browser doesn't support scrollX or pageXOffset
+        // and we have no viable fallback.
+        assert((typeof scrollX != 'undefined') && (typeof scrollY != 'undefined'), 'Unable to retrieve scroll position, mouse positions likely broken.');
+        var adjustedX = pageX - (scrollX + rect.left);
+        var adjustedY = pageY - (scrollY + rect.top);
+  
+        // the canvas might be CSS-scaled compared to its backbuffer;
+        // SDL-using content will want mouse coordinates in terms
+        // of backbuffer units.
+        adjustedX = adjustedX * (canvas.width / rect.width);
+        adjustedY = adjustedY * (canvas.height / rect.height);
+  
+        return { x: adjustedX, y: adjustedY };
+      },
+  setMouseCoords(pageX, pageY) {
+        const {x, y} = Browser.calculateMouseCoords(pageX, pageY);
+        Browser.mouseMovementX = x - Browser.mouseX;
+        Browser.mouseMovementY = y - Browser.mouseY;
+        Browser.mouseX = x;
+        Browser.mouseY = y;
+      },
+  calculateMouseEvent(event) { // event should be mousemove, mousedown or mouseup
+        if (Browser.pointerLock) {
+          // When the pointer is locked, calculate the coordinates
+          // based on the movement of the mouse.
+          // Workaround for Firefox bug 764498
+          if (event.type != 'mousemove' &&
+              ('mozMovementX' in event)) {
+            Browser.mouseMovementX = Browser.mouseMovementY = 0;
+          } else {
+            Browser.mouseMovementX = Browser.getMovementX(event);
+            Browser.mouseMovementY = Browser.getMovementY(event);
+          }
+  
+          // add the mouse delta to the current absolute mouse position
+          Browser.mouseX += Browser.mouseMovementX;
+          Browser.mouseY += Browser.mouseMovementY;
+        } else {
+          if (event.type === 'touchstart' || event.type === 'touchend' || event.type === 'touchmove') {
+            var touch = event.touch;
+            if (touch === undefined) {
+              return; // the "touch" property is only defined in SDL
+  
+            }
+            var coords = Browser.calculateMouseCoords(touch.pageX, touch.pageY);
+  
+            if (event.type === 'touchstart') {
+              Browser.lastTouches[touch.identifier] = coords;
+              Browser.touches[touch.identifier] = coords;
+            } else if (event.type === 'touchend' || event.type === 'touchmove') {
+              var last = Browser.touches[touch.identifier];
+              last ||= coords;
+              Browser.lastTouches[touch.identifier] = last;
+              Browser.touches[touch.identifier] = coords;
+            }
+            return;
+          }
+  
+          Browser.setMouseCoords(event.pageX, event.pageY);
+        }
+      },
+  resizeListeners:[],
+  updateResizeListeners() {
+        var canvas = Browser.getCanvas();
+        Browser.resizeListeners.forEach((listener) => listener(canvas.width, canvas.height));
+      },
+  setCanvasSize(width, height, noUpdates) {
+        var canvas = Browser.getCanvas();
+        Browser.updateCanvasDimensions(canvas, width, height);
+        if (!noUpdates) Browser.updateResizeListeners();
+      },
+  windowedWidth:0,
+  windowedHeight:0,
+  setFullscreenCanvasSize() {
+        // check if SDL is available
+        if (typeof SDL != "undefined") {
+          var flags = HEAPU32[((SDL.screen)>>2)];
+          flags = flags | 0x00800000; // set SDL_FULLSCREEN flag
+          HEAP32[((SDL.screen)>>2)] = flags;
+        }
+        Browser.updateCanvasDimensions(Browser.getCanvas());
+        Browser.updateResizeListeners();
+      },
+  setWindowedCanvasSize() {
+        // check if SDL is available
+        if (typeof SDL != "undefined") {
+          var flags = HEAPU32[((SDL.screen)>>2)];
+          flags = flags & ~0x00800000; // clear SDL_FULLSCREEN flag
+          HEAP32[((SDL.screen)>>2)] = flags;
+        }
+        Browser.updateCanvasDimensions(Browser.getCanvas());
+        Browser.updateResizeListeners();
+      },
+  updateCanvasDimensions(canvas, wNative, hNative) {
+        if (wNative && hNative) {
+          canvas.widthNative = wNative;
+          canvas.heightNative = hNative;
+        } else {
+          wNative = canvas.widthNative;
+          hNative = canvas.heightNative;
+        }
+        var w = wNative;
+        var h = hNative;
+        if (Module['forcedAspectRatio'] > 0) {
+          if (w/h < Module['forcedAspectRatio']) {
+            w = Math.round(h * Module['forcedAspectRatio']);
+          } else {
+            h = Math.round(w / Module['forcedAspectRatio']);
+          }
+        }
+        if ((getFullscreenElement() === canvas.parentNode) && (typeof screen != 'undefined')) {
+           var factor = Math.min(screen.width / w, screen.height / h);
+           w = Math.round(w * factor);
+           h = Math.round(h * factor);
+        }
+        if (Browser.resizeCanvas) {
+          if (canvas.width  != w) canvas.width  = w;
+          if (canvas.height != h) canvas.height = h;
+          if (typeof canvas.style != 'undefined') {
+            canvas.style.removeProperty( "width");
+            canvas.style.removeProperty("height");
+          }
+        } else {
+          if (canvas.width  != wNative) canvas.width  = wNative;
+          if (canvas.height != hNative) canvas.height = hNative;
+          if (typeof canvas.style != 'undefined') {
+            if (w != wNative || h != hNative) {
+              canvas.style.setProperty( "width", w + "px", "important");
+              canvas.style.setProperty("height", h + "px", "important");
+            } else {
+              canvas.style.removeProperty( "width");
+              canvas.style.removeProperty("height");
+            }
+          }
+        }
+      },
+  };
+  var createContext = Browser.createContext;
+// End JS library code
+
+// include: postlibrary.js
+// This file is included after the automatically-generated JS library code
+// but before the wasm module is created.
+
+{
+
+  // Begin ATMODULES hooks
+  if (Module['noExitRuntime']) noExitRuntime = Module['noExitRuntime'];
+if (Module['preloadPlugins']) preloadPlugins = Module['preloadPlugins'];
+if (Module['print']) out = Module['print'];
+if (Module['printErr']) err = Module['printErr'];
+if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
+
+Module['FS_createDataFile'] = FS.createDataFile;
+Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
+
+  // End ATMODULES hooks
+
+  checkIncomingModuleAPI();
+
+  if (Module['arguments']) arguments_ = Module['arguments'];
+  if (Module['thisProgram']) thisProgram = Module['thisProgram'];
+
+  // Assertions on removed incoming Module JS APIs.
+  assert(typeof Module['memoryInitializerPrefixURL'] == 'undefined', 'Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['pthreadMainPrefixURL'] == 'undefined', 'Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['cdInitializerPrefixURL'] == 'undefined', 'Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['filePackagePrefixURL'] == 'undefined', 'Module.filePackagePrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['read'] == 'undefined', 'Module.read option was removed');
+  assert(typeof Module['readAsync'] == 'undefined', 'Module.readAsync option was removed (modify readAsync in JS)');
+  assert(typeof Module['readBinary'] == 'undefined', 'Module.readBinary option was removed (modify readBinary in JS)');
+  assert(typeof Module['setWindowTitle'] == 'undefined', 'Module.setWindowTitle option was removed (modify emscripten_set_window_title in JS)');
+  assert(typeof Module['TOTAL_MEMORY'] == 'undefined', 'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY');
+  assert(typeof Module['ENVIRONMENT'] == 'undefined', 'Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)');
+  assert(typeof Module['STACK_SIZE'] == 'undefined', 'STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time')
+  // If memory is defined in wasm, the user can't provide it, or set INITIAL_MEMORY
+  assert(typeof Module['wasmMemory'] == 'undefined', 'Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally');
+  assert(typeof Module['INITIAL_MEMORY'] == 'undefined', 'Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically');
+
+  if (Module['preInit']) {
+    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
+    while (Module['preInit'].length > 0) {
+      Module['preInit'].shift()();
+    }
   }
-  return ret.join('');
+  consumedModuleProp('preInit');
 }
 
+// Begin runtime exports
+  Module['ccall'] = ccall;
+  Module['cwrap'] = cwrap;
+  Module['createContext'] = createContext;
+  // End runtime exports
+  // Begin JS library exports
+  Module['ExitStatus'] = ExitStatus;
+  Module['HEAP16'] = HEAP16;
+  Module['HEAP32'] = HEAP32;
+  Module['HEAP64'] = HEAP64;
+  Module['HEAP8'] = HEAP8;
+  Module['HEAPF32'] = HEAPF32;
+  Module['HEAPF64'] = HEAPF64;
+  Module['HEAPU16'] = HEAPU16;
+  Module['HEAPU32'] = HEAPU32;
+  Module['HEAPU64'] = HEAPU64;
+  Module['HEAPU8'] = HEAPU8;
+  Module['addOnPostRun'] = addOnPostRun;
+  Module['onPostRuns'] = onPostRuns;
+  Module['callRuntimeCallbacks'] = callRuntimeCallbacks;
+  Module['addOnPreRun'] = addOnPreRun;
+  Module['onPreRuns'] = onPreRuns;
+  Module['getValue'] = getValue;
+  Module['noExitRuntime'] = noExitRuntime;
+  Module['ptrToString'] = ptrToString;
+  Module['setValue'] = setValue;
+  Module['stackRestore'] = stackRestore;
+  Module['stackSave'] = stackSave;
+  Module['warnOnce'] = warnOnce;
+  Module['___assert_fail'] = ___assert_fail;
+  Module['UTF8ToString'] = UTF8ToString;
+  Module['UTF8ArrayToString'] = UTF8ArrayToString;
+  Module['UTF8Decoder'] = UTF8Decoder;
+  Module['findStringEnd'] = findStringEnd;
+  Module['___cxa_begin_catch'] = ___cxa_begin_catch;
+  Module['exceptionCaught'] = exceptionCaught;
+  Module['uncaughtExceptionCount'] = uncaughtExceptionCount;
+  Module['___cxa_find_matching_catch_2'] = ___cxa_find_matching_catch_2;
+  Module['findMatchingCatch'] = findMatchingCatch;
+  Module['exceptionLast'] = exceptionLast;
+  Module['ExceptionInfo'] = ExceptionInfo;
+  Module['setTempRet0'] = setTempRet0;
+  Module['___cxa_find_matching_catch_3'] = ___cxa_find_matching_catch_3;
+  Module['___cxa_throw'] = ___cxa_throw;
+  Module['getExceptionMessage'] = getExceptionMessage;
+  Module['getExceptionMessageCommon'] = getExceptionMessageCommon;
+  Module['stackAlloc'] = stackAlloc;
+  Module['decrementExceptionRefcount'] = decrementExceptionRefcount;
+  Module['incrementExceptionRefcount'] = incrementExceptionRefcount;
+  Module['___resumeException'] = ___resumeException;
+  Module['__abort_js'] = __abort_js;
+  Module['_emscripten_resize_heap'] = _emscripten_resize_heap;
+  Module['getHeapMax'] = getHeapMax;
+  Module['alignMemory'] = alignMemory;
+  Module['growMemory'] = growMemory;
+  Module['_fd_close'] = _fd_close;
+  Module['SYSCALLS'] = SYSCALLS;
+  Module['_fd_seek'] = _fd_seek;
+  Module['bigintToI53Checked'] = bigintToI53Checked;
+  Module['INT53_MAX'] = INT53_MAX;
+  Module['INT53_MIN'] = INT53_MIN;
+  Module['_fd_write'] = _fd_write;
+  Module['flush_NO_FILESYSTEM'] = flush_NO_FILESYSTEM;
+  Module['printChar'] = printChar;
+  Module['printCharBuffers'] = printCharBuffers;
+  Module['autoResumeAudioContext'] = autoResumeAudioContext;
+  Module['dynCall'] = dynCall;
+  Module['getWasmTableEntry'] = getWasmTableEntry;
+  Module['wasmTableMirror'] = wasmTableMirror;
+  Module['stringToUTF8'] = stringToUTF8;
+  Module['stringToUTF8Array'] = stringToUTF8Array;
+  Module['ccall'] = ccall;
+  Module['getCFunc'] = getCFunc;
+  Module['writeArrayToMemory'] = writeArrayToMemory;
+  Module['stringToUTF8OnStack'] = stringToUTF8OnStack;
+  Module['lengthBytesUTF8'] = lengthBytesUTF8;
+  Module['cwrap'] = cwrap;
+  Module['createContext'] = createContext;
+  Module['Browser'] = Browser;
+  Module['callUserCallback'] = callUserCallback;
+  Module['handleException'] = handleException;
+  Module['maybeExit'] = maybeExit;
+  Module['_exit'] = _exit;
+  Module['exitJS'] = exitJS;
+  Module['_proc_exit'] = _proc_exit;
+  Module['keepRuntimeAlive'] = keepRuntimeAlive;
+  Module['runtimeKeepaliveCounter'] = runtimeKeepaliveCounter;
+  Module['getFullscreenElement'] = getFullscreenElement;
+  Module['safeSetTimeout'] = safeSetTimeout;
+  Module['preloadPlugins'] = preloadPlugins;
+  // End JS library exports
 
-// Copied from https://github.com/strophe/strophejs/blob/e06d027/src/polyfills.js#L149
+// end include: postlibrary.js
 
-// This code was written by Tyler Akins and has been placed in the
-// public domain.  It would be nice if you left this header intact.
-// Base64 code from Tyler Akins -- http://rumkin.com
-
-/**
- * Decodes a base64 string.
- * @param {string} input The string to decode.
- */
-var decodeBase64 = typeof atob == 'function' ? atob : function (input) {
-  var keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-  var output = '';
-  var chr1, chr2, chr3;
-  var enc1, enc2, enc3, enc4;
-  var i = 0;
-  // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
-  input = input.replace(/[^A-Za-z0-9\+\/\=]/g, '');
-  do {
-    enc1 = keyStr.indexOf(input.charAt(i++));
-    enc2 = keyStr.indexOf(input.charAt(i++));
-    enc3 = keyStr.indexOf(input.charAt(i++));
-    enc4 = keyStr.indexOf(input.charAt(i++));
-
-    chr1 = (enc1 << 2) | (enc2 >> 4);
-    chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-    chr3 = ((enc3 & 3) << 6) | enc4;
-
-    output = output + String.fromCharCode(chr1);
-
-    if (enc3 !== 64) {
-      output = output + String.fromCharCode(chr2);
-    }
-    if (enc4 !== 64) {
-      output = output + String.fromCharCode(chr3);
-    }
-  } while (i < input.length);
-  return output;
-};
-
-// Converts a string of base64 into a byte array.
-// Throws error on invalid input.
-function intArrayFromBase64(s) {
-
-  try {
-    var decoded = decodeBase64(s);
-    var bytes = new Uint8Array(decoded.length);
-    for (var i = 0 ; i < decoded.length ; ++i) {
-      bytes[i] = decoded.charCodeAt(i);
-    }
-    return bytes;
-  } catch (_) {
-    throw new Error('Converting base64 string to bytes failed.');
-  }
+function checkIncomingModuleAPI() {
+  ignoredModuleProp('fetchSettings');
+  ignoredModuleProp('logReadFiles');
+  ignoredModuleProp('loadSplitModule');
+  ignoredModuleProp('onMalloc');
+  ignoredModuleProp('onRealloc');
+  ignoredModuleProp('onFree');
+  ignoredModuleProp('onSbrkGrow');
 }
 
-// If filename is a base64 data URI, parses and returns data (Buffer on node,
-// Uint8Array otherwise). If filename is not a base64 data URI, returns undefined.
-function tryParseAsDataURI(filename) {
-  if (!isDataURI(filename)) {
-    return;
-  }
+// Imports from the Wasm binary.
+var _strerror = Module['_strerror'] = makeInvalidEarlyAccess('_strerror');
+var _load_rom = Module['_load_rom'] = makeInvalidEarlyAccess('_load_rom');
+var _emulate_cycle = Module['_emulate_cycle'] = makeInvalidEarlyAccess('_emulate_cycle');
+var _should_draw = Module['_should_draw'] = makeInvalidEarlyAccess('_should_draw');
+var _get_display_buffer = Module['_get_display_buffer'] = makeInvalidEarlyAccess('_get_display_buffer');
+var _get_display_width = Module['_get_display_width'] = makeInvalidEarlyAccess('_get_display_width');
+var _get_display_height = Module['_get_display_height'] = makeInvalidEarlyAccess('_get_display_height');
+var _key_down = Module['_key_down'] = makeInvalidEarlyAccess('_key_down');
+var _key_up = Module['_key_up'] = makeInvalidEarlyAccess('_key_up');
+var _reset = Module['_reset'] = makeInvalidEarlyAccess('_reset');
+var _malloc = Module['_malloc'] = makeInvalidEarlyAccess('_malloc');
+var _free = Module['_free'] = makeInvalidEarlyAccess('_free');
+var _fflush = Module['_fflush'] = makeInvalidEarlyAccess('_fflush');
+var _emscripten_stack_get_end = Module['_emscripten_stack_get_end'] = makeInvalidEarlyAccess('_emscripten_stack_get_end');
+var _emscripten_stack_get_base = Module['_emscripten_stack_get_base'] = makeInvalidEarlyAccess('_emscripten_stack_get_base');
+var _setThrew = Module['_setThrew'] = makeInvalidEarlyAccess('_setThrew');
+var __emscripten_tempret_set = Module['__emscripten_tempret_set'] = makeInvalidEarlyAccess('__emscripten_tempret_set');
+var _emscripten_stack_init = Module['_emscripten_stack_init'] = makeInvalidEarlyAccess('_emscripten_stack_init');
+var _emscripten_stack_get_free = Module['_emscripten_stack_get_free'] = makeInvalidEarlyAccess('_emscripten_stack_get_free');
+var __emscripten_stack_restore = Module['__emscripten_stack_restore'] = makeInvalidEarlyAccess('__emscripten_stack_restore');
+var __emscripten_stack_alloc = Module['__emscripten_stack_alloc'] = makeInvalidEarlyAccess('__emscripten_stack_alloc');
+var _emscripten_stack_get_current = Module['_emscripten_stack_get_current'] = makeInvalidEarlyAccess('_emscripten_stack_get_current');
+var ___cxa_decrement_exception_refcount = Module['___cxa_decrement_exception_refcount'] = makeInvalidEarlyAccess('___cxa_decrement_exception_refcount');
+var ___cxa_increment_exception_refcount = Module['___cxa_increment_exception_refcount'] = makeInvalidEarlyAccess('___cxa_increment_exception_refcount');
+var ___get_exception_message = Module['___get_exception_message'] = makeInvalidEarlyAccess('___get_exception_message');
+var ___cxa_can_catch = Module['___cxa_can_catch'] = makeInvalidEarlyAccess('___cxa_can_catch');
+var ___cxa_get_exception_ptr = Module['___cxa_get_exception_ptr'] = makeInvalidEarlyAccess('___cxa_get_exception_ptr');
+var memory = Module['memory'] = makeInvalidEarlyAccess('memory');
+var __indirect_function_table = Module['__indirect_function_table'] = makeInvalidEarlyAccess('__indirect_function_table');
+var wasmMemory = Module['wasmMemory'] = makeInvalidEarlyAccess('wasmMemory');
+var wasmTable = Module['wasmTable'] = makeInvalidEarlyAccess('wasmTable');
 
-  return intArrayFromBase64(filename.slice(dataURIPrefix.length));
+function assignWasmExports(wasmExports) {
+  assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
+  assert(typeof wasmExports['load_rom'] != 'undefined', 'missing Wasm export: load_rom');
+  assert(typeof wasmExports['emulate_cycle'] != 'undefined', 'missing Wasm export: emulate_cycle');
+  assert(typeof wasmExports['should_draw'] != 'undefined', 'missing Wasm export: should_draw');
+  assert(typeof wasmExports['get_display_buffer'] != 'undefined', 'missing Wasm export: get_display_buffer');
+  assert(typeof wasmExports['get_display_width'] != 'undefined', 'missing Wasm export: get_display_width');
+  assert(typeof wasmExports['get_display_height'] != 'undefined', 'missing Wasm export: get_display_height');
+  assert(typeof wasmExports['key_down'] != 'undefined', 'missing Wasm export: key_down');
+  assert(typeof wasmExports['key_up'] != 'undefined', 'missing Wasm export: key_up');
+  assert(typeof wasmExports['reset'] != 'undefined', 'missing Wasm export: reset');
+  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
+  assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
+  assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
+  assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
+  assert(typeof wasmExports['setThrew'] != 'undefined', 'missing Wasm export: setThrew');
+  assert(typeof wasmExports['_emscripten_tempret_set'] != 'undefined', 'missing Wasm export: _emscripten_tempret_set');
+  assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
+  assert(typeof wasmExports['emscripten_stack_get_free'] != 'undefined', 'missing Wasm export: emscripten_stack_get_free');
+  assert(typeof wasmExports['_emscripten_stack_restore'] != 'undefined', 'missing Wasm export: _emscripten_stack_restore');
+  assert(typeof wasmExports['_emscripten_stack_alloc'] != 'undefined', 'missing Wasm export: _emscripten_stack_alloc');
+  assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
+  assert(typeof wasmExports['__cxa_decrement_exception_refcount'] != 'undefined', 'missing Wasm export: __cxa_decrement_exception_refcount');
+  assert(typeof wasmExports['__cxa_increment_exception_refcount'] != 'undefined', 'missing Wasm export: __cxa_increment_exception_refcount');
+  assert(typeof wasmExports['__get_exception_message'] != 'undefined', 'missing Wasm export: __get_exception_message');
+  assert(typeof wasmExports['__cxa_can_catch'] != 'undefined', 'missing Wasm export: __cxa_can_catch');
+  assert(typeof wasmExports['__cxa_get_exception_ptr'] != 'undefined', 'missing Wasm export: __cxa_get_exception_ptr');
+  assert(typeof wasmExports['memory'] != 'undefined', 'missing Wasm export: memory');
+  assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
+  _strerror = Module['_strerror'] = createExportWrapper('strerror', 1);
+  _load_rom = Module['_load_rom'] = createExportWrapper('load_rom', 2);
+  _emulate_cycle = Module['_emulate_cycle'] = createExportWrapper('emulate_cycle', 0);
+  _should_draw = Module['_should_draw'] = createExportWrapper('should_draw', 0);
+  _get_display_buffer = Module['_get_display_buffer'] = createExportWrapper('get_display_buffer', 0);
+  _get_display_width = Module['_get_display_width'] = createExportWrapper('get_display_width', 0);
+  _get_display_height = Module['_get_display_height'] = createExportWrapper('get_display_height', 0);
+  _key_down = Module['_key_down'] = createExportWrapper('key_down', 1);
+  _key_up = Module['_key_up'] = createExportWrapper('key_up', 1);
+  _reset = Module['_reset'] = createExportWrapper('reset', 0);
+  _malloc = Module['_malloc'] = createExportWrapper('malloc', 1);
+  _free = Module['_free'] = createExportWrapper('free', 1);
+  _fflush = Module['_fflush'] = createExportWrapper('fflush', 1);
+  _emscripten_stack_get_end = Module['_emscripten_stack_get_end'] = wasmExports['emscripten_stack_get_end'];
+  _emscripten_stack_get_base = Module['_emscripten_stack_get_base'] = wasmExports['emscripten_stack_get_base'];
+  _setThrew = Module['_setThrew'] = createExportWrapper('setThrew', 2);
+  __emscripten_tempret_set = Module['__emscripten_tempret_set'] = createExportWrapper('_emscripten_tempret_set', 1);
+  _emscripten_stack_init = Module['_emscripten_stack_init'] = wasmExports['emscripten_stack_init'];
+  _emscripten_stack_get_free = Module['_emscripten_stack_get_free'] = wasmExports['emscripten_stack_get_free'];
+  __emscripten_stack_restore = Module['__emscripten_stack_restore'] = wasmExports['_emscripten_stack_restore'];
+  __emscripten_stack_alloc = Module['__emscripten_stack_alloc'] = wasmExports['_emscripten_stack_alloc'];
+  _emscripten_stack_get_current = Module['_emscripten_stack_get_current'] = wasmExports['emscripten_stack_get_current'];
+  ___cxa_decrement_exception_refcount = Module['___cxa_decrement_exception_refcount'] = createExportWrapper('__cxa_decrement_exception_refcount', 1);
+  ___cxa_increment_exception_refcount = Module['___cxa_increment_exception_refcount'] = createExportWrapper('__cxa_increment_exception_refcount', 1);
+  ___get_exception_message = Module['___get_exception_message'] = createExportWrapper('__get_exception_message', 3);
+  ___cxa_can_catch = Module['___cxa_can_catch'] = createExportWrapper('__cxa_can_catch', 3);
+  ___cxa_get_exception_ptr = Module['___cxa_get_exception_ptr'] = createExportWrapper('__cxa_get_exception_ptr', 1);
+  memory = Module['memory'] = wasmMemory = wasmExports['memory'];
+  __indirect_function_table = Module['__indirect_function_table'] = wasmTable = wasmExports['__indirect_function_table'];
 }
 
-
-var asmLibraryArg = {
-  "__cxa_allocate_exception": ___cxa_allocate_exception,
-  "__cxa_begin_catch": ___cxa_begin_catch,
-  "__cxa_end_catch": ___cxa_end_catch,
-  "__cxa_find_matching_catch_2": ___cxa_find_matching_catch_2,
-  "__cxa_find_matching_catch_3": ___cxa_find_matching_catch_3,
-  "__cxa_free_exception": ___cxa_free_exception,
-  "__cxa_throw": ___cxa_throw,
-  "__resumeException": ___resumeException,
-  "abort": _abort,
-  "emscripten_memcpy_big": _emscripten_memcpy_big,
-  "emscripten_resize_heap": _emscripten_resize_heap,
-  "fd_close": _fd_close,
-  "fd_read": _fd_read,
-  "fd_seek": _fd_seek,
-  "fd_write": _fd_write,
-  "getTempRet0": _getTempRet0,
-  "invoke_iii": invoke_iii,
-  "invoke_v": invoke_v,
-  "invoke_vii": invoke_vii,
-  "invoke_viii": invoke_viii,
-  "setTempRet0": _setTempRet0
+var wasmImports = {
+  /** @export */
+  __assert_fail: ___assert_fail,
+  /** @export */
+  __cxa_begin_catch: ___cxa_begin_catch,
+  /** @export */
+  __cxa_find_matching_catch_2: ___cxa_find_matching_catch_2,
+  /** @export */
+  __cxa_find_matching_catch_3: ___cxa_find_matching_catch_3,
+  /** @export */
+  __cxa_throw: ___cxa_throw,
+  /** @export */
+  __resumeException: ___resumeException,
+  /** @export */
+  _abort_js: __abort_js,
+  /** @export */
+  emscripten_resize_heap: _emscripten_resize_heap,
+  /** @export */
+  fd_close: _fd_close,
+  /** @export */
+  fd_seek: _fd_seek,
+  /** @export */
+  fd_write: _fd_write,
+  /** @export */
+  invoke_ii,
+  /** @export */
+  invoke_iii,
+  /** @export */
+  invoke_v,
+  /** @export */
+  invoke_vi,
+  /** @export */
+  invoke_vii,
+  /** @export */
+  invoke_viii,
+  /** @export */
+  invoke_viiii
 };
-var asm = createWasm();
-/** @type {function(...*):?} */
-var ___wasm_call_ctors = Module["___wasm_call_ctors"] = createExportWrapper("__wasm_call_ctors");
-
-/** @type {function(...*):?} */
-var _memcpy = Module["_memcpy"] = createExportWrapper("memcpy");
-
-/** @type {function(...*):?} */
-var ___errno_location = Module["___errno_location"] = createExportWrapper("__errno_location");
-
-/** @type {function(...*):?} */
-var _load_rom = Module["_load_rom"] = createExportWrapper("load_rom");
-
-/** @type {function(...*):?} */
-var _emulate_cycle = Module["_emulate_cycle"] = createExportWrapper("emulate_cycle");
-
-/** @type {function(...*):?} */
-var _should_draw = Module["_should_draw"] = createExportWrapper("should_draw");
-
-/** @type {function(...*):?} */
-var _get_display_buffer = Module["_get_display_buffer"] = createExportWrapper("get_display_buffer");
-
-/** @type {function(...*):?} */
-var _get_display_width = Module["_get_display_width"] = createExportWrapper("get_display_width");
-
-/** @type {function(...*):?} */
-var _get_display_height = Module["_get_display_height"] = createExportWrapper("get_display_height");
-
-/** @type {function(...*):?} */
-var _key_down = Module["_key_down"] = createExportWrapper("key_down");
-
-/** @type {function(...*):?} */
-var _key_up = Module["_key_up"] = createExportWrapper("key_up");
-
-/** @type {function(...*):?} */
-var _reset = Module["_reset"] = createExportWrapper("reset");
-
-/** @type {function(...*):?} */
-var _free = Module["_free"] = createExportWrapper("free");
-
-/** @type {function(...*):?} */
-var _malloc = Module["_malloc"] = createExportWrapper("malloc");
-
-/** @type {function(...*):?} */
-var ___stdio_exit = Module["___stdio_exit"] = createExportWrapper("__stdio_exit");
-
-/** @type {function(...*):?} */
-var ___dl_seterr = Module["___dl_seterr"] = createExportWrapper("__dl_seterr");
-
-/** @type {function(...*):?} */
-var _setThrew = Module["_setThrew"] = createExportWrapper("setThrew");
-
-/** @type {function(...*):?} */
-var _emscripten_stack_init = Module["_emscripten_stack_init"] = function() {
-  return (_emscripten_stack_init = Module["_emscripten_stack_init"] = Module["asm"]["emscripten_stack_init"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
-var _emscripten_stack_get_free = Module["_emscripten_stack_get_free"] = function() {
-  return (_emscripten_stack_get_free = Module["_emscripten_stack_get_free"] = Module["asm"]["emscripten_stack_get_free"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
-var _emscripten_stack_get_base = Module["_emscripten_stack_get_base"] = function() {
-  return (_emscripten_stack_get_base = Module["_emscripten_stack_get_base"] = Module["asm"]["emscripten_stack_get_base"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
-var _emscripten_stack_get_end = Module["_emscripten_stack_get_end"] = function() {
-  return (_emscripten_stack_get_end = Module["_emscripten_stack_get_end"] = Module["asm"]["emscripten_stack_get_end"]).apply(null, arguments);
-};
-
-/** @type {function(...*):?} */
-var stackSave = Module["stackSave"] = createExportWrapper("stackSave");
-
-/** @type {function(...*):?} */
-var stackRestore = Module["stackRestore"] = createExportWrapper("stackRestore");
-
-/** @type {function(...*):?} */
-var stackAlloc = Module["stackAlloc"] = createExportWrapper("stackAlloc");
-
-/** @type {function(...*):?} */
-var ___cxa_can_catch = Module["___cxa_can_catch"] = createExportWrapper("__cxa_can_catch");
-
-/** @type {function(...*):?} */
-var ___cxa_is_pointer_type = Module["___cxa_is_pointer_type"] = createExportWrapper("__cxa_is_pointer_type");
-
-/** @type {function(...*):?} */
-var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji");
-
 
 function invoke_iii(index,a1,a2) {
   var sp = stackSave();
@@ -4988,7 +2170,7 @@ function invoke_iii(index,a1,a2) {
     return getWasmTableEntry(index)(a1,a2);
   } catch(e) {
     stackRestore(sp);
-    if (e !== e+0 && e !== 'longjmp') throw e;
+    if (!(e instanceof EmscriptenEH)) throw e;
     _setThrew(1, 0);
   }
 }
@@ -4999,7 +2181,29 @@ function invoke_vii(index,a1,a2) {
     getWasmTableEntry(index)(a1,a2);
   } catch(e) {
     stackRestore(sp);
-    if (e !== e+0 && e !== 'longjmp') throw e;
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_ii(index,a1) {
+  var sp = stackSave();
+  try {
+    return getWasmTableEntry(index)(a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_vi(index,a1) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
     _setThrew(1, 0);
   }
 }
@@ -5010,7 +2214,18 @@ function invoke_v(index) {
     getWasmTableEntry(index)();
   } catch(e) {
     stackRestore(sp);
-    if (e !== e+0 && e !== 'longjmp') throw e;
+    if (!(e instanceof EmscriptenEH)) throw e;
+    _setThrew(1, 0);
+  }
+}
+
+function invoke_viiii(index,a1,a2,a3,a4) {
+  var sp = stackSave();
+  try {
+    getWasmTableEntry(index)(a1,a2,a3,a4);
+  } catch(e) {
+    stackRestore(sp);
+    if (!(e instanceof EmscriptenEH)) throw e;
     _setThrew(1, 0);
   }
 }
@@ -5021,300 +2236,36 @@ function invoke_viii(index,a1,a2,a3) {
     getWasmTableEntry(index)(a1,a2,a3);
   } catch(e) {
     stackRestore(sp);
-    if (e !== e+0 && e !== 'longjmp') throw e;
+    if (!(e instanceof EmscriptenEH)) throw e;
     _setThrew(1, 0);
   }
 }
 
 
-
-
+// include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
-if (!Object.getOwnPropertyDescriptor(Module, "intArrayFromString")) Module["intArrayFromString"] = () => abort("'intArrayFromString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "intArrayToString")) Module["intArrayToString"] = () => abort("'intArrayToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-Module["ccall"] = ccall;
-Module["cwrap"] = cwrap;
-if (!Object.getOwnPropertyDescriptor(Module, "setValue")) Module["setValue"] = () => abort("'setValue' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getValue")) Module["getValue"] = () => abort("'getValue' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "allocate")) Module["allocate"] = () => abort("'allocate' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "UTF8ArrayToString")) Module["UTF8ArrayToString"] = () => abort("'UTF8ArrayToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "UTF8ToString")) Module["UTF8ToString"] = () => abort("'UTF8ToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToUTF8Array")) Module["stringToUTF8Array"] = () => abort("'stringToUTF8Array' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToUTF8")) Module["stringToUTF8"] = () => abort("'stringToUTF8' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "lengthBytesUTF8")) Module["lengthBytesUTF8"] = () => abort("'lengthBytesUTF8' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stackTrace")) Module["stackTrace"] = () => abort("'stackTrace' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addOnPreRun")) Module["addOnPreRun"] = () => abort("'addOnPreRun' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addOnInit")) Module["addOnInit"] = () => abort("'addOnInit' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addOnPreMain")) Module["addOnPreMain"] = () => abort("'addOnPreMain' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addOnExit")) Module["addOnExit"] = () => abort("'addOnExit' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addOnPostRun")) Module["addOnPostRun"] = () => abort("'addOnPostRun' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeStringToMemory")) Module["writeStringToMemory"] = () => abort("'writeStringToMemory' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeArrayToMemory")) Module["writeArrayToMemory"] = () => abort("'writeArrayToMemory' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeAsciiToMemory")) Module["writeAsciiToMemory"] = () => abort("'writeAsciiToMemory' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addRunDependency")) Module["addRunDependency"] = () => abort("'addRunDependency' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "removeRunDependency")) Module["removeRunDependency"] = () => abort("'removeRunDependency' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createFolder")) Module["FS_createFolder"] = () => abort("'FS_createFolder' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createPath")) Module["FS_createPath"] = () => abort("'FS_createPath' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createDataFile")) Module["FS_createDataFile"] = () => abort("'FS_createDataFile' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createPreloadedFile")) Module["FS_createPreloadedFile"] = () => abort("'FS_createPreloadedFile' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createLazyFile")) Module["FS_createLazyFile"] = () => abort("'FS_createLazyFile' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createLink")) Module["FS_createLink"] = () => abort("'FS_createLink' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_createDevice")) Module["FS_createDevice"] = () => abort("'FS_createDevice' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "FS_unlink")) Module["FS_unlink"] = () => abort("'FS_unlink' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ). Alternatively, forcing filesystem support (-s FORCE_FILESYSTEM=1) can export this for you");
-if (!Object.getOwnPropertyDescriptor(Module, "getLEB")) Module["getLEB"] = () => abort("'getLEB' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getFunctionTables")) Module["getFunctionTables"] = () => abort("'getFunctionTables' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "alignFunctionTables")) Module["alignFunctionTables"] = () => abort("'alignFunctionTables' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerFunctions")) Module["registerFunctions"] = () => abort("'registerFunctions' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "addFunction")) Module["addFunction"] = () => abort("'addFunction' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "removeFunction")) Module["removeFunction"] = () => abort("'removeFunction' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getFuncWrapper")) Module["getFuncWrapper"] = () => abort("'getFuncWrapper' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "prettyPrint")) Module["prettyPrint"] = () => abort("'prettyPrint' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "dynCall")) Module["dynCall"] = () => abort("'dynCall' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getCompilerSetting")) Module["getCompilerSetting"] = () => abort("'getCompilerSetting' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "print")) Module["print"] = () => abort("'print' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "printErr")) Module["printErr"] = () => abort("'printErr' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getTempRet0")) Module["getTempRet0"] = () => abort("'getTempRet0' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setTempRet0")) Module["setTempRet0"] = () => abort("'setTempRet0' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "callMain")) Module["callMain"] = () => abort("'callMain' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "abort")) Module["abort"] = () => abort("'abort' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "keepRuntimeAlive")) Module["keepRuntimeAlive"] = () => abort("'keepRuntimeAlive' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "zeroMemory")) Module["zeroMemory"] = () => abort("'zeroMemory' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToNewUTF8")) Module["stringToNewUTF8"] = () => abort("'stringToNewUTF8' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "emscripten_realloc_buffer")) Module["emscripten_realloc_buffer"] = () => abort("'emscripten_realloc_buffer' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "ENV")) Module["ENV"] = () => abort("'ENV' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "withStackSave")) Module["withStackSave"] = () => abort("'withStackSave' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "ERRNO_CODES")) Module["ERRNO_CODES"] = () => abort("'ERRNO_CODES' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "ERRNO_MESSAGES")) Module["ERRNO_MESSAGES"] = () => abort("'ERRNO_MESSAGES' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setErrNo")) Module["setErrNo"] = () => abort("'setErrNo' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "inetPton4")) Module["inetPton4"] = () => abort("'inetPton4' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "inetNtop4")) Module["inetNtop4"] = () => abort("'inetNtop4' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "inetPton6")) Module["inetPton6"] = () => abort("'inetPton6' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "inetNtop6")) Module["inetNtop6"] = () => abort("'inetNtop6' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "readSockaddr")) Module["readSockaddr"] = () => abort("'readSockaddr' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeSockaddr")) Module["writeSockaddr"] = () => abort("'writeSockaddr' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "DNS")) Module["DNS"] = () => abort("'DNS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getHostByName")) Module["getHostByName"] = () => abort("'getHostByName' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "Protocols")) Module["Protocols"] = () => abort("'Protocols' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "Sockets")) Module["Sockets"] = () => abort("'Sockets' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getRandomDevice")) Module["getRandomDevice"] = () => abort("'getRandomDevice' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "traverseStack")) Module["traverseStack"] = () => abort("'traverseStack' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "convertFrameToPC")) Module["convertFrameToPC"] = () => abort("'convertFrameToPC' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "UNWIND_CACHE")) Module["UNWIND_CACHE"] = () => abort("'UNWIND_CACHE' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "saveInUnwindCache")) Module["saveInUnwindCache"] = () => abort("'saveInUnwindCache' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "convertPCtoSourceLocation")) Module["convertPCtoSourceLocation"] = () => abort("'convertPCtoSourceLocation' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "readAsmConstArgsArray")) Module["readAsmConstArgsArray"] = () => abort("'readAsmConstArgsArray' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "readAsmConstArgs")) Module["readAsmConstArgs"] = () => abort("'readAsmConstArgs' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "mainThreadEM_ASM")) Module["mainThreadEM_ASM"] = () => abort("'mainThreadEM_ASM' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "jstoi_q")) Module["jstoi_q"] = () => abort("'jstoi_q' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "jstoi_s")) Module["jstoi_s"] = () => abort("'jstoi_s' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getExecutableName")) Module["getExecutableName"] = () => abort("'getExecutableName' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "listenOnce")) Module["listenOnce"] = () => abort("'listenOnce' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "autoResumeAudioContext")) Module["autoResumeAudioContext"] = () => abort("'autoResumeAudioContext' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "dynCallLegacy")) Module["dynCallLegacy"] = () => abort("'dynCallLegacy' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getDynCaller")) Module["getDynCaller"] = () => abort("'getDynCaller' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "dynCall")) Module["dynCall"] = () => abort("'dynCall' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "callRuntimeCallbacks")) Module["callRuntimeCallbacks"] = () => abort("'callRuntimeCallbacks' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "wasmTableMirror")) Module["wasmTableMirror"] = () => abort("'wasmTableMirror' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setWasmTableEntry")) Module["setWasmTableEntry"] = () => abort("'setWasmTableEntry' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getWasmTableEntry")) Module["getWasmTableEntry"] = () => abort("'getWasmTableEntry' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "handleException")) Module["handleException"] = () => abort("'handleException' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "runtimeKeepalivePush")) Module["runtimeKeepalivePush"] = () => abort("'runtimeKeepalivePush' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "runtimeKeepalivePop")) Module["runtimeKeepalivePop"] = () => abort("'runtimeKeepalivePop' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "callUserCallback")) Module["callUserCallback"] = () => abort("'callUserCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "maybeExit")) Module["maybeExit"] = () => abort("'maybeExit' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "safeSetTimeout")) Module["safeSetTimeout"] = () => abort("'safeSetTimeout' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "asmjsMangle")) Module["asmjsMangle"] = () => abort("'asmjsMangle' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "asyncLoad")) Module["asyncLoad"] = () => abort("'asyncLoad' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "alignMemory")) Module["alignMemory"] = () => abort("'alignMemory' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "mmapAlloc")) Module["mmapAlloc"] = () => abort("'mmapAlloc' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "reallyNegative")) Module["reallyNegative"] = () => abort("'reallyNegative' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "unSign")) Module["unSign"] = () => abort("'unSign' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "reSign")) Module["reSign"] = () => abort("'reSign' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "formatString")) Module["formatString"] = () => abort("'formatString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "PATH")) Module["PATH"] = () => abort("'PATH' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "PATH_FS")) Module["PATH_FS"] = () => abort("'PATH_FS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SYSCALLS")) Module["SYSCALLS"] = () => abort("'SYSCALLS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getSocketFromFD")) Module["getSocketFromFD"] = () => abort("'getSocketFromFD' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getSocketAddress")) Module["getSocketAddress"] = () => abort("'getSocketAddress' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "JSEvents")) Module["JSEvents"] = () => abort("'JSEvents' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerKeyEventCallback")) Module["registerKeyEventCallback"] = () => abort("'registerKeyEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "specialHTMLTargets")) Module["specialHTMLTargets"] = () => abort("'specialHTMLTargets' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "maybeCStringToJsString")) Module["maybeCStringToJsString"] = () => abort("'maybeCStringToJsString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "findEventTarget")) Module["findEventTarget"] = () => abort("'findEventTarget' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "findCanvasEventTarget")) Module["findCanvasEventTarget"] = () => abort("'findCanvasEventTarget' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getBoundingClientRect")) Module["getBoundingClientRect"] = () => abort("'getBoundingClientRect' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillMouseEventData")) Module["fillMouseEventData"] = () => abort("'fillMouseEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerMouseEventCallback")) Module["registerMouseEventCallback"] = () => abort("'registerMouseEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerWheelEventCallback")) Module["registerWheelEventCallback"] = () => abort("'registerWheelEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerUiEventCallback")) Module["registerUiEventCallback"] = () => abort("'registerUiEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerFocusEventCallback")) Module["registerFocusEventCallback"] = () => abort("'registerFocusEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillDeviceOrientationEventData")) Module["fillDeviceOrientationEventData"] = () => abort("'fillDeviceOrientationEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerDeviceOrientationEventCallback")) Module["registerDeviceOrientationEventCallback"] = () => abort("'registerDeviceOrientationEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillDeviceMotionEventData")) Module["fillDeviceMotionEventData"] = () => abort("'fillDeviceMotionEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerDeviceMotionEventCallback")) Module["registerDeviceMotionEventCallback"] = () => abort("'registerDeviceMotionEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "screenOrientation")) Module["screenOrientation"] = () => abort("'screenOrientation' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillOrientationChangeEventData")) Module["fillOrientationChangeEventData"] = () => abort("'fillOrientationChangeEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerOrientationChangeEventCallback")) Module["registerOrientationChangeEventCallback"] = () => abort("'registerOrientationChangeEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillFullscreenChangeEventData")) Module["fillFullscreenChangeEventData"] = () => abort("'fillFullscreenChangeEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerFullscreenChangeEventCallback")) Module["registerFullscreenChangeEventCallback"] = () => abort("'registerFullscreenChangeEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerRestoreOldStyle")) Module["registerRestoreOldStyle"] = () => abort("'registerRestoreOldStyle' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "hideEverythingExceptGivenElement")) Module["hideEverythingExceptGivenElement"] = () => abort("'hideEverythingExceptGivenElement' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "restoreHiddenElements")) Module["restoreHiddenElements"] = () => abort("'restoreHiddenElements' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setLetterbox")) Module["setLetterbox"] = () => abort("'setLetterbox' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "currentFullscreenStrategy")) Module["currentFullscreenStrategy"] = () => abort("'currentFullscreenStrategy' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "restoreOldWindowedStyle")) Module["restoreOldWindowedStyle"] = () => abort("'restoreOldWindowedStyle' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "softFullscreenResizeWebGLRenderTarget")) Module["softFullscreenResizeWebGLRenderTarget"] = () => abort("'softFullscreenResizeWebGLRenderTarget' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "doRequestFullscreen")) Module["doRequestFullscreen"] = () => abort("'doRequestFullscreen' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillPointerlockChangeEventData")) Module["fillPointerlockChangeEventData"] = () => abort("'fillPointerlockChangeEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerPointerlockChangeEventCallback")) Module["registerPointerlockChangeEventCallback"] = () => abort("'registerPointerlockChangeEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerPointerlockErrorEventCallback")) Module["registerPointerlockErrorEventCallback"] = () => abort("'registerPointerlockErrorEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "requestPointerLock")) Module["requestPointerLock"] = () => abort("'requestPointerLock' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillVisibilityChangeEventData")) Module["fillVisibilityChangeEventData"] = () => abort("'fillVisibilityChangeEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerVisibilityChangeEventCallback")) Module["registerVisibilityChangeEventCallback"] = () => abort("'registerVisibilityChangeEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerTouchEventCallback")) Module["registerTouchEventCallback"] = () => abort("'registerTouchEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillGamepadEventData")) Module["fillGamepadEventData"] = () => abort("'fillGamepadEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerGamepadEventCallback")) Module["registerGamepadEventCallback"] = () => abort("'registerGamepadEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerBeforeUnloadEventCallback")) Module["registerBeforeUnloadEventCallback"] = () => abort("'registerBeforeUnloadEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "fillBatteryEventData")) Module["fillBatteryEventData"] = () => abort("'fillBatteryEventData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "battery")) Module["battery"] = () => abort("'battery' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "registerBatteryEventCallback")) Module["registerBatteryEventCallback"] = () => abort("'registerBatteryEventCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setCanvasElementSize")) Module["setCanvasElementSize"] = () => abort("'setCanvasElementSize' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getCanvasElementSize")) Module["getCanvasElementSize"] = () => abort("'getCanvasElementSize' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "demangle")) Module["demangle"] = () => abort("'demangle' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "demangleAll")) Module["demangleAll"] = () => abort("'demangleAll' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "jsStackTrace")) Module["jsStackTrace"] = () => abort("'jsStackTrace' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stackTrace")) Module["stackTrace"] = () => abort("'stackTrace' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getEnvStrings")) Module["getEnvStrings"] = () => abort("'getEnvStrings' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "checkWasiClock")) Module["checkWasiClock"] = () => abort("'checkWasiClock' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeI53ToI64")) Module["writeI53ToI64"] = () => abort("'writeI53ToI64' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeI53ToI64Clamped")) Module["writeI53ToI64Clamped"] = () => abort("'writeI53ToI64Clamped' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeI53ToI64Signaling")) Module["writeI53ToI64Signaling"] = () => abort("'writeI53ToI64Signaling' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeI53ToU64Clamped")) Module["writeI53ToU64Clamped"] = () => abort("'writeI53ToU64Clamped' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeI53ToU64Signaling")) Module["writeI53ToU64Signaling"] = () => abort("'writeI53ToU64Signaling' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "readI53FromI64")) Module["readI53FromI64"] = () => abort("'readI53FromI64' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "readI53FromU64")) Module["readI53FromU64"] = () => abort("'readI53FromU64' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "convertI32PairToI53")) Module["convertI32PairToI53"] = () => abort("'convertI32PairToI53' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "convertU32PairToI53")) Module["convertU32PairToI53"] = () => abort("'convertU32PairToI53' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setImmediateWrapped")) Module["setImmediateWrapped"] = () => abort("'setImmediateWrapped' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "clearImmediateWrapped")) Module["clearImmediateWrapped"] = () => abort("'clearImmediateWrapped' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "polyfillSetImmediate")) Module["polyfillSetImmediate"] = () => abort("'polyfillSetImmediate' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "uncaughtExceptionCount")) Module["uncaughtExceptionCount"] = () => abort("'uncaughtExceptionCount' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "exceptionLast")) Module["exceptionLast"] = () => abort("'exceptionLast' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "exceptionCaught")) Module["exceptionCaught"] = () => abort("'exceptionCaught' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "ExceptionInfo")) Module["ExceptionInfo"] = () => abort("'ExceptionInfo' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "CatchInfo")) Module["CatchInfo"] = () => abort("'CatchInfo' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "exception_addRef")) Module["exception_addRef"] = () => abort("'exception_addRef' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "exception_decRef")) Module["exception_decRef"] = () => abort("'exception_decRef' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "Browser")) Module["Browser"] = () => abort("'Browser' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "funcWrappers")) Module["funcWrappers"] = () => abort("'funcWrappers' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "getFuncWrapper")) Module["getFuncWrapper"] = () => abort("'getFuncWrapper' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "setMainLoop")) Module["setMainLoop"] = () => abort("'setMainLoop' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "wget")) Module["wget"] = () => abort("'wget' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "FS")) Module["FS"] = () => abort("'FS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "MEMFS")) Module["MEMFS"] = () => abort("'MEMFS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "TTY")) Module["TTY"] = () => abort("'TTY' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "PIPEFS")) Module["PIPEFS"] = () => abort("'PIPEFS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SOCKFS")) Module["SOCKFS"] = () => abort("'SOCKFS' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "_setNetworkCallback")) Module["_setNetworkCallback"] = () => abort("'_setNetworkCallback' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "tempFixedLengthArray")) Module["tempFixedLengthArray"] = () => abort("'tempFixedLengthArray' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "miniTempWebGLFloatBuffers")) Module["miniTempWebGLFloatBuffers"] = () => abort("'miniTempWebGLFloatBuffers' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "heapObjectForWebGLType")) Module["heapObjectForWebGLType"] = () => abort("'heapObjectForWebGLType' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "heapAccessShiftForWebGLHeap")) Module["heapAccessShiftForWebGLHeap"] = () => abort("'heapAccessShiftForWebGLHeap' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "GL")) Module["GL"] = () => abort("'GL' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGet")) Module["emscriptenWebGLGet"] = () => abort("'emscriptenWebGLGet' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "computeUnpackAlignedImageSize")) Module["computeUnpackAlignedImageSize"] = () => abort("'computeUnpackAlignedImageSize' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetTexPixelData")) Module["emscriptenWebGLGetTexPixelData"] = () => abort("'emscriptenWebGLGetTexPixelData' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetUniform")) Module["emscriptenWebGLGetUniform"] = () => abort("'emscriptenWebGLGetUniform' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "webglGetUniformLocation")) Module["webglGetUniformLocation"] = () => abort("'webglGetUniformLocation' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "webglPrepareUniformLocationsBeforeFirstUse")) Module["webglPrepareUniformLocationsBeforeFirstUse"] = () => abort("'webglPrepareUniformLocationsBeforeFirstUse' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "webglGetLeftBracePos")) Module["webglGetLeftBracePos"] = () => abort("'webglGetLeftBracePos' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetVertexAttrib")) Module["emscriptenWebGLGetVertexAttrib"] = () => abort("'emscriptenWebGLGetVertexAttrib' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "writeGLArray")) Module["writeGLArray"] = () => abort("'writeGLArray' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "AL")) Module["AL"] = () => abort("'AL' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SDL_unicode")) Module["SDL_unicode"] = () => abort("'SDL_unicode' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SDL_ttfContext")) Module["SDL_ttfContext"] = () => abort("'SDL_ttfContext' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SDL_audio")) Module["SDL_audio"] = () => abort("'SDL_audio' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SDL")) Module["SDL"] = () => abort("'SDL' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "SDL_gfx")) Module["SDL_gfx"] = () => abort("'SDL_gfx' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "GLUT")) Module["GLUT"] = () => abort("'GLUT' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "EGL")) Module["EGL"] = () => abort("'EGL' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "GLFW_Window")) Module["GLFW_Window"] = () => abort("'GLFW_Window' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "GLFW")) Module["GLFW"] = () => abort("'GLFW' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "GLEW")) Module["GLEW"] = () => abort("'GLEW' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "IDBStore")) Module["IDBStore"] = () => abort("'IDBStore' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "runAndAbortIfError")) Module["runAndAbortIfError"] = () => abort("'runAndAbortIfError' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "warnOnce")) Module["warnOnce"] = () => abort("'warnOnce' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stackSave")) Module["stackSave"] = () => abort("'stackSave' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stackRestore")) Module["stackRestore"] = () => abort("'stackRestore' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stackAlloc")) Module["stackAlloc"] = () => abort("'stackAlloc' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "AsciiToString")) Module["AsciiToString"] = () => abort("'AsciiToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToAscii")) Module["stringToAscii"] = () => abort("'stringToAscii' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "UTF16ToString")) Module["UTF16ToString"] = () => abort("'UTF16ToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToUTF16")) Module["stringToUTF16"] = () => abort("'stringToUTF16' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "lengthBytesUTF16")) Module["lengthBytesUTF16"] = () => abort("'lengthBytesUTF16' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "UTF32ToString")) Module["UTF32ToString"] = () => abort("'UTF32ToString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "stringToUTF32")) Module["stringToUTF32"] = () => abort("'stringToUTF32' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "lengthBytesUTF32")) Module["lengthBytesUTF32"] = () => abort("'lengthBytesUTF32' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "allocateUTF8")) Module["allocateUTF8"] = () => abort("'allocateUTF8' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "allocateUTF8OnStack")) Module["allocateUTF8OnStack"] = () => abort("'allocateUTF8OnStack' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-Module["writeStackCookie"] = writeStackCookie;
-Module["checkStackCookie"] = checkStackCookie;
-if (!Object.getOwnPropertyDescriptor(Module, "intArrayFromBase64")) Module["intArrayFromBase64"] = () => abort("'intArrayFromBase64' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "tryParseAsDataURI")) Module["tryParseAsDataURI"] = () => abort("'tryParseAsDataURI' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)");
-if (!Object.getOwnPropertyDescriptor(Module, "ALLOC_NORMAL")) Object.defineProperty(Module, "ALLOC_NORMAL", { configurable: true, get: function() { abort("'ALLOC_NORMAL' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
-if (!Object.getOwnPropertyDescriptor(Module, "ALLOC_STACK")) Object.defineProperty(Module, "ALLOC_STACK", { configurable: true, get: function() { abort("'ALLOC_STACK' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)") } });
-
 var calledRun;
-
-/**
- * @constructor
- * @this {ExitStatus}
- */
-function ExitStatus(status) {
-  this.name = "ExitStatus";
-  this.message = "Program terminated with exit(" + status + ")";
-  this.status = status;
-}
-
-var calledMain = false;
-
-dependenciesFulfilled = function runCaller() {
-  // If run has never been called, and we should call run (INVOKE_RUN is true, and Module.noInitialRun is not false)
-  if (!calledRun) run();
-  if (!calledRun) dependenciesFulfilled = runCaller; // try this again later, after new deps are fulfilled
-};
 
 function stackCheckInit() {
   // This is normally called automatically during __wasm_call_ctors but need to
   // get these values before even running any of the ctors so we call it redundantly
   // here.
-  // TODO(sbc): Move writeStackCookie to native to to avoid this.
   _emscripten_stack_init();
+  // TODO(sbc): Move writeStackCookie to native to to avoid this.
   writeStackCookie();
 }
 
-/** @type {function(Array=)} */
-function run(args) {
-  args = args || arguments_;
-
-  if (runDependencies > 0) {
-    return;
-  }
+function run() {
 
   stackCheckInit();
 
   preRun();
 
-  // a preRun added a dependency, run will be called later
-  if (runDependencies > 0) {
-    return;
-  }
-
   function doRun() {
     // run may have just been called through dependencies being fulfilled just in this very frame,
     // or while the async setStatus time below was happening
-    if (calledRun) return;
+    assert(!calledRun);
     calledRun = true;
     Module['calledRun'] = true;
 
@@ -5322,8 +2273,9 @@ function run(args) {
 
     initRuntime();
 
-    readyPromiseResolve(Module);
-    if (Module['onRuntimeInitialized']) Module['onRuntimeInitialized']();
+    readyPromiseResolve?.(Module);
+    Module['onRuntimeInitialized']?.();
+    consumedModuleProp('onRuntimeInitialized');
 
     assert(!Module['_main'], 'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]');
 
@@ -5332,10 +2284,8 @@ function run(args) {
 
   if (Module['setStatus']) {
     Module['setStatus']('Running...');
-    setTimeout(function() {
-      setTimeout(function() {
-        Module['setStatus']('');
-      }, 1);
+    setTimeout(() => {
+      setTimeout(() => Module['setStatus'](''), 1);
       doRun();
     }, 1);
   } else
@@ -5344,7 +2294,6 @@ function run(args) {
   }
   checkStackCookie();
 }
-Module['run'] = run;
 
 function checkUnflushedContent() {
   // Compiler settings do not allow exiting the runtime, so flushing
@@ -5365,76 +2314,65 @@ function checkUnflushedContent() {
     has = true;
   }
   try { // it doesn't matter if it fails
-    ___stdio_exit();
-    // also flush in the JS FS layer
-    ['stdout', 'stderr'].forEach(function(name) {
-      var info = FS.analyzePath('/dev/' + name);
-      if (!info) return;
-      var stream = info.object;
-      var rdev = stream.rdev;
-      var tty = TTY.ttys[rdev];
-      if (tty && tty.output && tty.output.length) {
-        has = true;
-      }
-    });
+    flush_NO_FILESYSTEM();
   } catch(e) {}
   out = oldOut;
   err = oldErr;
   if (has) {
-    warnOnce('stdio streams had content in them that was not flushed. you should set EXIT_RUNTIME to 1 (see the FAQ), or make sure to emit a newline when you printf etc.');
+    warnOnce('stdio streams had content in them that was not flushed. you should set EXIT_RUNTIME to 1 (see the Emscripten FAQ), or make sure to emit a newline when you printf etc.');
+    warnOnce('(this may also be due to not including full filesystem support - try building with -sFORCE_FILESYSTEM)');
   }
 }
 
-/** @param {boolean|number=} implicit */
-function exit(status, implicit) {
-  EXITSTATUS = status;
+var wasmExports;
 
-  // Skip this check if the runtime is being kept alive deliberately.
-  // For example if `exit_with_live_runtime` is called.
-  if (!runtimeKeepaliveCounter) {
-    checkUnflushedContent();
-  }
-
-  if (keepRuntimeAlive()) {
-    // if exit() was called, we may warn the user if the runtime isn't actually being shut down
-    if (!implicit) {
-      var msg = 'program exited (with status: ' + status + '), but EXIT_RUNTIME is not set, so halting execution but not exiting the runtime or preventing further async execution (build with EXIT_RUNTIME=1, if you want a true shutdown)';
-      readyPromiseReject(msg);
-      err(msg);
-    }
-  } else {
-    exitRuntime();
-  }
-
-  procExit(status);
-}
-
-function procExit(code) {
-  EXITSTATUS = code;
-  if (!keepRuntimeAlive()) {
-    if (Module['onExit']) Module['onExit'](code);
-    ABORT = true;
-  }
-  quit_(code, new ExitStatus(code));
-}
-
-if (Module['preInit']) {
-  if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
-  while (Module['preInit'].length > 0) {
-    Module['preInit'].pop()();
-  }
-}
+// In modularize mode the generated code is within a factory function so we
+// can use await here (since it's not top-level-await).
+wasmExports = await (createWasm());
 
 run();
 
+// end include: postamble.js
 
+// include: postamble_modularize.js
+// In MODULARIZE mode we wrap the generated code in a factory function
+// and return either the Module itself, or a promise of the module.
+//
+// We assign to the `moduleRtn` global here and configure closure to see
+// this as an extern so it won't get minified.
 
-
-
-
-
-  return Module.ready
+if (runtimeInitialized)  {
+  moduleRtn = Module;
+} else {
+  // Set up the promise that indicates the Module is initialized
+  moduleRtn = new Promise((resolve, reject) => {
+    readyPromiseResolve = resolve;
+    readyPromiseReject = reject;
+  });
 }
-);
-})();
+
+// Assertion for attempting to access module properties on the incoming
+// moduleArg.  In the past we used this object as the prototype of the module
+// and assigned properties to it, but now we return a distinct object.  This
+// keeps the instance private until it is ready (i.e the promise has been
+// resolved).
+for (const prop of Object.keys(Module)) {
+  if (!(prop in moduleArg)) {
+    Object.defineProperty(moduleArg, prop, {
+      configurable: true,
+      get() {
+        abort(`Access to module property ('${prop}') is no longer possible via the module constructor argument; Instead, use the result of the module constructor.`)
+      }
+    });
+  }
+}
+// end include: postamble_modularize.js
+
+
+
+  return moduleRtn;
+}
+
+// Export using a UMD style export, or ES6 exports if selected
 export default Module;
+

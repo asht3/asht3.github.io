@@ -1037,7 +1037,7 @@ export class MastermindManager {
         const guessCopy = [...guess];
         const secretCopy = [...secret];
         
-        // First pass: count correct positions
+        // Count correct positions
         for (let i = 0; i < 4; i++) {
             if (guessCopy[i] === secretCopy[i]) {
                 correct++;
@@ -1046,7 +1046,7 @@ export class MastermindManager {
             }
         }
         
-        // Second pass: count misplaced
+        // Count misplaced
         for (let i = 0; i < 4; i++) {
             if (guessCopy[i] !== -1) { // Not already counted as correct
                 const matchIndex = secretCopy.indexOf(guessCopy[i]);
@@ -1061,85 +1061,6 @@ export class MastermindManager {
         
         return { correct, misplaced };
     }
-    // calculateFeedback(guess, secret) {
-    //     if (!guess || !secret || guess.length !== 4 || secret.length !== 4) {
-    //         console.error('Invalid input to calculateFeedback:', { guess, secret });
-    //         return { correct: 0, misplaced: 0 };
-    //     }
-        
-    //     let correct = 0;
-    //     let misplaced = 0;
-        
-    //     // Create tracking arrays
-    //     const secretChecked = new Array(4).fill(false);
-    //     const guessChecked = new Array(4).fill(false);
-        
-    //     // Count exact matches (correct position)
-    //     for (let i = 0; i < 4; i++) {
-    //         if (guess[i] === secret[i]) {
-    //             correct++;
-    //             secretChecked[i] = true;  // Mark this position as used
-    //             guessChecked[i] = true;   // Mark this position as used
-    //         }
-    //     }
-        
-    //     // Count misplaced (correct number, wrong position)
-    //     for (let i = 0; i < 4; i++) {
-    //         if (!guessChecked[i]) {  // Skip if already counted as correct
-    //             for (let j = 0; j < 4; j++) {
-    //                 // Check if this secret position hasn't been used AND matches the guess
-    //                 if (!secretChecked[j] && guess[i] === secret[j]) {
-    //                     misplaced++;
-    //                     secretChecked[j] = true;  // Mark this secret position as used
-    //                     guessChecked[i] = true;   // Mark this guess position as used
-    //                     break;  // Found a match, move to next guess
-    //                 }
-    //             }
-    //         }
-    //     }
-        
-    //     console.log(`Feedback: Secret=${secret}, Guess=${guess}, Result: ${correct} correct, ${misplaced} misplaced`);
-        
-    //     return { correct, misplaced };
-    // }
-
-    // addToHistory(guess, feedback) {
-    //     const history = document.getElementById('guess-history');
-    //     const historyItem = document.createElement('div');
-    //     historyItem.className = 'history-item';
-        
-    //     // Create guess display
-    //     const guessDisplay = document.createElement('div');
-    //     guessDisplay.className = 'history-guess';
-    //     guess.forEach(value => {
-    //         const digit = document.createElement('span');
-    //         digit.className = 'history-digit';
-    //         digit.textContent = value;
-    //         digit.style.background = this.getColorForDigit(value);
-    //         guessDisplay.appendChild(digit);
-    //     });
-        
-    //     // Create feedback display
-    //     const feedbackDisplay = document.createElement('div');
-    //     feedbackDisplay.className = 'history-feedback';
-    //     for (let i = 0; i < feedback.correct; i++) {
-    //         const dot = document.createElement('span');
-    //         dot.className = 'feedback-dot correct';
-    //         feedbackDisplay.appendChild(dot);
-    //     }
-    //     for (let i = 0; i < feedback.misplaced; i++) {
-    //         const dot = document.createElement('span');
-    //         dot.className = 'feedback-dot misplaced';
-    //         feedbackDisplay.appendChild(dot);
-    //     }
-        
-    //     historyItem.appendChild(guessDisplay);
-    //     historyItem.appendChild(feedbackDisplay);
-    //     history.appendChild(historyItem);
-        
-    //     // Scroll to bottom
-    //     history.scrollTop = history.scrollHeight;
-    // }
 
     addToHistory(guess, feedback) {
         const history = document.getElementById('guess-history');
