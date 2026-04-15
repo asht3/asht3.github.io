@@ -5,7 +5,7 @@ export const chip8App = {
             <div class="chip8-header">
                 <h2>CHIP-8 EMULATOR v1.0</h2>
                 <div class="chip8-controls">
-                    <button id="chip8-load" class="cyber-button" style="width: 50% !important;">LOAD ROM (COMING SOON)</button>
+                    <!--<button id="chip8-load" class="cyber-button" style="width: 50% !important;">LOAD ROM (COMING SOON)</button>-->
                     <!-- <button id="chip8-pause" class="cyber-button">PAUSE</button> -->
                     <select id="chip8-rom-select" class="cyber-select">
                         <option value="">Select ROM...</option>
@@ -27,7 +27,7 @@ export const chip8App = {
             </div>
             
             <div class="chip8-info">
-                <p style="text-align: center; color: var(--neon-pink); font-weight: bold;">>>WARNING: TOGGLE OFF BINARY RAIN BACKGROUND FOR BEST PERFORMANCE<<</p>
+                <p class="chip8-tip">>>TIP: TOGGLE OFF BINARY RAIN BACKGROUND FOR BEST PERFORMANCE<<</p>
                 <br>
                 <h3>> CONTROLS:</h3>
                 <div class="controls-grid">
@@ -38,8 +38,7 @@ export const chip8App = {
                 </div>
                 <div class="chip8-instructions">
                     <p>▶ Use keyboard for CHIP-8 input</p>
-                    <p>▶ Load ROM from dropdown or file</p>
-                    <p>▶ ESC to exit fullscreen</p>
+                    <p>▶ Load ROM from dropdown</p>
                 </div>
             </div>
         </div>

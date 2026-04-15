@@ -58,7 +58,11 @@ export const assetsApp = {
                     <div class="credit-title">CHIP-8 ROMs</div>
                     <div class="credit-description">Classic CHIP-8 games and demos</div>
                     <div class="credit-source">Source: Public Domain / Various Authors</div>
-                    <div class="credit-license">License: Public Domain</div>
+                    <div class="credit-source">
+                        <a href="https://johnearnest.github.io/chip8Archive/?sort=platform">Chip-8 Archive,</a>
+                        <a href="https://github.com/Timendus/chip8-test-suite">Chip-8 Test Suite,</a>
+                        <a href="https://github.com/kripod/chip8-roms">Roms Repo</a>
+                    </div>
                 </div>
             </div>
 

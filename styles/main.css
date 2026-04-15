@@ -724,7 +724,7 @@ body {
 
 .project-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 15px;
     margin-top: 15px;
 }
@@ -744,6 +744,13 @@ body {
 .project-card:hover {
     box-shadow: var(--glow-blue);
     transform: translateY(-2px);
+}
+
+.project-card img {
+    height: 180px;
+    width: auto;
+    border: 1px solid var(--neon-blue);
+    border-radius: 5px;
 }
 
 .description-container {
@@ -787,7 +794,6 @@ body {
     text-align: center;
     margin-top: 5px;
     padding-top: 5px;
-    /* border-top: 1px dotted rgba(0, 243, 255, 0.2); */
 }
 
 .view-toggle,
@@ -848,6 +854,7 @@ body {
 .project-link:hover {
     background: rgba(0, 243, 255, 0.2);
     box-shadow: var(--glow-blue);
+    color: var(--glow-blue);
 }
 
 .skills-grid {
@@ -1050,6 +1057,13 @@ body {
     color: var(--neon-blue);
     text-shadow: var(--glow-blue);
     margin-bottom: 10px;
+    text-align: center;
+}
+
+.chip8-tip {
+    text-align: center;
+    color: var(--neon-pink);
+    font-weight: bold;
 }
 
 .chip8-controls {
@@ -1532,6 +1546,7 @@ body {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     border: 1px solid rgba(0, 243, 255, 0.3);
+    justify-items: center;
 }
 
 @media (min-width: 480px) {
@@ -1547,6 +1562,10 @@ body {
     cursor: pointer;
     position: relative;
     transition: all 0.3s ease;
+    width: 100%;
+    height: 100%;
+    max-width: 60px;
+    max-height: 60px;
 }
 
 .color-btn:hover {
@@ -1937,9 +1956,16 @@ body {
 
     .desktop-icons {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        padding: 20px 10px;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        /* Code for 2 rows and smaller spacing between apps*/
+        /* gap: 30px 10px;
+        /* padding: 20px 10px; */
+        gap: 40px 40px;
+        padding: 20px 35px;
+    }
+
+    .icon-column {
+        display: contents;
     }
 
     /* Taskbar mobile improvements */
@@ -2043,8 +2069,13 @@ body {
     }
 
     /* Improve touch targets */
-    button, .icon, .taskbar-app/*, .mobile-control-button*/ {
+    button, .icon, .taskbar-app {
         min-height: 44px;
+    }
+
+    .typing-animation {
+        width: auto;
+        letter-spacing: 1px;
     }
 
     /* CHIP-8 emulator mobile adjustments */
@@ -2164,6 +2195,10 @@ body {
     
     .game-info {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .terminal-header {
+        display: block;
     }
     
     .history-digit {

@@ -22,7 +22,9 @@ export const skillsApp = {
             <div class="skill-item">Shell</div>
             <div class="skill-item">WordPress</div>
             <div class="skill-item">RenPy</div>
-            <div class="skill-item">Object-oriented Programming</div>        
+            <div class="skill-item">Object-oriented Programming</div>
+            <div class="skill-item">WebAssembly</div>
+            <div class="skill-item">Emscripten</div>  
         </div>
         <br>
     `,
