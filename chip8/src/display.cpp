@@ -17,39 +17,83 @@ void Display::set_draw_flag() {
 
 bool Display::draw_sprite(uint8_t x, uint8_t y, uint8_t* sprite, uint8_t height) {
     bool collision = false;
+    
+    // Wrap starting position
+    int start_x = x % WIDTH;
+    int start_y = y % HEIGHT;
+    
     for (int row = 0; row < height; row++) {
         uint8_t sprite_row = sprite[row];
+        int pixel_y = start_y + row;
+        
+        // Stop if below screen
+        if (pixel_y >= HEIGHT) {
+            break;
+        }
+        // Skip if above screen
+        if (pixel_y < 0) {
+            continue;
+        }
+        
         for (int col = 0; col < 8; col++) {
-            if ((sprite_row & (0x80 >> col)) != 0) { // Check if the bit is set
-                int px = (x + col) % WIDTH;
-                int py = (y + row) % HEIGHT;
-                if (xor_pixel(px, py)) {
-                    collision = true; // Collision detected
+            // Check if the current pixel (from left to right) should be drawn
+            if ((sprite_row & (0x80 >> col)) != 0) {
+                int pixel_x = start_x + col;
+                
+                // Stop if beyond right edge
+                if (pixel_x >= WIDTH) {
+                    break;
+                }
+                // Skip if left of screen
+                if (pixel_x < 0) {
+                    continue;
+                }
+                
+                if (xor_pixel(pixel_x, pixel_y)) {
+                    collision = true;
                 }
             }
         }
     }
+    
     draw_flag = true;
     return collision;
 }
 
 bool Display::get_pixel(uint8_t x, uint8_t y) const {
-    return pixels[x + y * WIDTH];
+    if (x >= WIDTH || y >= HEIGHT) {
+        return false;
+    }
+    return pixels[x + y * WIDTH] != 0;
 }
 
 void Display::set_pixel(uint8_t x, uint8_t y, bool value) {
-    pixels[x + y * WIDTH] = value;
+    if (x >= WIDTH || y >= HEIGHT) {
+        return;
+    }
+    pixels[x + y * WIDTH] = value ? 255 : 0;
 }
 
 bool Display::xor_pixel(uint8_t x, uint8_t y) {
+    if (x >= WIDTH || y >= HEIGHT) {
+        return false;
+    }
     int index = x + y * WIDTH;
-    bool old_value = pixels[index];
-    pixels[index] = pixels[index] ^ true;  // XOR with 1
-    return old_value && !pixels[index];    // Collision if was on and now off
+    bool was_set = pixels[index] != 0;  // Collision if pixel was already on
+    if (was_set) {
+        pixels[index] = 0;
+    } else {
+        pixels[index] = 255;
+    }
+    return was_set;  // Return true if there was a collision (pixel was on and turned off)
 }
 
 void Display::flip_pixel(uint8_t x, uint8_t y) {
-    pixels[x + y * WIDTH] = !pixels[x + y * WIDTH];
+    if (x >= WIDTH || y >= HEIGHT) {
+        return;
+    }
+    uint8_t& pixel = pixels[x + y * WIDTH];
+    pixel = (pixel == 0) ? 255 : 0;
 }
 
 bool Display::needs_redraw() {
@@ -58,6 +102,24 @@ bool Display::needs_redraw() {
 
 void Display::clear_redraw_flag() {
     draw_flag = false;
+}
+
+void Display::set_vblank() {
+    vblank_ready = true;
+    frame_blocked = false;
+}
+
+bool Display::consume_vblank() {
+    if (vblank_ready) {
+        vblank_ready = false;
+        return true;
+    }
+    frame_blocked = true;
+    return false;
+}
+
+bool Display::is_frame_blocked() {
+    return frame_blocked;
 }
 
 void Display::init_sdl(const char* title = "CHIP-8", int scale = 10) {

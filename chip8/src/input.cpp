@@ -14,34 +14,27 @@ void Input::reset() {
     wait_register = 0xFF; // Invalid register index
 }
 
-void Input::handle_input_sdl(const SDL_Event& event, Input& chip8_input) {
+void Input::handle_input_sdl(const SDL_Event& event) {
     if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
         bool pressed = (event.type == SDL_KEYDOWN);
         
         switch (event.key.keysym.sym) {
-            // Row 1: 1 2 3 4
-            case SDLK_1: chip8_input.set_key(0x1, pressed); break;
-            case SDLK_2: chip8_input.set_key(0x2, pressed); break;
-            case SDLK_3: chip8_input.set_key(0x3, pressed); break;
-            case SDLK_4: chip8_input.set_key(0xC, pressed); break;
-            
-            // Row 2: Q W E R
-            case SDLK_q: chip8_input.set_key(0x4, pressed); break;
-            case SDLK_w: chip8_input.set_key(0x5, pressed); break;
-            case SDLK_e: chip8_input.set_key(0x6, pressed); break;
-            case SDLK_r: chip8_input.set_key(0xD, pressed); break;
-            
-            // Row 3: A S D F
-            case SDLK_a: chip8_input.set_key(0x7, pressed); break;
-            case SDLK_s: chip8_input.set_key(0x8, pressed); break;
-            case SDLK_d: chip8_input.set_key(0x9, pressed); break;
-            case SDLK_f: chip8_input.set_key(0xE, pressed); break;
-            
-            // Row 4: Z X C V
-            case SDLK_z: chip8_input.set_key(0xA, pressed); break;
-            case SDLK_x: chip8_input.set_key(0x0, pressed); break;
-            case SDLK_c: chip8_input.set_key(0xB, pressed); break;
-            case SDLK_v: chip8_input.set_key(0xF, pressed); break;
+            case SDLK_1: set_key(0x1, pressed); break;
+            case SDLK_2: set_key(0x2, pressed); break;
+            case SDLK_3: set_key(0x3, pressed); break;
+            case SDLK_4: set_key(0xC, pressed); break;
+            case SDLK_q: set_key(0x4, pressed); break;
+            case SDLK_w: set_key(0x5, pressed); break;
+            case SDLK_e: set_key(0x6, pressed); break;
+            case SDLK_r: set_key(0xD, pressed); break;
+            case SDLK_a: set_key(0x7, pressed); break;
+            case SDLK_s: set_key(0x8, pressed); break;
+            case SDLK_d: set_key(0x9, pressed); break;
+            case SDLK_f: set_key(0xE, pressed); break;
+            case SDLK_z: set_key(0xA, pressed); break;
+            case SDLK_x: set_key(0x0, pressed); break;
+            case SDLK_c: set_key(0xB, pressed); break;
+            case SDLK_v: set_key(0xF, pressed); break;
         }
     }
 }

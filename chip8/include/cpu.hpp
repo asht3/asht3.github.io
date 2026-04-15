@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
-#include "../include/memory.hpp"
-#include "../include/display.hpp"
-#include "../include/input.hpp"
+#include "memory.hpp"
+#include "display.hpp"
+#include "input.hpp"
 
 class CPU {
     private:
@@ -19,14 +19,23 @@ class CPU {
         uint16_t fetch_opcode(Memory& memory);
 
         // Opcode handlers
+        // Program flow
         void OP_00E0(Display& display);                   // Clear screen
         void OP_00EE();                                   // Return from subroutine
         void OP_1nnn(uint16_t opcode);                    // Jump to address
         void OP_2nnn(uint16_t opcode);                    // Call subroutine
+        void OP_Bnnn(uint16_t opcode);                    // Jump to V0 + nnn
+
+        // Conditional skips
         void OP_3xkk(uint16_t opcode);                    // Skip if Vx == kk
         void OP_4xkk(uint16_t opcode);                    // Skip if Vx != kk
+        void OP_9xy0(uint16_t opcode);                    // Skip if Vx != Vy
+        void OP_Ex9E(uint16_t opcode, Input& keys);        // Skip if key pressed
+        void OP_ExA1(uint16_t opcode, Input& keys);        // Skip if key not pressed
+
         void OP_5xy0(uint16_t opcode);                    // Skip if Vx == Vy
-        void OP_6xkk(uint16_t opcode);                    // Set Vx = kk
+
+        // Arithmetic and movement logic
         void OP_7xkk(uint16_t opcode);                    // Add kk to Vx
         void OP_8xy0(uint16_t opcode);                    // Set Vx = Vy
         void OP_8xy1(uint16_t opcode);                    // Set Vx = Vx OR Vy
@@ -37,13 +46,11 @@ class CPU {
         void OP_8xy6(uint16_t opcode);                    // Shift Vx right
         void OP_8xy7(uint16_t opcode);                    // Set Vx = Vy - Vx
         void OP_8xyE(uint16_t opcode);                    // Shift Vx left
-        void OP_9xy0(uint16_t opcode);                    // Skip if Vx != Vy
-        void OP_Annn(uint16_t opcode);                    // Set I = nnn
-        void OP_Bnnn(uint16_t opcode);                    // Jump to V0 + nnn
+
         void OP_Cxkk(uint16_t opcode);                    // Set Vx = random byte AND kk
         void OP_Dxyn(Memory& memory, Display& display, uint16_t opcode);  // Draw sprite
-        void OP_Ex9E(uint16_t opcode, Input& keys);        // Skip if key pressed
-        void OP_ExA1(uint16_t opcode, Input& keys);        // Skip if key not pressed
+        
+        // Timer and sound
         void OP_Fx07(uint16_t opcode);                    // Set Vx = delay timer
         void OP_Fx0A(uint16_t opcode, Input& keys);        // Wait for key press
         void OP_Fx15(uint16_t opcode);                    // Set delay timer = Vx
@@ -51,6 +58,10 @@ class CPU {
         void OP_Fx1E(uint16_t opcode);                    // Set I = I + Vx
         void OP_Fx29(uint16_t opcode);                    // Set I to sprite address for character in Vx
         void OP_Fx33(uint16_t opcode, Memory& memory);   // Store BCD representation of Vx in memory
+
+        // Memory management
+        void OP_6xkk(uint16_t opcode);                    // Set Vx = kk
+        void OP_Annn(uint16_t opcode);                    // Set I = nnn
         void OP_Fx55(uint16_t opcode, Memory& memory);   // Store registers V0 through Vx in memory
         void OP_Fx65(uint16_t opcode, Memory& memory);   // Read registers V0 through Vx from memory
 
@@ -69,5 +80,4 @@ class CPU {
         void push_stack(uint16_t address);
         uint16_t pop_stack();
         bool is_waiting_for_key() const;
-        void handle_key_press(uint8_t key);
 };

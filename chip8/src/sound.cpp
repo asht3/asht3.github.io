@@ -58,6 +58,7 @@ void Sound::stop() {
 
 void Sound::cleanup() {
     if (device != 0) {
+        stop();
         SDL_CloseAudioDevice(device);
         device = 0;
     }

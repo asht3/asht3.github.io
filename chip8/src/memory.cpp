@@ -41,45 +41,6 @@ void Memory::write(uint16_t address, uint8_t value) {
     }
     memory[address] = value;
 }
-
-void Memory::load_rom(const unsigned char* data, int size, uint16_t start_address) {
-    printf("Loading ROM from memory: %d bytes at 0x%X\n", size, start_address);
-    
-    // Add detailed error checking
-    if (!data) {
-        printf("ERROR: data is null\n");
-        throw std::runtime_error("Null ROM data");
-    }
-    
-    if (size <= 0) {
-        printf("ERROR: size is %d\n", size);
-        throw std::runtime_error("Invalid ROM size");
-    }
-    
-    if (start_address >= 4096) {
-        printf("ERROR: start_address 0x%X out of bounds\n", start_address);
-        throw std::runtime_error("Start address out of bounds");
-    }
-    
-    if (start_address + size > 4096) {
-        printf("ERROR: ROM too large (0x%X + %d > 4096)\n", start_address, size);
-        throw std::runtime_error("ROM too large for memory");
-    }
-    
-    printf("Copying ROM data...\n");
-    
-    // Copy the ROM data to memory
-    for (int i = 0; i < size; i++) {
-        memory[start_address + i] = data[i];
-    }
-    
-    printf("ROM loaded successfully. First few bytes: ");
-    for (int i = 0; i < std::min(8, size); i++) {
-        printf("%02X ", memory[start_address + i]);
-    }
-    printf("\n");
-}
-
 void Memory::load_rom(const std::string& filename, uint16_t start_address) {
     // std::cout << "Opening: " << filename << std::endl;
     
@@ -111,14 +72,6 @@ void Memory::load_rom(const std::string& filename, uint16_t start_address) {
                                std::to_string(bytes_read) + " of " + 
                                std::to_string(file_size));
     }
-    
-    // Verify the load
-    // std::cout << "First 32 bytes of ROM:" << std::endl;
-    // for (int i = 0; i < 32; i++) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') 
-    //               << static_cast<int>(memory[start_address + i]) << " ";
-    //     if (i % 16 == 15) std::cout << std::endl;
-    // }
 }
 
 void Memory::load_fontset() {
@@ -141,7 +94,7 @@ void Memory::load_fontset() {
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-    // Start loading fontset at memory location 0x50 (80)
+    // Start loading fontset at memory location 0x50 (80 bytes)
     for (unsigned int i = 0; i < FONTSET_SIZE; ++i) {
         memory[0x50 + i] = fontset[i];
     }
