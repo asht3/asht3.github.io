@@ -204,26 +204,17 @@ export class Chip8Manager {
         if (!this.instance || !this.canvas) return;
 
         try {
-            console.log('Getting display data...');
-            
             // Get the display buffer pointer and dimensions
             const displayBufferPtr = this.instance._get_display_buffer();
             const width = this.instance._get_display_width();
             const height = this.instance._get_display_height();
-            
-            console.log('Display buffer pointer:', displayBufferPtr);
-            console.log('Dimensions:', width, 'x', height);
 
             if (!displayBufferPtr || !width || !height) {
-                console.log('No display data available');
                 return;
             }
 
             // Access the WebAssembly memory to get the actual pixel data
             const displayBuffer = new Uint8Array(this.instance.HEAPU8.buffer, displayBufferPtr, width * height);
-            
-            console.log('Actual pixel data:', displayBuffer);
-            console.log('First few pixels:', Array.from(displayBuffer.slice(0, 10)));
 
             // Scale up for better visibility
             const scaleX = this.canvas.width / width;
@@ -236,25 +227,20 @@ export class Chip8Manager {
             // Draw pixels
             this.ctx.fillStyle = '#00d9ffff';
 
-
-            let pixelsDrawn = 0;
-            
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const index = y * width + x;
-                    if (displayBuffer[index] !== 0) { // Check if pixel is non-zero
+                    // Check if pixel is non-zero (255 for on, 0 for off)
+                    if (displayBuffer[index] !== 0) {
                         this.ctx.fillRect(
                             x * scaleX,
                             y * scaleY,
                             Math.ceil(scaleX),
                             Math.ceil(scaleY)
                         );
-                        pixelsDrawn++;
                     }
                 }
             }
-            
-            console.log('Pixels drawn:', pixelsDrawn);
 
         } catch (error) {
             console.error('Error updating display:', error);
@@ -263,10 +249,9 @@ export class Chip8Manager {
 
     handleKeyDown(event) {
         if (!this.instance) return;
-        
+
         const keyMap = this.getKeyMap(event.key);
-        console.log('Key down:', event.key, '-> CHIP-8 key:', keyMap);
-        
+
         if (keyMap !== -1) {
             if (this.instance._key_down) {
                 this.instance._key_down(keyMap);
@@ -277,10 +262,9 @@ export class Chip8Manager {
 
     handleKeyUp(event) {
         if (!this.instance) return;
-        
+
         const keyMap = this.getKeyMap(event.key);
-        console.log('Key up:', event.key, '-> CHIP-8 key:', keyMap);
-        
+
         if (keyMap !== -1) {
             if (this.instance._key_up) {
                 this.instance._key_up(keyMap);
@@ -290,16 +274,14 @@ export class Chip8Manager {
     }
 
     getKeyMap(key) {
-        const keyMapping = {            
+        const keyMapping = {
             '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
             'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
             'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
             'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF,
         };
-        
-        const mapped = keyMapping[key.toLowerCase()] ?? -1;
-        console.log(`Key mapping: "${key}" -> 0x${mapped.toString(16)}`);
-        return mapped;
+
+        return keyMapping[key.toLowerCase()] ?? -1;
     }
 
     clearDisplay() {

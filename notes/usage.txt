@@ -1,0 +1,363 @@
+Usage:
+    Double-click desktop icons to open apps
+    Drag windows by their header
+    Resize from bottom-right corner
+    Use window controls (minimize, maximize, close)
+    Music player works through the Music Player app
+
+Users can:
+
+    Click the minimize button to hide a window and see it represented in the taskbar
+
+    Click the taskbar app button to restore a minimized window
+
+    Click the taskbar app button again to minimize a restored window
+
+    See visual feedback for active windows in the taskbar
+
+    Enjoy smooth hover effects on taskbar items
+
+The windows will maintain their position and size when minimized and restored, providing a proper desktop-like experience.
+
+Binary Rain Wallpaper:
+
+    Click the screen icon in the taskbar to toggle between binary rain and static background
+
+    Binary Rain ON: Animated falling code with glow effects
+
+    Binary Rain OFF: Static cyberpunk gradient background (better performance)
+
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASTERMIND | Cyberpunk Edition</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        :root {
+            --neon-cyan: #0ff0fc;
+            --neon-magenta: #ff00ff;
+            --neon-green: #00ff9d;
+            --dark-bg: #0a0a12;
+            --surface: #16162e;
+            --text: #e0e0ff;
+            --error: #ff5555;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .cyberpunk-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Glitch effect for header */
+        .cyber-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .cyber-header h1 {
+            font-size: 3em;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 
+                0 0 10px var(--neon-cyan),
+                0 0 20px var(--neon-cyan),
+                0 0 40px var(--neon-cyan);
+            animation: glitch 3s infinite;
+            position: relative;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        /* Terminal-style game area */
+        .cyber-terminal {
+            background: rgba(10, 10, 18, 0.8);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--neon-cyan), 
+                var(--neon-magenta), 
+                transparent);
+            animation: scanline 4s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Game status display */
+        .status-display {
+            background: var(--surface);
+            border: 1px solid var(--neon-green);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            min-height: 60px;
+            font-family: monospace;
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: var(--neon-green);
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .status-display::before {
+            content: '> ';
+            color: var(--neon-magenta);
+        }
+
+        /* Input area */
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .cyber-input {
+            flex: 1;
+            background: var(--surface);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-green);
+            padding: 12px 15px;
+            font-size: 1.2em;
+            font-family: monospace;
+            letter-spacing: 2px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .cyber-input:focus {
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        /* Cyberpunk buttons */
+        .cyber-button {
+            background: transparent;
+            border: 2px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-button:hover {
+            background: var(--neon-magenta);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-magenta);
+        }
+
+        .cyber-button.cyan {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .cyber-button.cyan:hover {
+            background: var(--neon-cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .cyber-button.green {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .cyber-button.green:hover {
+            background: var(--neon-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--neon-cyan);
+        }
+
+        .loading::after {
+            content: '▌';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Game info panel */
+        .game-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .info-card {
+            background: rgba(22, 22, 46, 0.6);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: var(--neon-green);
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card .value {
+            color: var(--neon-cyan);
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .cyber-header h1 {
+                font-size: 2em;
+            }
+            
+            .input-area {
+                flex-direction: column;
+            }
+            
+            .cyber-terminal {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyberpunk-container">
+        <div class="cyber-header">
+            <h1>MASTERMIND</h1>
+            <div style="color: var(--neon-magenta); font-size: 0.9em; letter-spacing: 2px;">
+                CYBERPUNK EDITION | WEBASSEMBLY PORT
+            </div>
+        </div>
+
+        <div class="cyber-terminal">
+            <div id="loading" class="loading">
+                INITIALIZING CYBERSYSTEM...
+            </div>
+
+            <div id="game-content" style="display: none;">
+                <!-- Game Status Display -->
+                <div class="status-display" id="game-output">
+                    SYSTEM READY<br>
+                    ENTER 4-DIGIT CODE (0-8)
+                </div>
+
+                <!-- Game Info -->
+                <div class="game-info">
+                    <div class="info-card">
+                        <h3>ATTEMPTS LEFT</h3>
+                        <div class="value" id="attempts-count">10</div>
+                    </div>
+                    <div class="info-card">
+                        <h3>CODE LENGTH</h3>
+                        <div class="value">4</div>
+                    </div>
+                    <div class="info-card">
+                        <h3>DIGIT RANGE</h3>
+                        <div class="value">0-8</div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <input type="text" 
+                           id="guess-input" 
+                           class="cyber-input" 
+                           maxlength="4" 
+                           placeholder="ENTER 4 DIGITS (0-8)"
+                           pattern="[0-8]{4}"
+                           title="Enter exactly 4 digits from 0 to 8">
+                    
+                    <button id="submit-guess" class="cyber-button cyan">
+                        SUBMIT
+                    </button>
+                </div>
+
+                <!-- Game Controls -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+                    <button id="new-game" class="cyber-button">
+                        NEW GAME
+                    </button>
+                    <button id="set-code" class="cyber-button green">
+                        SET SECRET
+                    </button>
+                    <button id="show-help" class="cyber-button">
+                        HELP
+                    </button>
+                </div>
+
+                <!-- Rules Panel -->
+                <div id="rules-panel" style="margin-top: 30px; display: none;">
+                    <h3 style="color: var(--neon-cyan); border-bottom: 1px solid var(--neon-cyan); padding-bottom: 5px;">
+                        SYSTEM INSTRUCTIONS
+                    </h3>
+                    <div style="color: var(--text); line-height: 1.6; padding: 15px; background: rgba(0, 255, 157, 0.05); border-radius: 5px;">
+                        <p><span style="color: var(--neon-green);">>></span> Guess the 4-digit secret code (digits 0-8)</p>
+                        <p><span style="color: var(--neon-green);">>></span> "Well placed" = correct digit in correct position</p>
+                        <p><span style="color: var(--neon-green);">>></span> "Misplaced" = correct digit in wrong position</p>
+                        <p><span style="color: var(--neon-green);">>></span> You have 10 attempts to crack the code</p>
+                        <p><span style="color: var(--neon-magenta);">>></span> Use "SET SECRET" to define your own code</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load WebAssembly Module -->
+    <script type="module" src="public/mastermind_wasm.js"></script>
+    <script type="module" src="mastermind_ui.js"></script>
+</body>
+</html>

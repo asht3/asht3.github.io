@@ -9,12 +9,12 @@ export const chip8App = {
                     <!-- <button id="chip8-pause" class="cyber-button">PAUSE</button> -->
                     <select id="chip8-rom-select" class="cyber-select">
                         <option value="">Select ROM...</option>
-                        <option value="Pong (1 player)">Pong</option>
-                        <option value="Space Invaders [David Winter]">Space Invaders</option>
                         <option value="1-chip8-logo">Chip 8 Logo</option>
-                        <option value="br8kout">Breakout</option>
                         <option value="2-ibm-logo">IBM Logo</option>
+                        <option value="Pong (1 player)">Pong</option>
+                        <option value="Breakout (Brix hack) [David Winter, 1997]">Breakout</option>
                         <option value="Tetris [Fran Dachille, 1991]">Tetris</option>
+                        <option value="Rocket [Joseph Weisbecker, 1978]">Rocket</option>
                     </select>
                 </div>
             </div>

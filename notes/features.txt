@@ -1,0 +1,38 @@
+Features:
+    Modular code structure with separate files for different components
+
+    Resizable, draggable windows with proper z-index management
+
+    Cyberpunk aesthetic with neon colors, glows, and appropriate fonts
+
+    Pre-opened summary window on load
+
+    Functional music player with synthwave/cyberpunk sounds
+
+    Interactive taskbar with app management
+
+    Glitch effects for immersion
+
+    Responsive design considerations
+
+PLANS TO ADD:
+
+- vpn symbol?
+- terminal app style widgets
+- a "chatbot" ordis the robo dog that gives helpful tips and guides
+- instructional guide app
+- weather, sunset/sunrise, tide, moon info. either via widget or ordis
+- ordis as a widget? tamogotchi style
+- "terminal" for project demos
+- clicking on the start menu should open a window, maybe this will reveal a help/guide?
+- System Info - Display portfolio stats, visitor counter, performance metrics for start button
+ OR start button replaced by TERMINAL button?
+
+
+Toggle Button: Screen icon in system tray to toggle background effect
+
+Performance Mode: Disables binary rain animation completely to save resources
+
+Static Wallpaper: Beautiful cyberpunk gradient background as fallback
+
+Visual Feedback: Toggle button changes appearance when disable
